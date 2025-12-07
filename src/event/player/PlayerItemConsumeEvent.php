@@ -34,6 +34,8 @@ use pocketmine\player\Player;
 class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable{
 	use CancellableTrait;
 
+	private ?Item $residue = null;
+
 	public function __construct(
 		Player $player,
 		private Item $item
@@ -43,5 +45,14 @@ class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable{
 
 	public function getItem() : Item{
 		return clone $this->item;
+	}
+
+	public function getResidue() : ?Item{
+		return $this->residue === null ? null : clone $this->residue;
+	}
+
+	/** Allows overriding the residue item (or null to remove residue) */
+	public function setResidue(?Item $item) : void{
+		$this->residue = $item? clone $item : null;
 	}
 }

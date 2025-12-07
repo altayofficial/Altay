@@ -1727,6 +1727,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$oldItem = clone $slot;
 
 			$ev = new PlayerItemConsumeEvent($this, $slot);
+			$ev->setResidue($slot->getResidue());
 			if($this->hasItemCooldown($slot)){
 				$ev->cancel();
 			}
@@ -1740,7 +1741,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$this->resetItemCooldown($oldItem);
 
 			$slot->pop();
-			$this->returnItemsFromAction($oldItem, $slot, [$slot->getResidue()]);
+			$this->returnItemsFromAction($oldItem, $slot, [$ev->getResidue()]);
 
 			return true;
 		}

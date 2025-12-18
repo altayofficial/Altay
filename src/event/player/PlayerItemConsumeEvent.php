@@ -51,6 +51,9 @@ class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable{
 	}
 
 	/**
+	 * Returns the leftover items returned to the player after consuming the item.
+	 * For example, glass bottles for potions, bowls for beetroot soup, etc.
+	 *
 	 * @return Item[]
 	 */
 	public function getResidue() : array{
@@ -58,7 +61,7 @@ class PlayerItemConsumeEvent extends PlayerEvent implements Cancellable{
 	}
 
 	/**
-	 * Allows overriding the residue items returned after consumption.
+	 * Sets the items returned to the player after consuming the item.
 	 *
 	 * @param Item[] $items
 	 */

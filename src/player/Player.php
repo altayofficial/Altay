@@ -1726,7 +1726,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if($slot instanceof ConsumableItem){
 			$oldItem = clone $slot;
 
-			$ev = new PlayerItemConsumeEvent($this, $slot, [$slot->getResidue()]);
+			$residue = $slot->getResidue();
+			$ev = new PlayerItemConsumeEvent($this, $slot, $residue->isNull() ? [] : [$residue]);
 			if($this->hasItemCooldown($slot)){
 				$ev->cancel();
 			}

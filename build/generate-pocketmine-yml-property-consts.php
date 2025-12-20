@@ -57,11 +57,20 @@ function collectProperties(string $prefix, array $properties, array &$constants)
 collectProperties("", $defaultConfig, $constants);
 ksort($constants, SORT_STRING);
 
-$file = fopen(dirname(__DIR__) . '/src/YmlServerProperties.php', 'wb');
-if($file === false){
-	fwrite(STDERR, "Failed to open output file\n");
-	exit(1);
+/** @return resource */
+function safe_fopen(string $file, string $flags){
+	$dir = dirname($file);
+	if(!@mkdir($dir, recursive: true) && !is_dir($dir)){
+		throw new \RuntimeException("Couldn't create directory: $dir");
+	}
+	$result = fopen($file, $flags);
+	if($result === false){
+		throw new \RuntimeException("Failed to open file: $file");
+	}
+	return $result;
 }
+
+$file = safe_fopen(dirname(__DIR__) . '/generated/YmlServerProperties.php', 'wb');
 fwrite($file, "<?php\n");
 fwrite($file, <<<'HEADER'
 

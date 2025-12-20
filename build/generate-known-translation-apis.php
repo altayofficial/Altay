@@ -31,13 +31,11 @@ use function array_map;
 use function count;
 use function dirname;
 use function fclose;
-use function file_put_contents;
 use function fopen;
 use function fwrite;
 use function implode;
 use function is_numeric;
 use function ksort;
-use function ob_get_clean;
 use function ob_start;
 use function parse_ini_file;
 use function preg_last_error_msg;
@@ -59,6 +57,19 @@ function constantify(string $permissionName) : string{
 
 function functionify(string $permissionName) : string{
 	return str_replace([".", "-"], "_", $permissionName);
+}
+
+/** @return resource */
+function safe_fopen(string $file, string $flags){
+	$dir = dirname($file);
+	if(!@mkdir($dir, recursive: true) && !is_dir($dir)){
+		throw new \RuntimeException("Couldn't create directory: $dir");
+	}
+	$result = fopen($file, $flags);
+	if($result === false){
+		throw new \RuntimeException("Failed to open file: $file");
+	}
+	return $result;
 }
 
 const SHARED_HEADER = <<<'HEADER'
@@ -95,10 +106,10 @@ HEADER;
  * @phpstan-param array<string, string> $languageDefinitions
  */
 function generate_known_translation_keys(array $languageDefinitions) : void{
-	ob_start();
+	$file = safe_fopen(dirname(__DIR__) . '/generated/lang/KnownTranslationKeys.php', 'wb');
 
-	echo SHARED_HEADER;
-	echo <<<'HEADER'
+	fwrite($file, SHARED_HEADER);
+	fwrite($file, <<<'HEADER'
 /**
  * This class contains constants for all the translations known to PocketMine-MP as per the used version of pmmp/Language.
  * This class is generated automatically, do NOT modify it by hand.
@@ -107,18 +118,15 @@ function generate_known_translation_keys(array $languageDefinitions) : void{
  */
 final class KnownTranslationKeys{
 
-HEADER;
+HEADER);
 
 	ksort($languageDefinitions, SORT_STRING);
 	foreach(Utils::stringifyKeys($languageDefinitions) as $k => $_){
-		echo "\tpublic const ";
-		echo constantify($k);
-		echo " = \"" . $k . "\";\n";
+		fwrite($file, "\tpublic const " . constantify($k) . " = \"" . $k . "\";\n");
 	}
 
-	echo "}\n";
-
-	file_put_contents(dirname(__DIR__) . '/src/lang/KnownTranslationKeys.php', ob_get_clean());
+	fwrite($file, "}\n");
+	fclose($file);
 
 	echo "Done generating KnownTranslationKeys.\n";
 }
@@ -128,11 +136,7 @@ HEADER;
  * @phpstan-param array<string, string> $languageDefinitions
  */
 function generate_known_translation_parameter_info(array $languageDefinitions) : void{
-	$file = fopen(dirname(__DIR__) . '/src/lang/KnownTranslationParameterInfo.php', 'wb');
-	if($file === false){
-		fwrite(STDERR, "Unable to open KnownTranslationParameterInfo file\n");
-		exit(1);
-	}
+	$file = safe_fopen(dirname(__DIR__) . '/generated/lang/KnownTranslationParameterInfo.php', 'wb');
 
 	fwrite($file, SHARED_HEADER);
 	fwrite($file, <<<'HEADER'
@@ -173,10 +177,11 @@ HEADER);
  * @phpstan-param array<string, string> $languageDefinitions
  */
 function generate_known_translation_factory(array $languageDefinitions) : void{
+	$file = safe_fopen(dirname(__DIR__) . '/generated/lang/KnownTranslationFactory.php', 'wb');
 	ob_start();
 
-	echo SHARED_HEADER;
-	echo <<<'HEADER'
+	fwrite($file, SHARED_HEADER);
+	fwrite($file, <<<'HEADER'
 /**
  * This class contains factory methods for all the translations known to PocketMine-MP as per the used version of
  * pmmp/Language.
@@ -186,7 +191,7 @@ function generate_known_translation_factory(array $languageDefinitions) : void{
  */
 final class KnownTranslationFactory{
 
-HEADER;
+HEADER);
 	ksort($languageDefinitions, SORT_STRING);
 
 	$parameterRegex = PARAMETER_REGEX;
@@ -208,28 +213,22 @@ HEADER;
 		if($allParametersPositional){
 			ksort($parameters, SORT_NUMERIC);
 		}
-		echo "\tpublic static function " .
+		fwrite($file, "\tpublic static function " .
 			functionify($key) .
-			"(" . implode(", ", array_map(fn(string $paramName) => "$translationContainerClass|string \$$paramName", $parameters)) . ") : $translationContainerClass{\n";
-		echo "\t\treturn new $translationContainerClass(KnownTranslationKeys::" . constantify($key) . ", [";
+			"(" . implode(", ", array_map(fn(string $paramName) => "$translationContainerClass|string \$$paramName", $parameters)) . ") : $translationContainerClass{\n");
+		fwrite($file, "\t\treturn new $translationContainerClass(KnownTranslationKeys::" . constantify($key) . ", [");
 		foreach($parameters as $parameterKey => $parameterName){
-			echo "\n\t\t\t";
-			if(!is_numeric($parameterKey)){
-				echo "\"$parameterKey\"";
-			}else{
-				echo $parameterKey;
-			}
-			echo " => \$$parameterName,";
+			fwrite($file, "\n\t\t\t" . (is_numeric($parameterKey) ? $parameterKey : "\"$parameterKey\"") . " => \$$parameterName,");
 		}
 		if(count($parameters) !== 0){
-			echo "\n\t\t";
+			fwrite($file, "\n\t\t");
 		}
-		echo "]);\n\t}\n\n";
+		fwrite($file, "]);\n\t}\n\n");
 	}
 
-	echo "}\n";
+	fwrite($file, "}\n");
 
-	file_put_contents(dirname(__DIR__) . '/src/lang/KnownTranslationFactory.php', ob_get_clean());
+	fclose($file);
 
 	echo "Done generating KnownTranslationFactory.\n";
 }

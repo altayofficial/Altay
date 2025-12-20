@@ -131,6 +131,10 @@ function processFile(string $file) : void{
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
+fwrite(STDERR, "DEPRECATED: Consider using the newer RegistrySource and generate-registry-interface.php instead" . PHP_EOL);
+fwrite(STDERR, "The newer approach allows generating actual code, which is substantially faster and more robust than the __callStatic magic used by RegistryTrait" . PHP_EOL);
+sleep(5);
+
 if(is_dir($argv[1])){
 	/** @var string $file */
 	foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($argv[1], \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME)) as $file){

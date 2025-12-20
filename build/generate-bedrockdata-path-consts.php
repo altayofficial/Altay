@@ -78,9 +78,15 @@ foreach($files as $file){
 	$consts[] = $file;
 }
 
-$output = fopen(dirname(__DIR__) . '/src/data/bedrock/BedrockDataFiles.php', 'wb');
+$path = dirname(__DIR__) . '/generated/data/bedrock/BedrockDataFiles.php';
+$dir = dirname($path);
+if(!@mkdir($dir, recursive: true) && !is_dir($dir)){
+	fwrite(STDERR, "Couldn't create directory: $dir" . PHP_EOL);
+	exit(1);
+}
+$output = fopen($path, 'wb');
 if($output === false){
-	fwrite(STDERR, "Couldn't open output file" . PHP_EOL);
+	fwrite(STDERR, "Couldn't open output file: $path" . PHP_EOL);
 	exit(1);
 }
 fwrite($output, <<<'HEADER'

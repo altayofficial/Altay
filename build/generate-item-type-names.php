@@ -46,6 +46,19 @@ function constifyMcId(string $id) : string{
 	return strtoupper(explode(":", $id, 2)[1]);
 }
 
+/** @return resource */
+function safe_fopen(string $file, string $flags){
+	$dir = dirname($file);
+	if(!@mkdir($dir, recursive: true) && !is_dir($dir)){
+		throw new \RuntimeException("Couldn't create directory: $dir");
+	}
+	$result = fopen($file, $flags);
+	if($result === false){
+		throw new \RuntimeException("Failed to open file: $file");
+	}
+	return $result;
+}
+
 function generateItemIds(ItemTypeDictionary $dictionary, BlockItemIdMap $blockItemIdMap) : void{
 	$ids = [];
 	foreach($dictionary->getEntries() as $entry){
@@ -56,7 +69,7 @@ function generateItemIds(ItemTypeDictionary $dictionary, BlockItemIdMap $blockIt
 	}
 	asort($ids, SORT_STRING);
 
-	$file = ErrorToExceptionHandler::trapAndRemoveFalse(fn() => fopen(dirname(__DIR__) . '/src/data/bedrock/item/ItemTypeNames.php', 'wb'));
+	$file = safe_fopen(dirname(__DIR__) . '/generated/data/bedrock/item/ItemTypeNames.php', 'wb');
 
 	fwrite($file, <<<'HEADER'
 <?php

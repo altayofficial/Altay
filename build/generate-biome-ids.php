@@ -70,9 +70,13 @@ HEADER;
 
 /** @return resource */
 function safe_fopen(string $file, string $flags){
+	$dir = dirname($file);
+	if(!@mkdir($dir, recursive: true) && !is_dir($dir)){
+		throw new \RuntimeException("Couldn't create directory: $dir");
+	}
 	$result = fopen($file, $flags);
 	if($result === false){
-		throw new \RuntimeException("Failed to open file");
+		throw new \RuntimeException("Failed to open file: $file");
 	}
 	return $result;
 }
@@ -128,6 +132,6 @@ foreach(Utils::promoteKeys($ids) as $name => $id){
 	}
 	$cleanedIds[$name] = $id;
 }
-generate($cleanedIds, dirname(__DIR__) . '/src/data/bedrock/BiomeIds.php');
+generate($cleanedIds, dirname(__DIR__) . '/generated/data/bedrock/BiomeIds.php');
 
 echo "Done. Don't forget to run CS fixup after generating code.\n";

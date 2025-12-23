@@ -957,4 +957,4 @@ function main(array $argv) : int{
 	return $callback($argv);
 }
 
-exit(main($argv));
+exit(main($argv ?? []));

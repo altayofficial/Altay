@@ -28,6 +28,7 @@ use pmmp\encoding\Byte;
 use pmmp\encoding\ByteBufferReader;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\Utils;
+use function assert;
 use function base64_decode;
 use function base64_encode;
 use function bin2hex;

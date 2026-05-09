@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "48b59dabeb4bc0fe2f14251bc9969ed8",
+    "content-hash": "27ffe65161b3ef11d491030cc543a5af",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -256,16 +256,16 @@
         },
         {
             "name": "pocketmine/bedrock-protocol",
-            "version": "57.0.0+bedrock-1.26.20",
+            "version": "57.1.0+bedrock-1.26.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/pmmp/BedrockProtocol.git",
-                "reference": "e56263fe5a49cc424d90997fcc51e29238cf664e"
+                "reference": "b38ef7d8a87651d8b253645196fac97b6825cb98"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/BedrockProtocol/zipball/e56263fe5a49cc424d90997fcc51e29238cf664e",
-                "reference": "e56263fe5a49cc424d90997fcc51e29238cf664e",
+                "url": "https://api.github.com/repos/pmmp/BedrockProtocol/zipball/b38ef7d8a87651d8b253645196fac97b6825cb98",
+                "reference": "b38ef7d8a87651d8b253645196fac97b6825cb98",
                 "shasum": ""
             },
             "require": {
@@ -297,9 +297,9 @@
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
                 "issues": "https://github.com/pmmp/BedrockProtocol/issues",
-                "source": "https://github.com/pmmp/BedrockProtocol/tree/57.0.0+bedrock-1.26.20"
+                "source": "https://github.com/pmmp/BedrockProtocol/tree/57.1.0+bedrock-1.26.20"
             },
-            "time": "2026-05-09T15:08:28+00:00"
+            "time": "2026-05-09T17:13:12+00:00"
         },
         {
             "name": "pocketmine/binaryutils",

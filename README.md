@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-	<a href="https://github.com/ZenithPE/Zenith/actions/workflows/main.yml"><img src="https://github.com/ZenithPE/Zenith/actions/workflows/main.yml/badge.svg" alt="CI" /></a>
+	<a href="https://github.com/ZenithPE/Zenith/actions/workflows/ci.yml"><img src="https://github.com/ZenithPE/Zenith/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
 	<a href="https://github.com/ZenithPE/Zenith/releases/latest"><img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/ZenithPE/Zenith?label=release&sort=semver"></a>
 	<a href="https://discord.gg/KMBEyFz2SP"><img src="https://img.shields.io/discord/1506264688097493134?label=discord&color=7289DA&logo=discord" alt="Discord" /></a>
 	<br>

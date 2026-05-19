@@ -74,7 +74,7 @@ function buildPhar(string $pharPath, string $basePath, array $includedPaths, arr
 		yield "Phar file already exists, overwriting...";
 		try{
 			\Phar::unlinkArchive($pharPath);
-		}catch(\PharException $e){
+		}catch(\PharException){
 			//unlinkArchive() doesn't like dodgy phars
 			unlink($pharPath);
 		}
@@ -157,7 +157,7 @@ function main() : void{
 		}
 		$pharPath = $opts["out"];
 	}else{
-		$pharPath = getcwd() . DIRECTORY_SEPARATOR . "PocketMine-MP.phar";
+		$pharPath = getcwd() . DIRECTORY_SEPARATOR . "Zenith.phar";
 	}
 	foreach(buildPhar(
 		$pharPath,

@@ -161,7 +161,6 @@ function preparePharCache(string $tmpPath, string $pharPath) : string{
 
 $tmpDir = preparePharCacheDirectory();
 cleanupPharCache($tmpDir);
-echo "Preparing PocketMine-MP.phar decompressed cache...\n";
 $start = hrtime(true);
 $cacheName = preparePharCache($tmpDir, __FILE__);
 echo "Cache ready at $cacheName in " . number_format((hrtime(true) - $start) / 1e9, 2) . "s\n";

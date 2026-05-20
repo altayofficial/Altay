@@ -97,6 +97,7 @@ use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\network\mcpe\protocol\types\command\CommandPermissions;
 use pocketmine\network\mcpe\protocol\types\CompressionAlgorithm;
 use pocketmine\network\mcpe\protocol\types\DimensionIds;
+use pocketmine\network\mcpe\protocol\types\DisconnectReason;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
@@ -151,6 +152,8 @@ class NetworkSession{
 	private const INCOMING_GAME_PACKETS_BUFFER_TICKS = 100;
 
 	private const INCOMING_PACKET_BATCH_HARD_LIMIT = 300;
+
+	private const LOGIN_TIMEOUT_SECONDS = 10;
 
 	private PacketRateLimiter $packetBatchLimiter;
 	private PacketRateLimiter $gamePacketLimiter;
@@ -821,13 +824,13 @@ class NetworkSession{
 		$this->invManager = null;
 	}
 
-	private function sendDisconnectPacket(Translatable|string $message) : void{
+	private function sendDisconnectPacket(Translatable|string $message, DisconnectReason $reason = DisconnectReason::UNKNOWN) : void{
 		if($message instanceof Translatable){
 			$translated = $this->server->getLanguage()->translate($message);
 		}else{
 			$translated = $message;
 		}
-		$this->sendDataPacket(DisconnectPacket::create(0, $translated, ""));
+		$this->sendDataPacket(DisconnectPacket::create($reason->value, $translated, ""));
 	}
 
 	/**
@@ -841,9 +844,7 @@ class NetworkSession{
 			if($notify){
 				$this->sendDisconnectPacket($disconnectScreenMessage ?? $reason);
 			}
-			if($this->player !== null){
-				$this->player->onPostDisconnect($reason, null);
-			}
+			$this->player?->onPostDisconnect($reason, null);
 		}, $reason);
 	}
 
@@ -1399,7 +1400,7 @@ class NetworkSession{
 		}
 
 		if($this->info === null){
-			if(time() >= $this->connectTime + 10){
+			if(time() >= $this->connectTime + self::LOGIN_TIMEOUT_SECONDS){
 				$this->disconnectWithError(KnownTranslationFactory::pocketmine_disconnect_error_loginTimeout());
 			}
 

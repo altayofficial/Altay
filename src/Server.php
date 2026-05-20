@@ -236,8 +236,6 @@ class Server {
 
 	private float $profilingTickRate = self::TARGET_TICKS_PER_SECOND;
 
-	private UpdateChecker $updater;
-
 	private AsyncPool $asyncPool;
 
 	/** Counts the ticks since the server start */
@@ -429,10 +427,6 @@ class Server {
 
 	public function getLogger() : AttachableThreadSafeLogger{
 		return $this->logger;
-	}
-
-	public function getUpdater() : UpdateChecker{
-		return $this->updater;
 	}
 
 	public function getPluginManager() : PluginManager{
@@ -1047,8 +1041,6 @@ class Server {
 			$this->worldManager = new WorldManager($this, Path::join($this->dataPath, "worlds"), $providerManager);
 			$this->worldManager->setAutoSave($this->configGroup->getConfigBool(ServerProperties::AUTO_SAVE, $this->worldManager->getAutoSave()));
 			$this->worldManager->setAutoSaveInterval($this->configGroup->getPropertyInt(Yml::TICKS_PER_AUTOSAVE, $this->worldManager->getAutoSaveInterval()));
-
-			$this->updater = new UpdateChecker($this, $this->configGroup->getPropertyString(Yml::AUTO_UPDATER_HOST, "update.pmmp.io"));
 
 			$this->queryInfo = new QueryInfo($this);
 

@@ -116,11 +116,12 @@ class PreSpawnPacketHandler extends PacketHandler{
 				Uuid::fromString(Uuid::NIL),
 				false,
 				false,
+				false,
 				new NetworkPermissions(disableClientSounds: true),
 				null,
 				new ServerTelemetryData("", "", "", ""),
 				[],
-				0,
+				0
 			));
 
 			$this->session->getLogger()->debug("Sending items");

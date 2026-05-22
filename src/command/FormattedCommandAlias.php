@@ -39,8 +39,8 @@ use function substr;
 
 /**
  * @internal
- * Used to register commands defined in the `aliases` section of pocketmine.yml.
- * See the comments in resources/pocketmine.yml in the `aliases` section for configuration instructions and examples.
+ * Used to register commands defined in the `aliases` section of zenith.yml.
+ * See the comments in resources/zenith.yml in the `aliases` section for configuration instructions and examples.
  */
 class FormattedCommandAlias extends Command{
 	/**

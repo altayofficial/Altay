@@ -902,12 +902,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ZenithPE/BedrockProtocol.git",
-                "reference": "f635ac7de717b0c15ab099c87c44ab1ceef50753"
+                "reference": "acc083b08cbb28345058de0b6e217349846dd5a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ZenithPE/BedrockProtocol/zipball/f635ac7de717b0c15ab099c87c44ab1ceef50753",
-                "reference": "f635ac7de717b0c15ab099c87c44ab1ceef50753",
+                "url": "https://api.github.com/repos/ZenithPE/BedrockProtocol/zipball/acc083b08cbb28345058de0b6e217349846dd5a0",
+                "reference": "acc083b08cbb28345058de0b6e217349846dd5a0",
                 "shasum": ""
             },
             "require": {
@@ -950,7 +950,7 @@
             "support": {
                 "source": "https://github.com/ZenithPE/BedrockProtocol/tree/master"
             },
-            "time": "2026-05-19T17:52:04+00:00"
+            "time": "2026-05-19T18:58:47+00:00"
         }
     ],
     "packages-dev": [

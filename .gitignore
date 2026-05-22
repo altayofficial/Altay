@@ -11,7 +11,7 @@ crashdumps/*
 *.txt
 *.phar
 server.properties
-/pocketmine.yml
+/zenith.yml
 memory_dumps/*
 resource_packs/
 server.lock

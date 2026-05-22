@@ -66,7 +66,7 @@ class CommandBlock extends Spawnable{
 
 		$world = $this->position->getWorld();
 		$server = $world->getServer();
-		$sender = new CommandBlockSender($server, empty($this->customName) ? "!" : $this->customName);
+		$sender = new CommandBlockSender($server, $this->customName === "" ? "!" : $this->customName);
 
 		$success = $server->dispatchCommand($sender, $this->command);
 

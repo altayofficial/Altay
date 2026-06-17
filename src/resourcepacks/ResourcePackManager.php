@@ -32,6 +32,7 @@ use function array_keys;
 use function copy;
 use function count;
 use function file_exists;
+use function filter_var;
 use function gettype;
 use function is_array;
 use function is_dir;
@@ -39,10 +40,13 @@ use function is_float;
 use function is_int;
 use function is_string;
 use function mkdir;
+use function parse_url;
 use function rtrim;
 use function strlen;
 use function strtolower;
 use const DIRECTORY_SEPARATOR;
+use const FILTER_VALIDATE_URL;
+use const PHP_URL_SCHEME;
 
 class ResourcePackManager{
 	private string $path;
@@ -65,6 +69,12 @@ class ResourcePackManager{
 	 * @phpstan-var array<string, string>
 	 */
 	private array $encryptionKeys = [];
+
+	/**
+	 * @var string[]
+	 * @phpstan-var array<string, string>
+	 */
+	private array $cdnUrls = [];
 
 	/**
 	 * @param string $path Path to resource-packs directory.
@@ -95,6 +105,25 @@ class ResourcePackManager{
 			throw new \InvalidArgumentException("\"resource_stack\" key should contain a list of pack names");
 		}
 
+		$cdnUrlsConfig = $resourcePacksConfig->get("cdn_urls", []);
+		if(!is_array($cdnUrlsConfig)){
+			throw new \InvalidArgumentException("\"cdn_urls\" key should contain a map of pack names to URLs");
+		}
+		$configuredCdnUrls = [];
+		foreach(Utils::promoteKeys($cdnUrlsConfig) as $packName => $cdnUrl){
+			$packName = (string) $packName;
+			if(!is_string($cdnUrl)){
+				$logger->critical("Found invalid CDN URL for resource pack \"$packName\" of type " . gettype($cdnUrl));
+				continue;
+			}
+			try{
+				self::validateCdnUrl($cdnUrl);
+				$configuredCdnUrls[$packName] = $cdnUrl;
+			}catch(\InvalidArgumentException $e){
+				$logger->critical("Found invalid CDN URL for resource pack \"$packName\": " . $e->getMessage());
+			}
+		}
+
 		foreach(Utils::promoteKeys($resourceStack) as $pos => $pack){
 			if(!is_string($pack) && !is_int($pack) && !is_float($pack)){
 				$logger->critical("Found invalid entry in resource pack list at offset $pos of type " . gettype($pack));
@@ -112,6 +141,9 @@ class ResourcePackManager{
 				}
 				$this->uuidList[$index] = $newPack;
 				$this->resourcePacks[] = $newPack;
+				if(isset($configuredCdnUrls[$pack])){
+					$this->cdnUrls[$index] = $configuredCdnUrls[$pack];
+				}
 
 				$keyPath = Path::join($this->path, $pack . ".key");
 				if(file_exists($keyPath)){
@@ -151,6 +183,13 @@ class ResourcePackManager{
 		}
 
 		throw new ResourcePackException("Format not recognized");
+	}
+
+	private static function validateCdnUrl(string $url) : void{
+		$scheme = parse_url($url, PHP_URL_SCHEME);
+		if(!is_string($scheme) || (strtolower($scheme) !== "http" && strtolower($scheme) !== "https") || filter_var($url, FILTER_VALIDATE_URL) === false){
+			throw new \InvalidArgumentException("URL must be a valid HTTP or HTTPS URL");
+		}
 	}
 
 	/**
@@ -234,6 +273,13 @@ class ResourcePackManager{
 	}
 
 	/**
+	 * Returns the CDN URL for the specified resource pack, or null if the pack should be sent by the server.
+	 */
+	public function getPackCdnUrl(string $id) : ?string{
+		return $this->cdnUrls[strtolower($id)] ?? null;
+	}
+
+	/**
 	 * Sets the encryption key to use for decrypting the specified resource pack. The pack will **NOT** be decrypted by
 	 * PocketMine-MP; the key is simply passed to the client to allow it to decrypt the pack after downloading it.
 	 */
@@ -247,6 +293,21 @@ class ResourcePackManager{
 				throw new \InvalidArgumentException("Encryption key must be exactly 32 bytes long");
 			}
 			$this->encryptionKeys[$id] = $key;
+		}else{
+			throw new \InvalidArgumentException("Unknown pack ID $id");
+		}
+	}
+
+	/**
+	 * Sets the CDN URL clients may use to download the specified resource pack.
+	 */
+	public function setPackCdnUrl(string $id, ?string $url) : void{
+		$id = strtolower($id);
+		if($url === null){
+			unset($this->cdnUrls[$id]);
+		}elseif(isset($this->uuidList[$id])){
+			self::validateCdnUrl($url);
+			$this->cdnUrls[$id] = $url;
 		}else{
 			throw new \InvalidArgumentException("Unknown pack ID $id");
 		}

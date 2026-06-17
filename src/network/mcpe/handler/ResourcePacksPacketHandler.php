@@ -96,15 +96,18 @@ class ResourcePacksPacketHandler extends PacketHandler{
 	/**
 	 * @param ResourcePack[] $resourcePackStack
 	 * @param string[]       $encryptionKeys    pack UUID => key, leave unset for any packs that are not encrypted
+	 * @param string[]       $cdnUrls           pack UUID => URL, leave unset for packs sent by the server
 	 *
 	 * @phpstan-param list<ResourcePack>    $resourcePackStack
 	 * @phpstan-param array<string, string> $encryptionKeys
+	 * @phpstan-param array<string, string> $cdnUrls
 	 * @phpstan-param \Closure() : void     $completionCallback
 	 */
 	public function __construct(
 		private NetworkSession $session,
 		private array $resourcePackStack,
 		private array $encryptionKeys,
+		private array $cdnUrls,
 		private bool $mustAccept,
 		private \Closure $completionCallback
 	){
@@ -123,13 +126,14 @@ class ResourcePacksPacketHandler extends PacketHandler{
 			//TODO: more stuff
 
 			return new ResourcePackInfoEntry(
-				Uuid::fromString($pack->getPackId()),
-				$pack->getPackVersion(),
-				$pack->getPackSize(),
-				$this->encryptionKeys[$pack->getPackId()] ?? "",
-				"",
-				$pack->getPackId(),
-				false
+				packId: Uuid::fromString($pack->getPackId()),
+				version: $pack->getPackVersion(),
+				sizeBytes: $pack->getPackSize(),
+				encryptionKey: $this->encryptionKeys[$pack->getPackId()] ?? "",
+				subPackName: "",
+				contentId: $pack->getPackId(),
+				hasScripts: false,
+				cdnUrl: $this->cdnUrls[$pack->getPackId()] ?? ""
 			);
 		}, $this->resourcePackStack);
 		//TODO: support forcing server packs

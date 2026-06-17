@@ -26,6 +26,7 @@ namespace pocketmine\command\defaults;
 use pocketmine\command\Command;
 use pocketmine\command\CommandParameter;
 use pocketmine\command\CommandSender;
+use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\item\LegacyStringToItemParser;
 use pocketmine\item\LegacyStringToItemParserException;
 use pocketmine\item\StringToItemParser;
@@ -73,7 +74,10 @@ class GiveCommand extends VanillaCommand{
 			return;
 		}
 
-		$itemName = (string) ($args["itemName"] ?? "");
+		$itemName = $args["itemName"] ?? null;
+		if(!is_string($itemName)){
+			throw new InvalidCommandSyntaxException();
+		}
 		try{
 			$item = StringToItemParser::getInstance()->parse($itemName) ?? LegacyStringToItemParser::getInstance()->parse($itemName);
 		}catch(LegacyStringToItemParserException){
@@ -81,10 +85,17 @@ class GiveCommand extends VanillaCommand{
 			return;
 		}
 
-		$item->setCount(isset($args["amount"]) ? (int) $args["amount"] : $item->getMaxStackSize());
+		$amount = $args["amount"] ?? null;
+		if($amount !== null && !is_int($amount)){
+			throw new InvalidCommandSyntaxException();
+		}
+		$item->setCount($amount ?? $item->getMaxStackSize());
 
 		if(isset($args["tags"])){
-			$rawTags = (string) $args["tags"];
+			$rawTags = $args["tags"];
+			if(!is_string($rawTags)){
+				throw new InvalidCommandSyntaxException();
+			}
 			try{
 				$tags = JsonNbtParser::parseJson($rawTags);
 			}catch(NbtDataException $e){

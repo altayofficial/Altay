@@ -26,6 +26,7 @@ namespace pocketmine\network\mcpe\handler;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\cache\CraftingDataCache;
 use pocketmine\network\mcpe\cache\StaticPacketCache;
+use pocketmine\network\mcpe\cache\voxel\VoxelShapeFactory;
 use pocketmine\network\mcpe\InventoryManager;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\ItemRegistryPacket;
@@ -43,7 +44,6 @@ use pocketmine\network\mcpe\protocol\types\NetworkPermissions;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
 use pocketmine\network\mcpe\protocol\types\ServerTelemetryData;
 use pocketmine\network\mcpe\protocol\types\SpawnSettings;
-use pocketmine\network\mcpe\protocol\VoxelShapesPacket;
 use pocketmine\player\Player;
 use pocketmine\Server;
 use pocketmine\timings\Timings;
@@ -73,7 +73,7 @@ class PreSpawnPacketHandler extends PacketHandler{
 			$typeConverter = $this->session->getTypeConverter();
 
 			$this->session->getLogger()->debug("Preparing VoxelShapesPacket");
-			$this->session->sendDataPacket(VoxelShapesPacket::create([], [], 0), true); // TODO: Voxel shapes support
+			$this->session->sendDataPacket(VoxelShapeFactory::getInstance()->getPacket(), true);
 
 			$this->session->getLogger()->debug("Preparing StartGamePacket");
 			$levelSettings = new LevelSettings();

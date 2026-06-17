@@ -182,9 +182,9 @@ final class VanillaBlocksInputs extends RegistrySource{
 
 		$chestBreakInfo = new Info(BreakInfo::axe(2.5));
 		self::register("chest", fn(BID $id) => new Chest($id, "Chest", $chestBreakInfo), TileChest::class);
-		self::register("command_block", fn(BID $id) => new CommandBlock($id, "Command Block", new Info(BreakInfo::indestructible())), TileCommandBlock::class);
-		self::register("chain_command_block", fn(BID $id) => new CommandBlock($id, "Chain Command Block", new Info(BreakInfo::indestructible())), TileCommandBlock::class);
-		self::register("repeating_command_block", fn(BID $id) => new CommandBlock($id, "Repeating Command Block", new Info(BreakInfo::indestructible())), TileCommandBlock::class);
+		self::register("command_block", fn(BID $id) => new CommandBlock($id, "Command Block", new Info(BreakInfo::indestructible(18000000.0))), TileCommandBlock::class);
+		self::register("chain_command_block", fn(BID $id) => new CommandBlock($id, "Chain Command Block", new Info(BreakInfo::indestructible(18000000.0))), TileCommandBlock::class);
+		self::register("repeating_command_block", fn(BID $id) => new CommandBlock($id, "Repeating Command Block", new Info(BreakInfo::indestructible(18000000.0))), TileCommandBlock::class);
 		self::register("clay", fn(BID $id) => new Clay($id, "Clay Block", new Info(BreakInfo::shovel(0.6))));
 		self::register("coal", fn(BID $id) => new Coal($id, "Coal Block", new Info(BreakInfo::pickaxe(5.0, ToolTier::WOOD, 30.0))));
 

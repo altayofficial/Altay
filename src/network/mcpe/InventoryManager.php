@@ -240,6 +240,13 @@ class InventoryManager{
 		$this->addPredictedSlotChangeInternal($inventory, $slot, $itemStack);
 	}
 
+	public function discardPredictedSlotChange(Inventory $inventory, int $slot) : void{
+		$entry = $this->inventories[spl_object_id($inventory)] ?? null;
+		if($entry !== null){
+			unset($entry->predictions[$slot]);
+		}
+	}
+
 	public function addTransactionPredictedSlotChanges(InventoryTransaction $tx) : void{
 		foreach($tx->getActions() as $action){
 			if($action instanceof SlotChangeAction){

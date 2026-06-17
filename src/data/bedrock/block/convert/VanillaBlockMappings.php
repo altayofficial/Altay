@@ -182,6 +182,8 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::CHISELED_SANDSTONE(), Ids::CHISELED_SANDSTONE);
 		$reg->mapSimple(Blocks::CHISELED_STONE_BRICKS(), Ids::CHISELED_STONE_BRICKS);
 		$reg->mapSimple(Blocks::CHISELED_TUFF(), Ids::CHISELED_TUFF);
+		$reg->mapSimple(Blocks::CHISELED_SULFUR(), Ids::CHISELED_SULFUR);
+		$reg->mapSimple(Blocks::CHISELED_CINNABAR(), Ids::CHISELED_CINNABAR);
 		$reg->mapSimple(Blocks::CHISELED_TUFF_BRICKS(), Ids::CHISELED_TUFF_BRICKS);
 		$reg->mapSimple(Blocks::CHORUS_PLANT(), Ids::CHORUS_PLANT);
 		$reg->mapSimple(Blocks::CLAY(), Ids::CLAY);
@@ -408,6 +410,8 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::POLISHED_DIORITE(), Ids::POLISHED_DIORITE);
 		$reg->mapSimple(Blocks::POLISHED_GRANITE(), Ids::POLISHED_GRANITE);
 		$reg->mapSimple(Blocks::POLISHED_TUFF(), Ids::POLISHED_TUFF);
+		$reg->mapSimple(Blocks::POLISHED_SULFUR(), Ids::POLISHED_SULFUR);
+		$reg->mapSimple(Blocks::POLISHED_CINNABAR(), Ids::POLISHED_CINNABAR);
 		$reg->mapSimple(Blocks::PRISMARINE(), Ids::PRISMARINE);
 		$reg->mapSimple(Blocks::PRISMARINE_BRICKS(), Ids::PRISMARINE_BRICKS);
 		$reg->mapSimple(Blocks::QUARTZ_BRICKS(), Ids::QUARTZ_BRICKS);
@@ -442,6 +446,8 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::STONE(), Ids::STONE);
 		$reg->mapSimple(Blocks::STONE_BRICKS(), Ids::STONE_BRICKS);
 		$reg->mapSimple(Blocks::STRUCTURE_VOID(), Ids::STRUCTURE_VOID);
+		$reg->mapSimple(Blocks::SULFUR(), Ids::SULFUR);
+		$reg->mapSimple(Blocks::SULFUR_BRICKS(), Ids::SULFUR_BRICKS);
 		$reg->mapSimple(Blocks::TALL_GRASS(), Ids::SHORT_GRASS);  //no, this is not a typo - tall_grass is now the double block, just to be confusing :(
 		$reg->mapSimple(Blocks::TINTED_GLASS(), Ids::TINTED_GLASS);
 		$reg->mapSimple(Blocks::TORCHFLOWER(), Ids::TORCHFLOWER);
@@ -464,6 +470,8 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::WHITE_TULIP(), Ids::WHITE_TULIP);
 
 		$reg->mapSimple(Blocks::CACTUS_FLOWER(), Ids::CACTUS_FLOWER);
+		$reg->mapSimple(Blocks::CINNABAR(), Ids::CINNABAR);
+		$reg->mapSimple(Blocks::CINNABAR_BRICKS(), Ids::CINNABAR_BRICKS);
 		$reg->mapSimple(Blocks::CRIMSON_FUNGUS(), Ids::CRIMSON_FUNGUS);
 		$reg->mapSimple(Blocks::WARPED_FUNGUS(), Ids::WARPED_FUNGUS);
 		$reg->mapSimple(Blocks::NETHER_SPROUTS(), Ids::NETHER_SPROUTS);
@@ -900,6 +908,8 @@ final class VanillaBlockMappings{
 		$reg->mapSlab(Blocks::POLISHED_DIORITE_SLAB(), "polished_diorite");
 		$reg->mapSlab(Blocks::POLISHED_GRANITE_SLAB(), "polished_granite");
 		$reg->mapSlab(Blocks::POLISHED_TUFF_SLAB(), "polished_tuff");
+		$reg->mapSlab(Blocks::POLISHED_SULFUR_SLAB(), "polished_sulfur");
+		$reg->mapSlab(Blocks::POLISHED_CINNABAR_SLAB(), "polished_cinnabar");
 		$reg->mapSlab(Blocks::PRISMARINE_BRICKS_SLAB(), "prismarine_brick");
 		$reg->mapSlab(Blocks::PRISMARINE_SLAB(), "prismarine");
 		$reg->mapSlab(Blocks::PURPUR_SLAB(), "purpur");
@@ -916,6 +926,10 @@ final class VanillaBlockMappings{
 		$reg->mapSlab(Blocks::STONE_SLAB(), "normal_stone");
 		$reg->mapSlab(Blocks::TUFF_BRICK_SLAB(), "tuff_brick");
 		$reg->mapSlab(Blocks::TUFF_SLAB(), "tuff");
+		$reg->mapSlab(Blocks::SULFUR_SLAB(), "sulfur");
+		$reg->mapSlab(Blocks::SULFUR_BRICK_SLAB(), "sulfur_brick");
+		$reg->mapSlab(Blocks::CINNABAR_SLAB(), "cinnabar");
+		$reg->mapSlab(Blocks::CINNABAR_BRICK_SLAB(), "cinnabar_brick");
 	}
 
 	private static function registerStoneLikeStairMappings(BlockSerializerDeserializerRegistrar $reg) : void{
@@ -956,6 +970,12 @@ final class VanillaBlockMappings{
 		$reg->mapStairs(Blocks::STONE_STAIRS(), Ids::NORMAL_STONE_STAIRS);
 		$reg->mapStairs(Blocks::TUFF_BRICK_STAIRS(), Ids::TUFF_BRICK_STAIRS);
 		$reg->mapStairs(Blocks::TUFF_STAIRS(), Ids::TUFF_STAIRS);
+		$reg->mapStairs(Blocks::SULFUR_STAIRS(), Ids::SULFUR_STAIRS);
+		$reg->mapStairs(Blocks::SULFUR_BRICK_STAIRS(), Ids::SULFUR_BRICK_STAIRS);
+		$reg->mapStairs(Blocks::POLISHED_SULFUR_STAIRS(), Ids::POLISHED_SULFUR_STAIRS);
+		$reg->mapStairs(Blocks::CINNABAR_STAIRS(), Ids::CINNABAR_STAIRS);
+		$reg->mapStairs(Blocks::CINNABAR_BRICK_STAIRS(), Ids::CINNABAR_BRICK_STAIRS);
+		$reg->mapStairs(Blocks::POLISHED_CINNABAR_STAIRS(), Ids::POLISHED_CINNABAR_STAIRS);
 	}
 
 	private static function registerStoneLikeWallMappings(BlockSerializerDeserializerRegistrar $reg, CommonProperties $commonProperties) : void{
@@ -963,6 +983,8 @@ final class VanillaBlockMappings{
 			Ids::ANDESITE_WALL => Blocks::ANDESITE_WALL(),
 			Ids::BLACKSTONE_WALL => Blocks::BLACKSTONE_WALL(),
 			Ids::BRICK_WALL => Blocks::BRICK_WALL(),
+			Ids::CINNABAR_BRICK_WALL => Blocks::CINNABAR_BRICK_WALL(),
+			Ids::CINNABAR_WALL => Blocks::CINNABAR_WALL(),
 			Ids::COBBLED_DEEPSLATE_WALL => Blocks::COBBLED_DEEPSLATE_WALL(),
 			Ids::COBBLESTONE_WALL => Blocks::COBBLESTONE_WALL(),
 			Ids::DEEPSLATE_BRICK_WALL => Blocks::DEEPSLATE_BRICK_WALL(),
@@ -976,7 +998,9 @@ final class VanillaBlockMappings{
 			Ids::NETHER_BRICK_WALL => Blocks::NETHER_BRICK_WALL(),
 			Ids::POLISHED_BLACKSTONE_BRICK_WALL => Blocks::POLISHED_BLACKSTONE_BRICK_WALL(),
 			Ids::POLISHED_BLACKSTONE_WALL => Blocks::POLISHED_BLACKSTONE_WALL(),
+			Ids::POLISHED_CINNABAR_WALL => Blocks::POLISHED_CINNABAR_WALL(),
 			Ids::POLISHED_DEEPSLATE_WALL => Blocks::POLISHED_DEEPSLATE_WALL(),
+			Ids::POLISHED_SULFUR_WALL => Blocks::POLISHED_SULFUR_WALL(),
 			Ids::POLISHED_TUFF_WALL => Blocks::POLISHED_TUFF_WALL(),
 			Ids::PRISMARINE_WALL => Blocks::PRISMARINE_WALL(),
 			Ids::RED_NETHER_BRICK_WALL => Blocks::RED_NETHER_BRICK_WALL(),
@@ -984,6 +1008,8 @@ final class VanillaBlockMappings{
 			Ids::RESIN_BRICK_WALL => Blocks::RESIN_BRICK_WALL(),
 			Ids::SANDSTONE_WALL => Blocks::SANDSTONE_WALL(),
 			Ids::STONE_BRICK_WALL => Blocks::STONE_BRICK_WALL(),
+			Ids::SULFUR_BRICK_WALL => Blocks::SULFUR_BRICK_WALL(),
+			Ids::SULFUR_WALL => Blocks::SULFUR_WALL(),
 			Ids::TUFF_BRICK_WALL => Blocks::TUFF_BRICK_WALL(),
 			Ids::TUFF_WALL => Blocks::TUFF_WALL()
 		] as $id => $block){

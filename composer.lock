@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3be2ee8ccf4475df753d10f7a7a5baa4",
+    "content-hash": "45789daaaae67e9f3aca837e12df8e9f",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -896,16 +896,16 @@
         },
         {
             "name": "zenith/bedrock-protocol",
-            "version": "dev-bedrock-1.26.30",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ZenithPE/BedrockProtocol.git",
-                "reference": "5132c8383c86476149a3053b47aa483492e48c7a"
+                "reference": "217921758c908aab2517618b9458b709413a4246"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ZenithPE/BedrockProtocol/zipball/5132c8383c86476149a3053b47aa483492e48c7a",
-                "reference": "5132c8383c86476149a3053b47aa483492e48c7a",
+                "url": "https://api.github.com/repos/ZenithPE/BedrockProtocol/zipball/217921758c908aab2517618b9458b709413a4246",
+                "reference": "217921758c908aab2517618b9458b709413a4246",
                 "shasum": ""
             },
             "require": {
@@ -925,6 +925,7 @@
                 "phpstan/phpstan-strict-rules": "^2.0.0",
                 "phpunit/phpunit": "^9.5 || ^10.0 || ^11.0"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -946,9 +947,9 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/ZenithPE/BedrockProtocol/tree/bedrock-1.26.30"
+                "source": "https://github.com/ZenithPE/BedrockProtocol/tree/master"
             },
-            "time": "2026-05-22T11:33:51+00:00"
+            "time": "2026-06-17T19:39:58+00:00"
         }
     ],
     "packages-dev": [
@@ -2823,5 +2824,5 @@
     "platform-overrides": {
         "php": "8.1.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

@@ -624,6 +624,8 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::registerMudBlocks();
 		self::registerResinBlocks();
 		self::registerTuffBlocks();
+		self::registerSulfurBlocks();
+		self::registerCinnabarBlocks();
 
 		self::registerCraftingTables();
 		self::registerChorusBlocks();
@@ -1126,6 +1128,46 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("polished_tuff_slab", fn(BID $id) => new Slab($id, "Polished Tuff", $tuffBreakInfo));
 		self::register("polished_tuff_stairs", fn(BID $id) => new Stair($id, "Polished Tuff Stairs", $tuffBreakInfo));
 		self::register("polished_tuff_wall", fn(BID $id) => new Wall($id, "Polished Tuff Wall", $tuffBreakInfo));
+	}
+
+	private function registerSulfurBlocks() : void{
+		$sulfurBreakInfo = new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 30.0));
+
+		self::register("sulfur", fn(BID $id) => new Opaque($id, "Sulfur Block", $sulfurBreakInfo));
+		self::register("chiseled_sulfur", fn(BID $id) => new Opaque($id, "Chiseled Sulfur", $sulfurBreakInfo));
+		self::register("sulfur_slab", fn(BID $id) => new Slab($id, "Sulfur", $sulfurBreakInfo));
+		self::register("sulfur_stairs", fn(BID $id) => new Stair($id, "Sulfur Stairs", $sulfurBreakInfo));
+		self::register("sulfur_wall", fn(BID $id) => new Wall($id, "Sulfur Wall", $sulfurBreakInfo));
+
+		self::register("sulfur_bricks", fn(BID $id) => new Opaque($id, "Sulfur Bricks", $sulfurBreakInfo));
+		self::register("sulfur_brick_slab", fn(BID $id) => new Slab($id, "Sulfur Brick", $sulfurBreakInfo));
+		self::register("sulfur_brick_stairs", fn(BID $id) => new Stair($id, "Sulfur Brick Stairs", $sulfurBreakInfo));
+		self::register("sulfur_brick_wall", fn(BID $id) => new Wall($id, "Sulfur Brick Wall", $sulfurBreakInfo));
+
+		self::register("polished_sulfur", fn(BID $id) => new Opaque($id, "Polished Sulfur", $sulfurBreakInfo));
+		self::register("polished_sulfur_slab", fn(BID $id) => new Slab($id, "Polished Sulfur", $sulfurBreakInfo));
+		self::register("polished_sulfur_stairs", fn(BID $id) => new Stair($id, "Polished Sulfur Stairs", $sulfurBreakInfo));
+		self::register("polished_sulfur_wall", fn(BID $id) => new Wall($id, "Polished Sulfur Wall", $sulfurBreakInfo));
+	}
+
+	private function registerCinnabarBlocks() : void{
+		$cinnabarBreakInfo = new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 30.0));
+
+		self::register("cinnabar", fn(BID $id) => new Opaque($id, "Cinnabar Block", $cinnabarBreakInfo));
+		self::register("chiseled_cinnabar", fn(BID $id) => new Opaque($id, "Chiseled Cinnabar", $cinnabarBreakInfo));
+		self::register("cinnabar_slab", fn(BID $id) => new Slab($id, "Cinnabar", $cinnabarBreakInfo));
+		self::register("cinnabar_stairs", fn(BID $id) => new Stair($id, "Cinnabar Stairs", $cinnabarBreakInfo));
+		self::register("cinnabar_wall", fn(BID $id) => new Wall($id, "Cinnabar Wall", $cinnabarBreakInfo));
+
+		self::register("cinnabar_bricks", fn(BID $id) => new Opaque($id, "Cinnabar Bricks", $cinnabarBreakInfo));
+		self::register("cinnabar_brick_slab", fn(BID $id) => new Slab($id, "Cinnabar Brick", $cinnabarBreakInfo));
+		self::register("cinnabar_brick_stairs", fn(BID $id) => new Stair($id, "Cinnabar Brick Stairs", $cinnabarBreakInfo));
+		self::register("cinnabar_brick_wall", fn(BID $id) => new Wall($id, "Cinnabar Brick Wall", $cinnabarBreakInfo));
+
+		self::register("polished_cinnabar", fn(BID $id) => new Opaque($id, "Polished Cinnabar", $cinnabarBreakInfo));
+		self::register("polished_cinnabar_slab", fn(BID $id) => new Slab($id, "Polished Cinnabar", $cinnabarBreakInfo));
+		self::register("polished_cinnabar_stairs", fn(BID $id) => new Stair($id, "Polished Cinnabar Stairs", $cinnabarBreakInfo));
+		self::register("polished_cinnabar_wall", fn(BID $id) => new Wall($id, "Polished Cinnabar Wall", $cinnabarBreakInfo));
 	}
 
 	private function registerCauldronBlocks() : void{

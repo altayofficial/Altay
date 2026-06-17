@@ -1574,6 +1574,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("record_13", fn() => Items::RECORD_13());
 		$result->register("record_5", fn() => Items::RECORD_5());
 		$result->register("record_blocks", fn() => Items::RECORD_BLOCKS());
+		$result->register("record_bounce", fn() => Items::RECORD_BOUNCE());
 		$result->register("record_cat", fn() => Items::RECORD_CAT());
 		$result->register("record_chirp", fn() => Items::RECORD_CHIRP());
 		$result->register("record_creator", fn() => Items::RECORD_CREATOR());

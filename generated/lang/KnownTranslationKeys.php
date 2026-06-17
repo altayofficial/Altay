@@ -227,6 +227,7 @@ final class KnownTranslationKeys{
 	public const ITEM_RECORD_13_DESC = "item.record_13.desc";
 	public const ITEM_RECORD_5_DESC = "item.record_5.desc";
 	public const ITEM_RECORD_BLOCKS_DESC = "item.record_blocks.desc";
+	public const ITEM_RECORD_BOUNCE_DESC = "item.record_bounce.desc";
 	public const ITEM_RECORD_CAT_DESC = "item.record_cat.desc";
 	public const ITEM_RECORD_CHIRP_DESC = "item.record_chirp.desc";
 	public const ITEM_RECORD_CREATOR_DESC = "item.record_creator.desc";

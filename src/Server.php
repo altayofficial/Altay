@@ -100,7 +100,6 @@ use pocketmine\thread\ThreadCrashException;
 use pocketmine\thread\ThreadSafeClassLoader;
 use pocketmine\timings\Timings;
 use pocketmine\timings\TimingsHandler;
-use pocketmine\updater\UpdateChecker;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\BroadcastLoggerForwarder;
 use pocketmine\utils\Config;

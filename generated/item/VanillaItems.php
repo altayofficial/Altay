@@ -290,6 +290,7 @@ final class VanillaItems{
 	private static Record $_mRECORD_13;
 	private static Record $_mRECORD_5;
 	private static Record $_mRECORD_BLOCKS;
+	private static Record $_mRECORD_BOUNCE;
 	private static Record $_mRECORD_CAT;
 	private static Record $_mRECORD_CHIRP;
 	private static Record $_mRECORD_CREATOR;
@@ -648,6 +649,7 @@ final class VanillaItems{
 			"record_13" => fn(Record $v) => self::$_mRECORD_13 = $v,
 			"record_5" => fn(Record $v) => self::$_mRECORD_5 = $v,
 			"record_blocks" => fn(Record $v) => self::$_mRECORD_BLOCKS = $v,
+			"record_bounce" => fn(Record $v) => self::$_mRECORD_BOUNCE = $v,
 			"record_cat" => fn(Record $v) => self::$_mRECORD_CAT = $v,
 			"record_chirp" => fn(Record $v) => self::$_mRECORD_CHIRP = $v,
 			"record_creator" => fn(Record $v) => self::$_mRECORD_CREATOR = $v,
@@ -2016,6 +2018,11 @@ final class VanillaItems{
 	public static function RECORD_BLOCKS() : Record{
 		if(!isset(self::$_mRECORD_BLOCKS)){ self::init(); }
 		return clone self::$_mRECORD_BLOCKS;
+	}
+
+	public static function RECORD_BOUNCE() : Record{
+		if(!isset(self::$_mRECORD_BOUNCE)){ self::init(); }
+		return clone self::$_mRECORD_BOUNCE;
 	}
 
 	public static function RECORD_CAT() : Record{

@@ -270,15 +270,17 @@ class InventoryManager{
 				continue;
 			}
 
+			$windowId = $action->windowId ?? ContainerIds::INVENTORY;
+
 			//legacy transactions should not modify or predict anything other than these inventories, since these are
 			//the only ones accessible when not in-game (ItemStackRequest is used for everything else)
-			if(match($action->windowId){
+			if(match($windowId){
 				ContainerIds::INVENTORY, ContainerIds::OFFHAND, ContainerIds::ARMOR => false,
 				default => true
 			}){
-				throw new PacketHandlingException("Legacy transactions cannot predict changes to inventory with ID " . $action->windowId);
+				throw new PacketHandlingException("Legacy transactions cannot predict changes to inventory with ID " . $windowId);
 			}
-			$info = $this->locateWindowAndSlot($action->windowId, $action->inventorySlot);
+			$info = $this->locateWindowAndSlot($windowId, $action->inventorySlot);
 			if($info === null){
 				continue;
 			}

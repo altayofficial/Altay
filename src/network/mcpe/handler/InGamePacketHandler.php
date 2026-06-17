@@ -320,7 +320,12 @@ class InGamePacketHandler extends PacketHandler{
 	public function handleInventoryTransaction(InventoryTransactionPacket $packet) : bool{
 		$result = true;
 
-		if(count($packet->trData->getActions()) > 50){
+		$trData = $packet->trData;
+		if($trData === null){
+			throw new PacketHandlingException("Inventory transaction data is missing");
+		}
+
+		if(count($trData->getActions()) > 50){
 			throw new PacketHandlingException("Too many actions in inventory transaction");
 		}
 		if(count($packet->requestChangedSlots) > 10){
@@ -328,34 +333,34 @@ class InGamePacketHandler extends PacketHandler{
 		}
 
 		$this->inventoryManager->setCurrentItemStackRequestId($packet->requestId);
-		$this->inventoryManager->addRawPredictedSlotChanges($packet->trData->getActions());
+		$this->inventoryManager->addRawPredictedSlotChanges($trData->getActions());
 
-		if($packet->trData instanceof NormalTransactionData){
-			$result = $this->handleNormalTransaction($packet->trData, $packet->requestId);
-		}elseif($packet->trData instanceof MismatchTransactionData){
+		if($trData instanceof NormalTransactionData){
+			$result = $this->handleNormalTransaction($trData, $packet->requestId);
+		}elseif($trData instanceof MismatchTransactionData){
 			$this->session->getLogger()->debug("Mismatch transaction received");
 			$this->inventoryManager->requestSyncAll();
 			$result = true;
-		}elseif($packet->trData instanceof UseItemTransactionData){
-			$result = $this->handleUseItemTransaction($packet->trData);
+		}elseif($trData instanceof UseItemTransactionData){
+			$result = $this->handleUseItemTransaction($trData);
 			if($result && $this->player->isUsingItem()){
 				$this->discardHeldItemUsePredictions();
 			}
-		}elseif($packet->trData instanceof UseItemOnActorTransactionData){
-			$result = $this->handleUseItemOnEntityTransaction($packet->trData);
+		}elseif($trData instanceof UseItemOnActorTransactionData){
+			$result = $this->handleUseItemOnEntityTransaction($trData);
 			if($result && $this->player->isUsingItem()){
 				$this->discardHeldItemUsePredictions();
 			}
-		}elseif($packet->trData instanceof ReleaseItemTransactionData){
-			$result = $this->handleReleaseItemTransaction($packet->trData);
+		}elseif($trData instanceof ReleaseItemTransactionData){
+			$result = $this->handleReleaseItemTransaction($trData);
 			if($result){
 				$this->discardHeldItemUsePredictions();
 			}
 		}
 
-		if(!($packet->trData instanceof UseItemTransactionData && $result && $this->player->isUsingItem())
-			&& !($packet->trData instanceof ReleaseItemTransactionData && $result)
-			&& !($packet->trData instanceof UseItemOnActorTransactionData && $result && $this->player->isUsingItem())){
+		if(!($trData instanceof UseItemTransactionData && $result && $this->player->isUsingItem())
+			&& !($trData instanceof ReleaseItemTransactionData && $result)
+			&& !($trData instanceof UseItemOnActorTransactionData && $result && $this->player->isUsingItem())){
 			$this->inventoryManager->syncMismatchedPredictedSlotChanges();
 		}
 

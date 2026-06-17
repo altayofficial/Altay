@@ -287,6 +287,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("record_13", fn(IID $id) => new Record($id, RecordType::DISK_13, "Record 13"));
 		self::register("record_5", fn(IID $id) => new Record($id, RecordType::DISK_5, "Record 5"));
 		self::register("record_blocks", fn(IID $id) => new Record($id, RecordType::DISK_BLOCKS, "Record Blocks"));
+		self::register("record_bounce", fn(IID $id) => new Record($id, RecordType::DISK_BOUNCE, "Record Bounce"));
 		self::register("record_cat", fn(IID $id) => new Record($id, RecordType::DISK_CAT, "Record Cat"));
 		self::register("record_chirp", fn(IID $id) => new Record($id, RecordType::DISK_CHIRP, "Record Chirp"));
 		self::register("record_creator", fn(IID $id) => new Record($id, RecordType::DISK_CREATOR, "Record Creator"));

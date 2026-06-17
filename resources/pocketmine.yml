@@ -139,7 +139,7 @@ anonymous-statistics:
   host: stats.pocketmine.net
 
 auto-updater:
-  enabled: true
+  enabled: false #TODO: Automatic updates are not currently available for this fork of PocketMine-MP :/
   on-update:
     warn-console: true
   #Can be development, alpha, beta or stable.

@@ -230,6 +230,7 @@ final class KnownTranslationParameterInfo{
 		Keys::ITEM_RECORD_13_DESC => [],
 		Keys::ITEM_RECORD_5_DESC => [],
 		Keys::ITEM_RECORD_BLOCKS_DESC => [],
+		Keys::ITEM_RECORD_BOUNCE_DESC => [],
 		Keys::ITEM_RECORD_CAT_DESC => [],
 		Keys::ITEM_RECORD_CHIRP_DESC => [],
 		Keys::ITEM_RECORD_CREATOR_DESC => [],

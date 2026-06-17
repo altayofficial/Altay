@@ -325,6 +325,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::MUSIC_DISC_13, Items::RECORD_13());
 		$this->map1to1Item(Ids::MUSIC_DISC_5, Items::RECORD_5());
 		$this->map1to1Item(Ids::MUSIC_DISC_BLOCKS, Items::RECORD_BLOCKS());
+		$this->map1to1Item(Ids::MUSIC_DISC_BOUNCE, Items::RECORD_BOUNCE());
 		$this->map1to1Item(Ids::MUSIC_DISC_CAT, Items::RECORD_CAT());
 		$this->map1to1Item(Ids::MUSIC_DISC_CHIRP, Items::RECORD_CHIRP());
 		$this->map1to1Item(Ids::MUSIC_DISC_CREATOR, Items::RECORD_CREATOR());

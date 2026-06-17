@@ -37,6 +37,7 @@ use function spl_object_id;
  * @method static RecordType DISK_13()
  * @method static RecordType DISK_5()
  * @method static RecordType DISK_BLOCKS()
+ * @method static RecordType DISK_BOUNCE()
  * @method static RecordType DISK_CAT()
  * @method static RecordType DISK_CHIRP()
  * @method static RecordType DISK_FAR()
@@ -58,6 +59,7 @@ enum RecordType{
 	case DISK_5;
 	case DISK_CAT;
 	case DISK_BLOCKS;
+	case DISK_BOUNCE;
 	case DISK_CHIRP;
 	case DISK_CREATOR;
 	case DISK_CREATOR_MUSIC_BOX;
@@ -87,6 +89,7 @@ enum RecordType{
 			self::DISK_5 => ["Samuel Åberg - 5", LevelSoundEvent::RECORD_5, KnownTranslationFactory::item_record_5_desc()],
 			self::DISK_CAT => ["C418 - cat", LevelSoundEvent::RECORD_CAT, KnownTranslationFactory::item_record_cat_desc()],
 			self::DISK_BLOCKS => ["C418 - blocks", LevelSoundEvent::RECORD_BLOCKS, KnownTranslationFactory::item_record_blocks_desc()],
+			self::DISK_BOUNCE => ["fingerspit - Bounce", LevelSoundEvent::RECORD_BOUNCE, KnownTranslationFactory::item_record_bounce_desc()],
 			self::DISK_CHIRP => ["C418 - chirp", LevelSoundEvent::RECORD_CHIRP, KnownTranslationFactory::item_record_chirp_desc()],
 			self::DISK_CREATOR => ["Lena Raine - Creator", LevelSoundEvent::RECORD_CREATOR, KnownTranslationFactory::item_record_creator_desc()],
 			self::DISK_CREATOR_MUSIC_BOX => ["Lena Raine - Creator (Music Box)", LevelSoundEvent::RECORD_CREATOR_MUSIC_BOX, KnownTranslationFactory::item_record_creator_music_box_desc()],
@@ -110,7 +113,7 @@ enum RecordType{
 		return $this->getMetadata()[0];
 	}
 
-	public function getSoundId() : int{
+	public function getSoundId() : string{
 		return $this->getMetadata()[1];
 	}
 

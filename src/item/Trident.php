@@ -86,6 +86,10 @@ class Trident extends Tool implements Releasable{
 		return $this->damage < $this->getMaxDurability() - self::DAMAGE_ON_THROW;
 	}
 
+	public function getMinUseDuration() : int{
+		return 14;
+	}
+
 	public function onAttackEntity(Entity $victim, array &$returnedItems) : bool{
 		return $this->applyDamage(1);
 	}

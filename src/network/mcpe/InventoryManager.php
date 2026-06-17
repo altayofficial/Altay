@@ -240,6 +240,13 @@ class InventoryManager{
 		$this->addPredictedSlotChangeInternal($inventory, $slot, $itemStack);
 	}
 
+	public function discardPredictedSlotChange(Inventory $inventory, int $slot) : void{
+		$entry = $this->inventories[spl_object_id($inventory)] ?? null;
+		if($entry !== null){
+			unset($entry->predictions[$slot]);
+		}
+	}
+
 	public function addTransactionPredictedSlotChanges(InventoryTransaction $tx) : void{
 		foreach($tx->getActions() as $action){
 			if($action instanceof SlotChangeAction){
@@ -263,15 +270,17 @@ class InventoryManager{
 				continue;
 			}
 
+			$windowId = $action->windowId ?? ContainerIds::INVENTORY;
+
 			//legacy transactions should not modify or predict anything other than these inventories, since these are
 			//the only ones accessible when not in-game (ItemStackRequest is used for everything else)
-			if(match($action->windowId){
+			if(match($windowId){
 				ContainerIds::INVENTORY, ContainerIds::OFFHAND, ContainerIds::ARMOR => false,
 				default => true
 			}){
-				throw new PacketHandlingException("Legacy transactions cannot predict changes to inventory with ID " . $action->windowId);
+				throw new PacketHandlingException("Legacy transactions cannot predict changes to inventory with ID " . $windowId);
 			}
-			$info = $this->locateWindowAndSlot($action->windowId, $action->inventorySlot);
+			$info = $this->locateWindowAndSlot($windowId, $action->inventorySlot);
 			if($info === null){
 				continue;
 			}

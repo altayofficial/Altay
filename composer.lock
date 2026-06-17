@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "78c5ab312961a8acbbb1cb0528b7dc9b",
+    "content-hash": "45789daaaae67e9f3aca837e12df8e9f",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -201,32 +201,6 @@
                 "source": "https://github.com/pmmp/BedrockBlockUpgradeSchema/tree/5.2.0"
             },
             "time": "2025-10-02T13:22:10+00:00"
-        },
-        {
-            "name": "pocketmine/bedrock-data",
-            "version": "6.6.0+bedrock-1.26.20",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pmmp/BedrockData.git",
-                "reference": "e5a25957497a4520f4672a379e2a3f6b87602e37"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/BedrockData/zipball/e5a25957497a4520f4672a379e2a3f6b87602e37",
-                "reference": "e5a25957497a4520f4672a379e2a3f6b87602e37",
-                "shasum": ""
-            },
-            "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "CC0-1.0"
-            ],
-            "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by PocketMine-MP",
-            "support": {
-                "issues": "https://github.com/pmmp/BedrockData/issues",
-                "source": "https://github.com/pmmp/BedrockData/tree/bedrock-1.26.20"
-            },
-            "time": "2026-05-09T15:06:58+00:00"
         },
         {
             "name": "pocketmine/bedrock-item-upgrade-schema",
@@ -897,17 +871,41 @@
             "time": "2026-05-07T13:11:42+00:00"
         },
         {
+            "name": "zenith/bedrock-data",
+            "version": "dev-bedrock-1.26.30",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ZenithPE/BedrockData.git",
+                "reference": "d331aec7c69ba8e6afa9adc1a3f8346de35ca9d5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ZenithPE/BedrockData/zipball/d331aec7c69ba8e6afa9adc1a3f8346de35ca9d5",
+                "reference": "d331aec7c69ba8e6afa9adc1a3f8346de35ca9d5",
+                "shasum": ""
+            },
+            "type": "library",
+            "license": [
+                "CC0-1.0"
+            ],
+            "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by PocketMine-MP and Zenith",
+            "support": {
+                "source": "https://github.com/ZenithPE/BedrockData/tree/bedrock-1.26.30"
+            },
+            "time": "2026-05-22T17:53:37+00:00"
+        },
+        {
             "name": "zenith/bedrock-protocol",
             "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ZenithPE/BedrockProtocol.git",
-                "reference": "acc083b08cbb28345058de0b6e217349846dd5a0"
+                "reference": "217921758c908aab2517618b9458b709413a4246"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ZenithPE/BedrockProtocol/zipball/acc083b08cbb28345058de0b6e217349846dd5a0",
-                "reference": "acc083b08cbb28345058de0b6e217349846dd5a0",
+                "url": "https://api.github.com/repos/ZenithPE/BedrockProtocol/zipball/217921758c908aab2517618b9458b709413a4246",
+                "reference": "217921758c908aab2517618b9458b709413a4246",
                 "shasum": ""
             },
             "require": {
@@ -921,6 +919,7 @@
                 "ramsey/uuid": "^4.1"
             },
             "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.92",
                 "phpstan/phpstan": "2.1.0",
                 "phpstan/phpstan-phpunit": "^2.0.0",
                 "phpstan/phpstan-strict-rules": "^2.0.0",
@@ -950,7 +949,7 @@
             "support": {
                 "source": "https://github.com/ZenithPE/BedrockProtocol/tree/master"
             },
-            "time": "2026-05-19T18:58:47+00:00"
+            "time": "2026-06-17T19:39:58+00:00"
         }
     ],
     "packages-dev": [
@@ -1891,7 +1890,6 @@
                     "type": "github"
                 }
             ],
-            "abandoned": true,
             "time": "2023-02-03T06:58:43+00:00"
         },
         {
@@ -1947,7 +1945,6 @@
                     "type": "github"
                 }
             ],
-            "abandoned": true,
             "time": "2023-02-03T06:59:15+00:00"
         },
         {
@@ -2789,6 +2786,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "zenith/bedrock-data": 20,
         "zenith/bedrock-protocol": 20
     },
     "prefer-stable": false,
@@ -2826,5 +2824,5 @@
     "platform-overrides": {
         "php": "8.1.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

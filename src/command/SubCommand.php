@@ -78,7 +78,7 @@ abstract class SubCommand{
 	}
 
 	public function setPermission(string $permission) : void{
-		$perms = explode(";", $permission);
+		$perms = explode(";", $permission, PHP_INT_MAX);
 		$manager = PermissionManager::getInstance();
 		foreach($perms as $perm){
 			if($manager->getPermission($perm) === null){

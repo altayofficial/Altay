@@ -626,7 +626,6 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::registerTuffBlocks();
 		self::registerSulfurBlocks();
 		self::registerCinnabarBlocks();
-
 		self::registerCraftingTables();
 		self::registerChorusBlocks();
 		self::registerOres();
@@ -1131,7 +1130,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 	}
 
 	private function registerSulfurBlocks() : void{
-		$sulfurBreakInfo = new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 30.0));
+		$sulfurBreakInfo = new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 15.0));
 
 		self::register("sulfur", fn(BID $id) => new Opaque($id, "Sulfur Block", $sulfurBreakInfo));
 		self::register("chiseled_sulfur", fn(BID $id) => new Opaque($id, "Chiseled Sulfur", $sulfurBreakInfo));
@@ -1151,7 +1150,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 	}
 
 	private function registerCinnabarBlocks() : void{
-		$cinnabarBreakInfo = new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 30.0));
+		$cinnabarBreakInfo = new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 15.0));
 
 		self::register("cinnabar", fn(BID $id) => new Opaque($id, "Cinnabar Block", $cinnabarBreakInfo));
 		self::register("chiseled_cinnabar", fn(BID $id) => new Opaque($id, "Chiseled Cinnabar", $cinnabarBreakInfo));

@@ -99,7 +99,7 @@ if(!is_array($vanillaRaw)){
 
 /** @var list<string> $vanillaIds */
 $vanillaIds = array_map(
-	static fn(string|int $id) : string => str_replace('minecraft:', '', (string) $id),
+	static fn(string $id) : string => str_replace('minecraft:', '', $id),
 	array_keys($vanillaRaw)
 );
 
@@ -155,11 +155,11 @@ if($showBlocks){
 		exit(1);
 	}
 
-	/** @var list<string> $vanillaBlockIds */
-	$vanillaBlockIds = array_map(
-		static fn(string|int $id) : string => str_replace('minecraft:', '', (string) $id),
-		array_keys($blockMap)
-	);
+/** @var list<string> $vanillaBlockIds */
+$vanillaBlockIds = array_map(
+	static fn(string $id) : string => str_replace('minecraft:', '', $id),
+	array_keys($blockMap)
+);
 
 	sort($vanillaBlockIds);
 

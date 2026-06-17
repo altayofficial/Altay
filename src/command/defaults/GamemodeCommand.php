@@ -59,7 +59,11 @@ class GamemodeCommand extends VanillaCommand{
 	}
 
 	protected function onRun(CommandSender $sender, string $aliasUsed, array $args, string $overload = "default") : void{
-		$gameModeStr = (string) ($args["gameMode"] ?? "");
+		$gameModeArg = $args["gameMode"] ?? null;
+		if(!is_string($gameModeArg) && !is_int($gameModeArg)){
+			throw new InvalidCommandSyntaxException();
+		}
+		$gameModeStr = (string) $gameModeArg;
 		$gameMode = GameMode::fromString($gameModeStr);
 		if($gameMode === null){
 			$sender->sendMessage(KnownTranslationFactory::pocketmine_command_gamemode_unknown($gameModeStr));

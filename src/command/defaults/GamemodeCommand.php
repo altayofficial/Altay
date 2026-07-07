@@ -27,12 +27,12 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandEnum;
 use pocketmine\command\CommandParameter;
 use pocketmine\command\CommandSender;
-use pocketmine\command\OverloadedCommand;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\player\GameMode;
 use pocketmine\player\Player;
+use function array_values;
 
 class GamemodeCommand extends VanillaCommand{
 
@@ -47,12 +47,14 @@ class GamemodeCommand extends VanillaCommand{
 			DefaultPermissionNames::COMMAND_GAMEMODE_OTHER,
 		]);
 
-		$this->setOverload("default",
-			CommandParameter::int("gameMode"),
-			CommandParameter::target("player", optional: true)
-		);
+		$aliases = [];
+		foreach(GameMode::cases() as $gameMode){
+			foreach($gameMode->getAliases() as $alias){
+				$aliases[$alias] = $alias;
+			}
+		}
 		$this->setOverload("byString",
-			CommandParameter::enum("gameMode", new CommandEnum("GameMode", ["survival", "creative", "adventure", "spectator"])),
+			CommandParameter::enum("gameMode", new CommandEnum("GameMode", array_values($aliases))),
 			CommandParameter::target("player", optional: true)
 		);
 		$this->enableParamTree();

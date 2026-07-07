@@ -269,7 +269,7 @@ class RakLibInterface implements ServerEventListener, AdvancedNetworkInterface{
 				$info->getPlayerCount(),
 				$info->getMaxPlayerCount(),
 				$this->rakServerId,
-				$this->server->getName(),
+				rtrim(addcslashes($this->server->getSubMotd(), ";"), '\\'),
 				match($this->server->getGamemode()){
 					GameMode::SURVIVAL => "Survival",
 					GameMode::ADVENTURE => "Adventure",

@@ -420,6 +420,10 @@ class Server {
 		return $this->configGroup->getConfigString(ServerProperties::MOTD, self::DEFAULT_SERVER_NAME);
 	}
 
+	public function getSubMotd() : string{
+		return $this->configGroup->getConfigString(ServerProperties::SUB_MOTD, $this->getName());
+	}
+
 	public function getLoader() : ThreadSafeClassLoader{
 		return $this->autoloader;
 	}

@@ -7,6 +7,8 @@ server:
   language: eng
   #Message of the day shown in the server list.
   motd: "Zenith Server"
+  #Second line shown under the MOTD in the server list.
+  sub-motd: "zenith.org"
   #IPv4 address to bind to. Leave empty to bind to all interfaces.
   server-ip: ""
   #IPv6 address to bind to. Leave empty to bind to all interfaces.

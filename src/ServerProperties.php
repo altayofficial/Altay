@@ -53,6 +53,7 @@ final class ServerProperties{
 	public const SERVER_IPV6 = "server.server-ipv6";
 	public const SERVER_PORT_IPV4 = "server.server-port";
 	public const SERVER_PORT_IPV6 = "server.server-portv6";
+	public const SUB_MOTD = "server.sub-motd";
 	public const VIEW_DISTANCE = "server.view-distance";
 	public const WHITELIST = "server.white-list";
 	public const XBOX_AUTH = "server.xbox-auth";

@@ -68,6 +68,7 @@ use pocketmine\command\defaults\XpCommand;
 use pocketmine\command\utils\CommandStringHelper;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\lang\KnownTranslationFactory;
+use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\Server;
 use pocketmine\timings\Timings;
 use pocketmine\utils\TextFormat;
@@ -147,7 +148,7 @@ class SimpleCommandMap implements CommandMap{
 
 	public function register(string $fallbackPrefix, Command $command, ?string $label = null) : bool{
 		if(count($command->getPermissions()) === 0){
-			throw new \InvalidArgumentException("Commands must have a permission set");
+			$command->setPermission(DefaultPermissionNames::GROUP_USER);
 		}
 
 		if($label === null){

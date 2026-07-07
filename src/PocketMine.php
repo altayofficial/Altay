@@ -350,7 +350,7 @@ JIT_WARNING
 
 		$exitCode = 0;
 		do{
-			if(!file_exists(Path::join($dataPath, "server.properties")) && !isset($opts[BootstrapOptions::NO_WIZARD])){
+			if(!file_exists(Path::join($dataPath, "zenith.yml")) && !file_exists(Path::join($dataPath, "server.properties")) && !isset($opts[BootstrapOptions::NO_WIZARD])){
 				$installer = new SetupWizard($dataPath);
 				if(!$installer->run()){
 					$exitCode = -1;

@@ -39,8 +39,7 @@ final class ServerConfigGroup{
 	private array $propertyCache = [];
 
 	public function __construct(
-		private Config $pocketmineYml,
-		private Config $serverProperties
+		private Config $pocketmineYml
 	){}
 
 	public function getProperty(string $variable, mixed $defaultValue = null) : mixed{
@@ -68,39 +67,30 @@ final class ServerConfigGroup{
 		return (string) $this->getProperty($variable, $defaultValue);
 	}
 
-	public function getConfigString(string $variable, string $defaultValue = "") : string{
-		$v = getopt("", ["$variable::"]);
-		if(isset($v[$variable])){
-			return (string) $v[$variable];
-		}
+	private function setProperty(string $variable, mixed $value) : void{
+		$this->pocketmineYml->setNested($variable, $value);
+		//getNested() results are cached, so keep the property cache consistent with the underlying config
+		unset($this->propertyCache[$variable]);
+	}
 
-		return $this->serverProperties->exists($variable) ? (string) $this->serverProperties->get($variable) : $defaultValue;
+	public function getConfigString(string $variable, string $defaultValue = "") : string{
+		return (string) $this->getProperty($variable, $defaultValue);
 	}
 
 	public function setConfigString(string $variable, string $value) : void{
-		$this->serverProperties->set($variable, $value);
+		$this->setProperty($variable, $value);
 	}
 
 	public function getConfigInt(string $variable, int $defaultValue = 0) : int{
-		$v = getopt("", ["$variable::"]);
-		if(isset($v[$variable])){
-			return (int) $v[$variable];
-		}
-
-		return $this->serverProperties->exists($variable) ? (int) $this->serverProperties->get($variable) : $defaultValue;
+		return (int) $this->getProperty($variable, $defaultValue);
 	}
 
 	public function setConfigInt(string $variable, int $value) : void{
-		$this->serverProperties->set($variable, $value);
+		$this->setProperty($variable, $value);
 	}
 
 	public function getConfigBool(string $variable, bool $defaultValue = false) : bool{
-		$v = getopt("", ["$variable::"]);
-		if(isset($v[$variable])){
-			$value = $v[$variable];
-		}else{
-			$value = $this->serverProperties->exists($variable) ? $this->serverProperties->get($variable) : $defaultValue;
-		}
+		$value = $this->getProperty($variable, $defaultValue);
 		if(is_bool($value)){
 			return $value;
 		}
@@ -121,13 +111,10 @@ final class ServerConfigGroup{
 	}
 
 	public function setConfigBool(string $variable, bool $value) : void{
-		$this->serverProperties->set($variable, $value ? "1" : "0");
+		$this->setProperty($variable, $value);
 	}
 
 	public function save() : void{
-		if($this->serverProperties->hasChanged()){
-			$this->serverProperties->save();
-		}
 		if($this->pocketmineYml->hasChanged()){
 			$this->pocketmineYml->save();
 		}

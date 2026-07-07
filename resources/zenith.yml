@@ -1,7 +1,52 @@
 # Main configuration file for Zenith
-# These settings are the ones that cannot be included in server.properties
 # Some of these settings are safe, others can break your server if modified incorrectly
 # New settings/defaults won't appear automatically in this file when upgrading.
+
+server:
+  #Language used for console and default player messages (locale code, e.g. eng, fra, deu).
+  language: eng
+  #Message of the day shown in the server list.
+  motd: "Zenith Server"
+  #IPv4 address to bind to. Leave empty to bind to all interfaces.
+  server-ip: ""
+  #IPv6 address to bind to. Leave empty to bind to all interfaces.
+  server-ipv6: ""
+  #Port to listen on for IPv4 connections.
+  server-port: 19132
+  #Port to listen on for IPv6 connections.
+  server-portv6: 19133
+  #Whether to listen for IPv6 connections.
+  enable-ipv6: true
+  #Only allow whitelisted players to join.
+  white-list: false
+  #Maximum number of players allowed online at once.
+  max-players: 20
+  #Default gamemode for new players. One of: survival, creative, adventure, spectator.
+  gamemode: survival
+  #Force all players to use the server default gamemode.
+  force-gamemode: false
+  #Enable hardcore mode (difficulty forced to hard).
+  hardcore: false
+  #Allow players to damage each other.
+  pvp: true
+  #World difficulty. 0 = peaceful, 1 = easy, 2 = normal, 3 = hard.
+  difficulty: 2
+  #Default view distance in chunks. Players may request lower.
+  view-distance: 16
+  #Require Xbox Live authentication to join. DO NOT disable unless you understand the risks.
+  xbox-auth: true
+  #Enable the GameSpy4 query protocol for server list pings.
+  enable-query: true
+  #Automatically save worlds and player data periodically.
+  auto-save: true
+  #Name of the default world loaded on startup.
+  level-name: world
+  #Seed used when generating the default world. Leave empty for a random seed.
+  level-seed: ""
+  #Generator used for the default world (e.g. DEFAULT, FLAT, NORMAL).
+  level-type: DEFAULT
+  #Extra generator options/preset for the default world.
+  generator-settings: ""
 
 settings:
   #Whether to send all strings translated to server locale or let the device handle them
@@ -199,6 +244,20 @@ worlds:
   # seed: 404
   # generator: FLAT
   # preset: 2;bedrock,59xstone,3xdirt,grass;1
+
+resource-packs:
+  #Choose whether players must use your resource packs to join the server.
+  #NOTE: This will do nothing if there are no resource packs in the resource_packs directory.
+  force-resources: false
+  #All .zip and .mcpack files in the resource_packs directory are loaded automatically, sorted by file name.
+  #To specify a resource encryption key, put the key in the <resource>.key file alongside the resource pack. Example: vanilla.zip.key
+  #Optional CDN URLs for resource packs. Keys must match the pack file names in the resource_packs directory.
+  #When set, clients may download the pack from the URL instead of receiving it in chunks from the server.
+  #The pack file must still exist locally so the server can read its manifest, size and SHA256 hash.
+  #Example:
+  #cdn-urls:
+  #  natural.zip: https://cdn.example.com/resource_packs/natural.zip
+  cdn-urls: []
 
 plugins:
   #Setting this to true will cause the legacy structure to be used where plugin data is placed inside the --plugins dir.

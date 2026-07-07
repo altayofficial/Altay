@@ -25,7 +25,8 @@ namespace pocketmine;
 
 /**
  * @internal
- * Constants for all properties available in server.properties.
+ * Constants for all core server properties. These used to live in server.properties, but have since been merged into
+ * the "server" section of zenith.yml. The values are nested keys ("server.<name>") used with ServerConfigGroup.
  */
 final class ServerProperties{
 
@@ -33,26 +34,26 @@ final class ServerProperties{
 		//NOOP
 	}
 
-	public const AUTO_SAVE = "auto-save";
-	public const DEFAULT_WORLD_GENERATOR = "level-type";
-	public const DEFAULT_WORLD_GENERATOR_SETTINGS = "generator-settings";
-	public const DEFAULT_WORLD_NAME = "level-name";
-	public const DEFAULT_WORLD_SEED = "level-seed";
-	public const DIFFICULTY = "difficulty";
-	public const ENABLE_IPV6 = "enable-ipv6";
-	public const ENABLE_QUERY = "enable-query";
-	public const FORCE_GAME_MODE = "force-gamemode";
-	public const GAME_MODE = "gamemode";
-	public const HARDCORE = "hardcore";
-	public const LANGUAGE = "language";
-	public const MAX_PLAYERS = "max-players";
-	public const MOTD = "motd";
-	public const PVP = "pvp";
-	public const SERVER_IPV4 = "server-ip";
-	public const SERVER_IPV6 = "server-ipv6";
-	public const SERVER_PORT_IPV4 = "server-port";
-	public const SERVER_PORT_IPV6 = "server-portv6";
-	public const VIEW_DISTANCE = "view-distance";
-	public const WHITELIST = "white-list";
-	public const XBOX_AUTH = "xbox-auth";
+	public const AUTO_SAVE = "server.auto-save";
+	public const DEFAULT_WORLD_GENERATOR = "server.level-type";
+	public const DEFAULT_WORLD_GENERATOR_SETTINGS = "server.generator-settings";
+	public const DEFAULT_WORLD_NAME = "server.level-name";
+	public const DEFAULT_WORLD_SEED = "server.level-seed";
+	public const DIFFICULTY = "server.difficulty";
+	public const ENABLE_IPV6 = "server.enable-ipv6";
+	public const ENABLE_QUERY = "server.enable-query";
+	public const FORCE_GAME_MODE = "server.force-gamemode";
+	public const GAME_MODE = "server.gamemode";
+	public const HARDCORE = "server.hardcore";
+	public const LANGUAGE = "server.language";
+	public const MAX_PLAYERS = "server.max-players";
+	public const MOTD = "server.motd";
+	public const PVP = "server.pvp";
+	public const SERVER_IPV4 = "server.server-ip";
+	public const SERVER_IPV6 = "server.server-ipv6";
+	public const SERVER_PORT_IPV4 = "server.server-port";
+	public const SERVER_PORT_IPV6 = "server.server-portv6";
+	public const VIEW_DISTANCE = "server.view-distance";
+	public const WHITELIST = "server.white-list";
+	public const XBOX_AUTH = "server.xbox-auth";
 }

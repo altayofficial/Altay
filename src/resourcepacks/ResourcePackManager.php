@@ -29,26 +29,28 @@ use pocketmine\utils\Utils;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Filesystem\Path;
 use function array_keys;
-use function copy;
 use function count;
 use function file_exists;
 use function filter_var;
 use function gettype;
+use function in_array;
 use function is_array;
 use function is_dir;
-use function is_float;
-use function is_int;
 use function is_string;
 use function mkdir;
 use function parse_url;
 use function rtrim;
+use function sort;
 use function strlen;
 use function strtolower;
 use const DIRECTORY_SEPARATOR;
 use const FILTER_VALIDATE_URL;
 use const PHP_URL_SCHEME;
+use const SORT_STRING;
 
 class ResourcePackManager{
+	private const PACK_FILE_EXTENSIONS = ["zip", "mcpack"];
+
 	private string $path;
 	private bool $serverForceResources = false;
 
@@ -77,9 +79,10 @@ class ResourcePackManager{
 	private array $cdnUrls = [];
 
 	/**
-	 * @param string $path Path to resource-packs directory.
+	 * @param string $path    Path to resource-packs directory.
+	 * @param mixed  $cdnUrls Map of pack file names to CDN URLs, from e.g. the "resource-packs.cdn-urls" zenith.yml property.
 	 */
-	public function __construct(string $path, \Logger $logger){
+	public function __construct(string $path, \Logger $logger, bool $forceResources = false, mixed $cdnUrls = []){
 		$this->path = $path;
 
 		if(!file_exists($this->path)){
@@ -89,25 +92,21 @@ class ResourcePackManager{
 			throw new \InvalidArgumentException("Resource packs path $path exists and is not a directory");
 		}
 
-		$resourcePacksYml = Path::join($this->path, "resource_packs.yml");
-		if(!file_exists($resourcePacksYml)){
-			copy(Path::join(\pocketmine\RESOURCE_PATH, "resource_packs.yml"), $resourcePacksYml);
+		$legacyResourcePacksYml = Path::join($this->path, "resource_packs.yml");
+		if(file_exists($legacyResourcePacksYml)){
+			$logger->warning("resource_packs/resource_packs.yml is deprecated; force_resources and cdn_urls have been merged into the \"resource-packs\" section of zenith.yml, and the resource stack is now detected automatically from the resource_packs directory. Move your settings there and delete the file to get rid of this warning. Using force_resources/cdn_urls from resource_packs.yml for now.");
+			$legacyConfig = new Config($legacyResourcePacksYml, Config::YAML, []);
+			$forceResources = (bool) $legacyConfig->get("force_resources", false);
+			$cdnUrls = $legacyConfig->get("cdn_urls", []);
 		}
 
-		$resourcePacksConfig = new Config($resourcePacksYml, Config::YAML, []);
-
-		$this->serverForceResources = (bool) $resourcePacksConfig->get("force_resources", false);
+		$this->serverForceResources = $forceResources;
 
 		$logger->info("Loading resource packs...");
 
-		$resourceStack = $resourcePacksConfig->get("resource_stack", []);
-		if(!is_array($resourceStack)){
-			throw new \InvalidArgumentException("\"resource_stack\" key should contain a list of pack names");
-		}
-
-		$cdnUrlsConfig = $resourcePacksConfig->get("cdn_urls", []);
+		$cdnUrlsConfig = $cdnUrls;
 		if(!is_array($cdnUrlsConfig)){
-			throw new \InvalidArgumentException("\"cdn_urls\" key should contain a map of pack names to URLs");
+			throw new \InvalidArgumentException("\"cdn-urls\" key should contain a map of pack names to URLs");
 		}
 		$configuredCdnUrls = [];
 		foreach(Utils::promoteKeys($cdnUrlsConfig) as $packName => $cdnUrl){
@@ -124,12 +123,7 @@ class ResourcePackManager{
 			}
 		}
 
-		foreach(Utils::promoteKeys($resourceStack) as $pos => $pack){
-			if(!is_string($pack) && !is_int($pack) && !is_float($pack)){
-				$logger->critical("Found invalid entry in resource pack list at offset $pos of type " . gettype($pack));
-				continue;
-			}
-			$pack = (string) $pack;
+		foreach($this->detectPackFiles() as $pack){
 			try{
 				$newPack = $this->loadPackFromPath(Path::join($this->path, $pack));
 
@@ -166,6 +160,25 @@ class ResourcePackManager{
 		$logger->debug("Successfully loaded " . count($this->resourcePacks) . " resource packs");
 	}
 
+	/**
+	 * @return string[]
+	 * @phpstan-return list<string>
+	 */
+	private function detectPackFiles() : array{
+		$packs = [];
+		foreach(new \DirectoryIterator($this->path) as $info){
+			if($info->isDot() || !$info->isFile()){
+				continue;
+			}
+			if(in_array(strtolower($info->getExtension()), self::PACK_FILE_EXTENSIONS, true)){
+				$packs[] = $info->getFilename();
+			}
+		}
+		sort($packs, SORT_STRING);
+
+		return $packs;
+	}
+
 	private function loadPackFromPath(string $packPath) : ResourcePack{
 		if(!file_exists($packPath)){
 			throw new ResourcePackException("File or directory not found");
@@ -176,10 +189,8 @@ class ResourcePackManager{
 
 		//Detect the type of resource pack.
 		$info = new \SplFileInfo($packPath);
-		switch($info->getExtension()){
-			case "zip":
-			case "mcpack":
-				return new ZippedResourcePack($packPath);
+		if(in_array(strtolower($info->getExtension()), self::PACK_FILE_EXTENSIONS, true)){
+			return new ZippedResourcePack($packPath);
 		}
 
 		throw new ResourcePackException("Format not recognized");

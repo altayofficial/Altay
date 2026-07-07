@@ -33,15 +33,21 @@ use pocketmine\lang\LanguageNotFoundException;
 use pocketmine\lang\Translatable;
 use pocketmine\player\GameMode;
 use pocketmine\Server;
-use pocketmine\ServerProperties;
 use pocketmine\utils\Config;
+use pocketmine\utils\Filesystem;
 use pocketmine\utils\Internet;
 use pocketmine\utils\InternetException;
 use pocketmine\utils\Utils;
 use pocketmine\VersionInfo;
 use Symfony\Component\Filesystem\Path;
 use function fgets;
+use function file_put_contents;
+use function is_bool;
+use function is_int;
+use function preg_quote;
+use function preg_replace_callback;
 use function sleep;
+use function str_replace;
 use function strtolower;
 use function trim;
 use const PHP_EOL;
@@ -56,6 +62,12 @@ class SetupWizard{
 	public const DEFAULT_PLAYERS = Server::DEFAULT_MAX_PLAYERS;
 
 	private Language $lang;
+
+	/**
+	 * Chosen values for the "server" section of zenith.yml, keyed by leaf property name (e.g. "motd").
+	 * @var array<string, string|int|bool>
+	 */
+	private array $serverProperties = [];
 
 	public function __construct(
 		private string $dataPath
@@ -93,9 +105,8 @@ class SetupWizard{
 		}
 
 		//This has to happen here to prevent user avoiding agreeing to license
-		$config = new Config(Path::join($this->dataPath, "server.properties"), Config::PROPERTIES);
-		$config->set(ServerProperties::LANGUAGE, $lang);
-		$config->save();
+		$this->serverProperties["language"] = $lang;
+		$this->writeServerConfig();
 
 		if(strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::skip_installer()), "n", "y/N")) === "y"){
 			$this->printIpDetails();
@@ -105,16 +116,39 @@ class SetupWizard{
 		$this->writeLine();
 		$this->welcome();
 
-		$this->generateBaseConfig($config);
-		$this->generateUserFiles($config);
-		$this->networkFunctions($config);
-		$config->save();
+		$this->generateBaseConfig();
+		$this->generateUserFiles();
+		$this->networkFunctions();
+		$this->writeServerConfig();
 
 		$this->printIpDetails();
 
 		$this->endWizard();
 
 		return true;
+	}
+
+	private function writeServerConfig() : void{
+		$content = Filesystem::fileGetContents(Path::join(\pocketmine\RESOURCE_PATH, "zenith.yml"));
+		if(VersionInfo::IS_DEVELOPMENT_BUILD){
+			$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
+		}
+		foreach(Utils::stringifyKeys($this->serverProperties) as $key => $value){
+			$content = $this->setYamlValue($content, $key, $value);
+		}
+		file_put_contents(Path::join($this->dataPath, "zenith.yml"), $content);
+	}
+
+	private function setYamlValue(string $content, string $key, string|int|bool $value) : string{
+		if(is_bool($value)){
+			$encoded = $value ? "true" : "false";
+		}elseif(is_int($value)){
+			$encoded = (string) $value;
+		}else{
+			$encoded = '"' . str_replace(["\\", "\""], ["\\\\", "\\\""], $value) . '"';
+		}
+		$pattern = '/^(  ' . preg_quote($key, '/') . ': ).*$/m';
+		return preg_replace_callback($pattern, fn(array $matches) => $matches[1] . $encoded, $content, 1) ?? $content;
 	}
 
 	private function showLicense() : bool{
@@ -156,13 +190,13 @@ LICENSE;
 		}
 	}
 
-	private function generateBaseConfig(Config $config) : void{
-		$config->set(ServerProperties::MOTD, ($name = $this->getInput($this->lang->translate(KnownTranslationFactory::name_your_server()), Server::DEFAULT_SERVER_NAME)));
+	private function generateBaseConfig() : void{
+		$this->serverProperties["motd"] = $this->getInput($this->lang->translate(KnownTranslationFactory::name_your_server()), Server::DEFAULT_SERVER_NAME);
 
 		$this->message($this->lang->translate(KnownTranslationFactory::port_warning()));
 
-		$config->set(ServerProperties::SERVER_PORT_IPV4, $this->askPort(KnownTranslationFactory::server_port_v4(), Server::DEFAULT_PORT_IPV4));
-		$config->set(ServerProperties::SERVER_PORT_IPV6, $this->askPort(KnownTranslationFactory::server_port_v6(), Server::DEFAULT_PORT_IPV6));
+		$this->serverProperties["server-port"] = $this->askPort(KnownTranslationFactory::server_port_v4(), Server::DEFAULT_PORT_IPV4);
+		$this->serverProperties["server-portv6"] = $this->askPort(KnownTranslationFactory::server_port_v6(), Server::DEFAULT_PORT_IPV6);
 
 		$this->message($this->lang->translate(KnownTranslationFactory::gamemode_info()));
 
@@ -174,15 +208,14 @@ LICENSE;
 				default => null
 			};
 		}while($gamemode === null);
-		//TODO: this probably shouldn't use the enum name directly
-		$config->set(ServerProperties::GAME_MODE, $gamemode->name);
+		$this->serverProperties["gamemode"] = strtolower($gamemode->name);
 
-		$config->set(ServerProperties::MAX_PLAYERS, (int) $this->getInput($this->lang->translate(KnownTranslationFactory::max_players()), (string) Server::DEFAULT_MAX_PLAYERS));
+		$this->serverProperties["max-players"] = (int) $this->getInput($this->lang->translate(KnownTranslationFactory::max_players()), (string) Server::DEFAULT_MAX_PLAYERS);
 
-		$config->set(ServerProperties::VIEW_DISTANCE, (int) $this->getInput($this->lang->translate(KnownTranslationFactory::view_distance()), (string) Server::DEFAULT_MAX_VIEW_DISTANCE));
+		$this->serverProperties["view-distance"] = (int) $this->getInput($this->lang->translate(KnownTranslationFactory::view_distance()), (string) Server::DEFAULT_MAX_VIEW_DISTANCE);
 	}
 
-	private function generateUserFiles(Config $config) : void{
+	private function generateUserFiles() : void{
 		$this->message($this->lang->translate(KnownTranslationFactory::op_info()));
 
 		$op = strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::op_who()), ""));
@@ -198,20 +231,16 @@ LICENSE;
 
 		if(strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::whitelist_enable()), "n", "y/N")) === "y"){
 			$this->error($this->lang->translate(KnownTranslationFactory::whitelist_warning()));
-			$config->set(ServerProperties::WHITELIST, true);
+			$this->serverProperties["white-list"] = true;
 		}else{
-			$config->set(ServerProperties::WHITELIST, false);
+			$this->serverProperties["white-list"] = false;
 		}
 	}
 
-	private function networkFunctions(Config $config) : void{
+	private function networkFunctions() : void{
 		$this->error($this->lang->translate(KnownTranslationFactory::query_warning1()));
 		$this->error($this->lang->translate(KnownTranslationFactory::query_warning2()));
-		if(strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::query_disable()), "n", "y/N")) === "y"){
-			$config->set(ServerProperties::ENABLE_QUERY, false);
-		}else{
-			$config->set(ServerProperties::ENABLE_QUERY, true);
-		}
+		$this->serverProperties["enable-query"] = strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::query_disable()), "n", "y/N")) !== "y";
 	}
 
 	private function printIpDetails() : void{

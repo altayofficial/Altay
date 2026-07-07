@@ -663,6 +663,29 @@ class Server {
 		return $this->configGroup;
 	}
 
+	private function migrateLegacyServerProperties(Config $zenithYml) : void{
+		$legacyPath = Path::join($this->dataPath, "server.properties");
+		if(!file_exists($legacyPath)){
+			return;
+		}
+
+		$this->logger->warning("server.properties is deprecated; its settings have been merged into the \"server\" section of zenith.yml.");
+		$legacy = new Config($legacyPath, Config::PROPERTIES, []);
+		foreach(Utils::stringifyKeys($legacy->getAll()) as $key => $value){
+			$zenithYml->setNested("server." . $key, $value);
+		}
+		if($zenithYml->hasChanged()){
+			$zenithYml->save();
+		}
+
+		$backupPath = $legacyPath . ".bak";
+		if(@rename($legacyPath, $backupPath)){
+			$this->logger->notice("Your old server.properties has been backed up as server.properties.bak and can be safely deleted.");
+		}else{
+			$this->logger->warning("Could not rename server.properties; delete it manually to avoid confusion (its settings are now in zenith.yml).");
+		}
+	}
+
 	/**
 	 * @return Command|PluginOwned|null
 	 * @phpstan-return (Command&PluginOwned)|null
@@ -812,31 +835,9 @@ class Server {
 				@file_put_contents($zenithYmlPath, $content);
 			}
 
-			$this->configGroup = new ServerConfigGroup(
-				new Config($zenithYmlPath, Config::YAML, []),
-				new Config(Path::join($this->dataPath, "server.properties"), Config::PROPERTIES, [
-					ServerProperties::MOTD => self::DEFAULT_SERVER_NAME,
-					ServerProperties::SERVER_PORT_IPV4 => self::DEFAULT_PORT_IPV4,
-					ServerProperties::SERVER_PORT_IPV6 => self::DEFAULT_PORT_IPV6,
-					ServerProperties::ENABLE_IPV6 => true,
-					ServerProperties::WHITELIST => false,
-					ServerProperties::MAX_PLAYERS => self::DEFAULT_MAX_PLAYERS,
-					ServerProperties::GAME_MODE => GameMode::SURVIVAL->name, //TODO: this probably shouldn't use the enum name directly
-					ServerProperties::FORCE_GAME_MODE => false,
-					ServerProperties::HARDCORE => false,
-					ServerProperties::PVP => true,
-					ServerProperties::DIFFICULTY => World::DIFFICULTY_NORMAL,
-					ServerProperties::DEFAULT_WORLD_GENERATOR_SETTINGS => "",
-					ServerProperties::DEFAULT_WORLD_NAME => "world",
-					ServerProperties::DEFAULT_WORLD_SEED => "",
-					ServerProperties::DEFAULT_WORLD_GENERATOR => "DEFAULT",
-					ServerProperties::ENABLE_QUERY => true,
-					ServerProperties::AUTO_SAVE => true,
-					ServerProperties::VIEW_DISTANCE => self::DEFAULT_MAX_VIEW_DISTANCE,
-					ServerProperties::XBOX_AUTH => true,
-					ServerProperties::LANGUAGE => "eng"
-				])
-			);
+			$zenithYmlConfig = new Config($zenithYmlPath, Config::YAML, []);
+			$this->migrateLegacyServerProperties($zenithYmlConfig);
+			$this->configGroup = new ServerConfigGroup($zenithYmlConfig);
 
 			$debugLogLevel = $this->configGroup->getPropertyInt(Yml::DEBUG_LEVEL, 1);
 			if($this->logger instanceof MainLogger){
@@ -1005,7 +1006,12 @@ class Server {
 
 			$this->craftingManager = CraftingManagerFromDataHelper::make(BedrockDataFiles::RECIPES);
 
-			$this->resourceManager = new ResourcePackManager(Path::join($this->dataPath, "resource_packs"), $this->logger);
+			$this->resourceManager = new ResourcePackManager(
+				Path::join($this->dataPath, "resource_packs"),
+				$this->logger,
+				$this->configGroup->getPropertyBool(Yml::RESOURCE_PACKS_FORCE_RESOURCES, false),
+				$this->configGroup->getProperty(Yml::RESOURCE_PACKS_CDN_URLS, [])
+			);
 
 			$pluginGraylist = null;
 			try{

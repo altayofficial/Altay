@@ -90,7 +90,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\PredictedResult;
 use pocketmine\network\mcpe\protocol\types\inventory\ReleaseItemTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\ItemStackRequest;
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponse;
-use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnActorTransactionData;
+use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\types\PlayerAction;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
@@ -346,7 +346,7 @@ class InGamePacketHandler extends PacketHandler{
 			if($result && $this->player->isUsingItem()){
 				$this->discardHeldItemUsePredictions();
 			}
-		}elseif($trData instanceof UseItemOnActorTransactionData){
+		}elseif($trData instanceof UseItemOnEntityTransactionData){
 			$result = $this->handleUseItemOnEntityTransaction($trData);
 			if($result && $this->player->isUsingItem()){
 				$this->discardHeldItemUsePredictions();
@@ -360,7 +360,7 @@ class InGamePacketHandler extends PacketHandler{
 
 		if(!($trData instanceof UseItemTransactionData && $result && $this->player->isUsingItem())
 			&& !($trData instanceof ReleaseItemTransactionData && $result)
-			&& !($trData instanceof UseItemOnActorTransactionData && $result && $this->player->isUsingItem())){
+			&& !($trData instanceof UseItemOnEntityTransactionData && $result && $this->player->isUsingItem())){
 			$this->inventoryManager->syncMismatchedPredictedSlotChanges();
 		}
 
@@ -596,13 +596,13 @@ class InGamePacketHandler extends PacketHandler{
 		}
 	}
 
-	private function handleUseItemOnEntityTransaction(UseItemOnActorTransactionData $data) : bool{
+	private function handleUseItemOnEntityTransaction(UseItemOnEntityTransactionData $data) : bool{
 		$this->player->selectHotbarSlot($data->getHotbarSlot());
 
 		$target = $this->player->getWorld()->getEntity($data->getActorRuntimeId());
 		if($target === null || $target->isFlaggedForDespawn()){
 			if($data->getActorRuntimeId() !== $this->player->getId()){
-				if($data->getActionType() === UseItemOnActorTransactionData::ACTION_ATTACK){
+				if($data->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK){
 					$this->player->missSwing();
 					return true;
 				}
@@ -612,13 +612,13 @@ class InGamePacketHandler extends PacketHandler{
 		}
 
 		switch($data->getActionType()){
-			case UseItemOnActorTransactionData::ACTION_INTERACT:
+			case UseItemOnEntityTransactionData::ACTION_INTERACT:
 				$this->player->interactEntity($target, $data->getClickPosition());
 				return true;
-			case UseItemOnActorTransactionData::ACTION_ATTACK:
+			case UseItemOnEntityTransactionData::ACTION_ATTACK:
 				$this->player->attackEntity($target);
 				return true;
-			case UseItemOnActorTransactionData::ACTION_ITEM_INTERACT:
+			case UseItemOnEntityTransactionData::ACTION_ITEM_INTERACT:
 				if($target === $this->player){
 					return $this->handleRightClickItemUse();
 				}

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd25117275ee5e449a37b64916452bb7",
+    "content-hash": "50723486fc1082562c11627c3c79b678",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -67,27 +67,27 @@
         },
         {
             "name": "altayofficial/bedrock-data",
-            "version": "dev-bedrock-1.26.30",
+            "version": "dev-feat/data",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "d331aec7c69ba8e6afa9adc1a3f8346de35ca9d5"
+                "reference": "e02e4f82d622b79d63105d61d9bd7bc892f64d23"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/d331aec7c69ba8e6afa9adc1a3f8346de35ca9d5",
-                "reference": "d331aec7c69ba8e6afa9adc1a3f8346de35ca9d5",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/e02e4f82d622b79d63105d61d9bd7bc892f64d23",
+                "reference": "e02e4f82d622b79d63105d61d9bd7bc892f64d23",
                 "shasum": ""
             },
             "type": "library",
             "license": [
                 "CC0-1.0"
             ],
-            "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by PocketMine-MP and Zenith",
+            "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by Altayz",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.30"
+                "source": "https://github.com/altayofficial/BedrockData/tree/feat/data"
             },
-            "time": "2026-05-22T17:53:37+00:00"
+            "time": "2026-07-09T13:37:17+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",

@@ -133,6 +133,34 @@ class PluginManager{
 		return Path::join(dirname($pluginPath), $pluginName);
 	}
 
+	private function describeThrowable(\Throwable $e) : string{
+		$message = $e->getMessage();
+		return get_class($e) . ($message !== "" ? ": " . $message : "");
+	}
+
+	private function logPluginLoadThrowable(PluginDescription $description, \Throwable $e) : void{
+		$language = $this->server->getLanguage();
+		$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
+			$description->getName(),
+			$this->describeThrowable($e)
+		)));
+		$this->server->getLogger()->logException($e);
+	}
+
+	private function logPluginEnableThrowable(Plugin $plugin, \Throwable $e) : void{
+		$language = $this->server->getLanguage();
+		$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_enableError(
+			$plugin->getName(),
+			$this->describeThrowable($e)
+		)));
+		$this->server->getLogger()->logException($e);
+	}
+
+	private function logPluginDisableThrowable(Plugin $plugin, \Throwable $e) : void{
+		$this->server->getLogger()->critical("Could not disable plugin '" . $plugin->getName() . "': " . $this->describeThrowable($e));
+		$this->server->getLogger()->logException($e);
+	}
+
 	private function internalLoadPlugin(string $path, PluginLoader $loader, PluginDescription $description) : ?Plugin{
 		$language = $this->server->getLanguage();
 		$this->server->getLogger()->info($this->server->getLanguage()->translate(KnownTranslationFactory::pocketmine_plugin_load($description->getFullName())));
@@ -149,81 +177,95 @@ class PluginManager{
 			mkdir($dataFolder, 0777, true);
 		}
 
-		$prefixed = $loader->getAccessProtocol() . $path;
-		$loader->loadPlugin($prefixed);
+		try{
+			$prefixed = $loader->getAccessProtocol() . $path;
+			$loader->loadPlugin($prefixed);
+			$registeredPermissions = [];
 
-		$mainClass = $description->getMain();
-		if(!class_exists($mainClass, true)){
-			$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
-				$description->getName(),
-				KnownTranslationFactory::pocketmine_plugin_mainClassNotFound()
-			)));
-			return null;
-		}
-		if(!is_a($mainClass, Plugin::class, true)){
-			$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
-				$description->getName(),
-				KnownTranslationFactory::pocketmine_plugin_mainClassWrongType(Plugin::class)
-			)));
-			return null;
-		}
-		$reflect = new \ReflectionClass($mainClass); //this shouldn't throw; we already checked that it exists
-		if(!$reflect->isInstantiable()){
-			$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
-				$description->getName(),
-				KnownTranslationFactory::pocketmine_plugin_mainClassAbstract()
-			)));
-			return null;
-		}
+			$mainClass = $description->getMain();
+			if(!class_exists($mainClass, true)){
+				$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
+					$description->getName(),
+					KnownTranslationFactory::pocketmine_plugin_mainClassNotFound()
+				)));
+				return null;
+			}
+			if(!is_a($mainClass, Plugin::class, true)){
+				$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
+					$description->getName(),
+					KnownTranslationFactory::pocketmine_plugin_mainClassWrongType(Plugin::class)
+				)));
+				return null;
+			}
+			$reflect = new \ReflectionClass($mainClass); //this shouldn't throw; we already checked that it exists
+			if(!$reflect->isInstantiable()){
+				$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
+					$description->getName(),
+					KnownTranslationFactory::pocketmine_plugin_mainClassAbstract()
+				)));
+				return null;
+			}
 
-		$permManager = PermissionManager::getInstance();
-		foreach($description->getPermissions() as $permsGroup){
-			foreach($permsGroup as $perm){
-				if($permManager->getPermission($perm->getName()) !== null){
-					$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
-						$description->getName(),
-						KnownTranslationFactory::pocketmine_plugin_duplicatePermissionError($perm->getName())
-					)));
-					return null;
+			$permManager = PermissionManager::getInstance();
+			foreach($description->getPermissions() as $permsGroup){
+				foreach($permsGroup as $perm){
+					if($permManager->getPermission($perm->getName()) !== null){
+						$this->server->getLogger()->critical($language->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
+							$description->getName(),
+							KnownTranslationFactory::pocketmine_plugin_duplicatePermissionError($perm->getName())
+						)));
+						return null;
+					}
 				}
 			}
-		}
-		$opRoot = $permManager->getPermission(DefaultPermissions::ROOT_OPERATOR);
-		$everyoneRoot = $permManager->getPermission(DefaultPermissions::ROOT_USER);
-		foreach(Utils::stringifyKeys($description->getPermissions()) as $default => $perms){
-			foreach($perms as $perm){
-				$permManager->addPermission($perm);
-				switch($default){
-					case PermissionParser::DEFAULT_TRUE:
-						$everyoneRoot->addChild($perm->getName(), true);
-						break;
-					case PermissionParser::DEFAULT_OP:
-						$opRoot->addChild($perm->getName(), true);
-						break;
-					case PermissionParser::DEFAULT_NOT_OP:
-						//TODO: I don't think anyone uses this, and it currently relies on some magic inside PermissibleBase
-						//to ensure that the operator override actually applies.
-						//Explore getting rid of this.
-						//The following grants this permission to anyone who has the "everyone" root permission.
-						//However, if the operator root node (which has higher priority) is present, the
-						//permission will be denied instead.
-						$everyoneRoot->addChild($perm->getName(), true);
-						$opRoot->addChild($perm->getName(), false);
-						break;
-					default:
-						break;
+			$opRoot = $permManager->getPermission(DefaultPermissions::ROOT_OPERATOR);
+			$everyoneRoot = $permManager->getPermission(DefaultPermissions::ROOT_USER);
+			foreach(Utils::stringifyKeys($description->getPermissions()) as $default => $perms){
+				foreach($perms as $perm){
+					$permManager->addPermission($perm);
+					$registeredPermissions[] = $perm->getName();
+					switch($default){
+						case PermissionParser::DEFAULT_TRUE:
+							$everyoneRoot->addChild($perm->getName(), true);
+							break;
+						case PermissionParser::DEFAULT_OP:
+							$opRoot->addChild($perm->getName(), true);
+							break;
+						case PermissionParser::DEFAULT_NOT_OP:
+							//TODO: I don't think anyone uses this, and it currently relies on some magic inside PermissibleBase
+							//to ensure that the operator override actually applies.
+							//Explore getting rid of this.
+							//The following grants this permission to anyone who has the "everyone" root permission.
+							//However, if the operator root node (which has higher priority) is present, the
+							//permission will be denied instead.
+							$everyoneRoot->addChild($perm->getName(), true);
+							$opRoot->addChild($perm->getName(), false);
+							break;
+						default:
+							break;
+					}
 				}
 			}
+
+			/**
+			 * @var Plugin $plugin
+			 * @see Plugin::__construct()
+			 */
+			$plugin = new $mainClass($loader, $this->server, $description, $dataFolder, $prefixed, new DiskResourceProvider($prefixed . "/resources/"));
+			$this->plugins[$plugin->getDescription()->getName()] = $plugin;
+
+			return $plugin;
+		}catch(\Throwable $e){
+			if(isset($registeredPermissions, $permManager, $opRoot, $everyoneRoot)){
+				foreach($registeredPermissions as $permissionName){
+					$permManager->removePermission($permissionName);
+					$opRoot->removeChild($permissionName);
+					$everyoneRoot->removeChild($permissionName);
+				}
+			}
+			$this->logPluginLoadThrowable($description, $e);
+			return null;
 		}
-
-		/**
-		 * @var Plugin $plugin
-		 * @see Plugin::__construct()
-		 */
-		$plugin = new $mainClass($loader, $this->server, $description, $dataFolder, $prefixed, new DiskResourceProvider($prefixed . "/resources/"));
-		$this->plugins[$plugin->getDescription()->getName()] = $plugin;
-
-		return $plugin;
 	}
 
 	/**
@@ -361,90 +403,93 @@ class PluginManager{
 
 		$loadedPlugins = [];
 
-		while(count($triage->plugins) > 0){
-			$loadedThisLoop = 0;
-			foreach(Utils::stringifyKeys($triage->plugins) as $name => $entry){
-				$this->checkDepsForTriage($name, "hard", $triage->dependencies, $loadedPlugins, $triage);
-				$this->checkDepsForTriage($name, "soft", $triage->softDependencies, $loadedPlugins, $triage);
+		try{
+			while(count($triage->plugins) > 0){
+				$loadedThisLoop = 0;
+				foreach(Utils::stringifyKeys($triage->plugins) as $name => $entry){
+					$this->checkDepsForTriage($name, "hard", $triage->dependencies, $loadedPlugins, $triage);
+					$this->checkDepsForTriage($name, "soft", $triage->softDependencies, $loadedPlugins, $triage);
 
-				if(!isset($triage->dependencies[$name]) && !isset($triage->softDependencies[$name])){
-					unset($triage->plugins[$name]);
-					$loadedThisLoop++;
+					if(!isset($triage->dependencies[$name]) && !isset($triage->softDependencies[$name])){
+						unset($triage->plugins[$name]);
+						$loadedThisLoop++;
 
-					$oldRegisteredLoaders = $this->fileAssociations;
-					if(($plugin = $this->internalLoadPlugin($entry->getFile(), $entry->getLoader(), $entry->getDescription())) instanceof Plugin){
-						$loadedPlugins[$name] = $plugin;
-						$diffLoaders = [];
-						foreach($this->fileAssociations as $k => $loader){
-							if(!array_key_exists($k, $oldRegisteredLoaders)){
-								$diffLoaders[] = $k;
+						$oldRegisteredLoaders = $this->fileAssociations;
+						if(($plugin = $this->internalLoadPlugin($entry->getFile(), $entry->getLoader(), $entry->getDescription())) instanceof Plugin){
+							$loadedPlugins[$name] = $plugin;
+							$diffLoaders = [];
+							foreach($this->fileAssociations as $k => $loader){
+								if(!array_key_exists($k, $oldRegisteredLoaders)){
+									$diffLoaders[] = $k;
+								}
 							}
-						}
-						if(count($diffLoaders) !== 0){
-							$this->server->getLogger()->debug("Plugin $name registered a new plugin loader during load, scanning for new plugins");
-							$plugins = $triage->plugins;
-							$this->triagePlugins($path, $triage, $loadErrorCount, $diffLoaders);
-							$diffPlugins = array_diff_key($triage->plugins, $plugins);
-							$this->server->getLogger()->debug("Re-triage found plugins: " . implode(", ", array_keys($diffPlugins)));
-						}
-					}else{
-						$loadErrorCount++;
-					}
-				}
-			}
-
-			if($loadedThisLoop === 0){
-				//No plugins loaded :(
-
-				//check for skippable soft dependencies first, in case the dependents could resolve hard dependencies
-				foreach(Utils::stringifyKeys($triage->plugins) as $name => $file){
-					if(isset($triage->softDependencies[$name]) && !isset($triage->dependencies[$name])){
-						foreach(Utils::promoteKeys($triage->softDependencies[$name]) as $k => $dependency){
-							if($this->getPlugin($dependency) === null && !array_key_exists($dependency, $triage->plugins)){
-								$this->server->getLogger()->debug("Skipping resolution of missing soft dependency \"$dependency\" for plugin \"$name\"");
-								unset($triage->softDependencies[$name][$k]);
+							if(count($diffLoaders) !== 0){
+								$this->server->getLogger()->debug("Plugin $name registered a new plugin loader during load, scanning for new plugins");
+								$plugins = $triage->plugins;
+								$this->triagePlugins($path, $triage, $loadErrorCount, $diffLoaders);
+								$diffPlugins = array_diff_key($triage->plugins, $plugins);
+								$this->server->getLogger()->debug("Re-triage found plugins: " . implode(", ", array_keys($diffPlugins)));
 							}
-						}
-						if(count($triage->softDependencies[$name]) === 0){
-							unset($triage->softDependencies[$name]);
-							continue 2; //go back to the top and try again
-						}
-					}
-				}
-
-				foreach(Utils::stringifyKeys($triage->plugins) as $name => $file){
-					if(isset($triage->dependencies[$name])){
-						$unknownDependencies = [];
-
-						foreach($triage->dependencies[$name] as $dependency){
-							if($this->getPlugin($dependency) === null && !array_key_exists($dependency, $triage->plugins)){
-								//assume that the plugin is never going to be loaded
-								//by this point all soft dependencies have been ignored if they were able to be, so
-								//there's no chance of this dependency ever being resolved
-								$unknownDependencies[$dependency] = $dependency;
-							}
-						}
-
-						if(count($unknownDependencies) > 0){
-							$this->server->getLogger()->critical($this->server->getLanguage()->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
-								$name,
-								KnownTranslationFactory::pocketmine_plugin_unknownDependency(implode(", ", $unknownDependencies))
-							)));
-							unset($triage->plugins[$name]);
+						}else{
+							$this->fileAssociations = $oldRegisteredLoaders;
 							$loadErrorCount++;
 						}
 					}
 				}
 
-				foreach(Utils::stringifyKeys($triage->plugins) as $name => $file){
-					$this->server->getLogger()->critical($this->server->getLanguage()->translate(KnownTranslationFactory::pocketmine_plugin_loadError($name, KnownTranslationFactory::pocketmine_plugin_circularDependency())));
-					$loadErrorCount++;
-				}
-				break;
-			}
-		}
+				if($loadedThisLoop === 0){
+					//No plugins loaded :(
 
-		$this->loadPluginsGuard = false;
+					//check for skippable soft dependencies first, in case the dependents could resolve hard dependencies
+					foreach(Utils::stringifyKeys($triage->plugins) as $name => $file){
+						if(isset($triage->softDependencies[$name]) && !isset($triage->dependencies[$name])){
+							foreach(Utils::promoteKeys($triage->softDependencies[$name]) as $k => $dependency){
+								if($this->getPlugin($dependency) === null && !array_key_exists($dependency, $triage->plugins)){
+									$this->server->getLogger()->debug("Skipping resolution of missing soft dependency \"$dependency\" for plugin \"$name\"");
+									unset($triage->softDependencies[$name][$k]);
+								}
+							}
+							if(count($triage->softDependencies[$name]) === 0){
+								unset($triage->softDependencies[$name]);
+								continue 2; //go back to the top and try again
+							}
+						}
+					}
+
+					foreach(Utils::stringifyKeys($triage->plugins) as $name => $file){
+						if(isset($triage->dependencies[$name])){
+							$unknownDependencies = [];
+
+							foreach($triage->dependencies[$name] as $dependency){
+								if($this->getPlugin($dependency) === null && !array_key_exists($dependency, $triage->plugins)){
+									//assume that the plugin is never going to be loaded
+									//by this point all soft dependencies have been ignored if they were able to be, so
+									//there's no chance of this dependency ever being resolved
+									$unknownDependencies[$dependency] = $dependency;
+								}
+							}
+
+							if(count($unknownDependencies) > 0){
+								$this->server->getLogger()->critical($this->server->getLanguage()->translate(KnownTranslationFactory::pocketmine_plugin_loadError(
+									$name,
+									KnownTranslationFactory::pocketmine_plugin_unknownDependency(implode(", ", $unknownDependencies))
+								)));
+								unset($triage->plugins[$name]);
+								$loadErrorCount++;
+							}
+						}
+					}
+
+					foreach(Utils::stringifyKeys($triage->plugins) as $name => $file){
+						$this->server->getLogger()->critical($this->server->getLanguage()->translate(KnownTranslationFactory::pocketmine_plugin_loadError($name, KnownTranslationFactory::pocketmine_plugin_circularDependency())));
+						$loadErrorCount++;
+					}
+					break;
+				}
+			}
+		}finally{
+			$this->loadPluginsGuard = false;
+		}
 		return $loadedPlugins;
 	}
 
@@ -460,6 +505,9 @@ class PluginManager{
 			try{
 				$plugin->onEnableStateChange(true);
 			}catch(DisablePluginException){
+				$this->disablePlugin($plugin);
+			}catch(\Throwable $e){
+				$this->logPluginEnableThrowable($plugin, $e);
 				$this->disablePlugin($plugin);
 			}
 
@@ -526,7 +574,11 @@ class PluginManager{
 				}
 			}
 
-			$plugin->onEnableStateChange(false);
+			try{
+				$plugin->onEnableStateChange(false);
+			}catch(\Throwable $e){
+				$this->logPluginDisableThrowable($plugin, $e);
+			}
 			$plugin->getScheduler()->shutdown();
 			HandlerListManager::global()->unregisterAll($plugin);
 		}

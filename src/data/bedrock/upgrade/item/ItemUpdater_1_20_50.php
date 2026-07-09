@@ -21,16 +21,35 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock\item\upgrade;
+namespace pocketmine\data\bedrock\upgrade\item;
 
-use pocketmine\data\bedrock\LegacyToStringIdMap;
 use pocketmine\utils\SingletonTrait;
-use Symfony\Component\Filesystem\Path;
 
-final class LegacyItemIdToStringIdMap extends LegacyToStringIdMap{
+final class ItemUpdater_1_20_50 extends ItemUpdaterBase{
 	use SingletonTrait;
 
-	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/item_legacy_id_map.json'));
+	protected function getVersion() : array{
+		return [1, 20, 50];
+	}
+
+	protected function getRemappedMetas() : array{
+		return [
+			"minecraft:planks" => [
+				0 => "minecraft:oak_planks",
+				1 => "minecraft:spruce_planks",
+				2 => "minecraft:birch_planks",
+				3 => "minecraft:jungle_planks",
+				4 => "minecraft:acacia_planks",
+				5 => "minecraft:dark_oak_planks",
+			],
+			"minecraft:stone" => [
+				1 => "minecraft:granite",
+				2 => "minecraft:polished_granite",
+				3 => "minecraft:diorite",
+				4 => "minecraft:polished_diorite",
+				5 => "minecraft:andesite",
+				6 => "minecraft:polished_andesite",
+			],
+		];
 	}
 }

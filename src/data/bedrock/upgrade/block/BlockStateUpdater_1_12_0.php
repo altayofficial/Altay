@@ -21,16 +21,24 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock\item\upgrade;
+namespace pocketmine\data\bedrock\upgrade\block;
 
-use pocketmine\data\bedrock\LegacyToStringIdMap;
+use pocketmine\data\bedrock\upgrade\CompoundTagUpdaterContext;
+use pocketmine\data\bedrock\upgrade\Updater;
 use pocketmine\utils\SingletonTrait;
-use Symfony\Component\Filesystem\Path;
 
-final class LegacyItemIdToStringIdMap extends LegacyToStringIdMap{
+final class BlockStateUpdater_1_12_0 implements Updater{
 	use SingletonTrait;
 
-	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/item_legacy_id_map.json'));
+	public function registerUpdaters(CompoundTagUpdaterContext $context) : void{
+		$context->addUpdater(1, 12, 0)
+			->match("name", "minecraft:coral_fan")
+			->visit("states")
+			->rename("direction", "coral_fan_direction");
+
+		$context->addUpdater(1, 12, 0)
+			->match("name", "minecraft:coral_fan_dead")
+			->visit("states")
+			->rename("direction", "coral_fan_direction");
 	}
 }

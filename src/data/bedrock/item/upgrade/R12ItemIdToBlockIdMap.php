@@ -33,7 +33,7 @@ use function is_string;
 use function json_decode;
 use function mb_strtolower;
 use const JSON_THROW_ON_ERROR;
-use const pocketmine\BEDROCK_ITEM_UPGRADE_SCHEMA_PATH;
+use const pocketmine\BEDROCK_DATA_PATH;
 
 /**
  * Maps all known 1.12 and lower item IDs to their respective block IDs, where appropriate.
@@ -47,7 +47,7 @@ final class R12ItemIdToBlockIdMap{
 
 	private static function make() : self{
 		$map = json_decode(
-			Filesystem::fileGetContents(Path::join(BEDROCK_ITEM_UPGRADE_SCHEMA_PATH, '1.12.0_item_id_to_block_id_map.json')),
+			Filesystem::fileGetContents(Path::join(BEDROCK_DATA_PATH, 'upgrade/1.12.0_item_id_to_block_id_map.json')),
 			associative: true,
 			flags: JSON_THROW_ON_ERROR
 		);

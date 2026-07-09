@@ -21,16 +21,24 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock\item\upgrade;
+namespace pocketmine\data\bedrock\upgrade\block;
 
-use pocketmine\data\bedrock\LegacyToStringIdMap;
+use pocketmine\data\bedrock\upgrade\CompoundTagEditHelper;
+use pocketmine\data\bedrock\upgrade\CompoundTagUpdaterContext;
+use pocketmine\data\bedrock\upgrade\Updater;
+use pocketmine\nbt\tag\IntTag;
 use pocketmine\utils\SingletonTrait;
-use Symfony\Component\Filesystem\Path;
 
-final class LegacyItemIdToStringIdMap extends LegacyToStringIdMap{
+final class BlockStateUpdater_1_15_0 implements Updater{
 	use SingletonTrait;
 
-	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/item_legacy_id_map.json'));
+	public function registerUpdaters(CompoundTagUpdaterContext $context) : void{
+		$context->addUpdater(1, 15, 0)
+			->match("name", "minecraft:kelp")
+			->visit("states")
+			->edit("age", function(CompoundTagEditHelper $helper) : void{
+				$age = $helper->getIntValue();
+				$helper->replaceWith("kelp_age", new IntTag($age));
+			});
 	}
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "789de431808efafa5bd87559fe672b62",
+    "content-hash": "3f709b73f08e296bbb3933438ac0a7ad",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -71,12 +71,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "571ff306ebfe2b76e1e0a482d38c161da9d922b0"
+                "reference": "37f627683dbe3f6977b2c373e46e55a90a0a3375"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/571ff306ebfe2b76e1e0a482d38c161da9d922b0",
-                "reference": "571ff306ebfe2b76e1e0a482d38c161da9d922b0",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/37f627683dbe3f6977b2c373e46e55a90a0a3375",
+                "reference": "37f627683dbe3f6977b2c373e46e55a90a0a3375",
                 "shasum": ""
             },
             "default-branch": true,
@@ -88,7 +88,7 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockData/tree/master"
             },
-            "time": "2026-07-09T13:50:15+00:00"
+            "time": "2026-07-09T15:19:45+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
@@ -257,58 +257,6 @@
                 "source": "https://github.com/cweiske/jsonmapper/tree/v5.0.1"
             },
             "time": "2026-02-22T16:28:03+00:00"
-        },
-        {
-            "name": "pocketmine/bedrock-block-upgrade-schema",
-            "version": "5.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pmmp/BedrockBlockUpgradeSchema.git",
-                "reference": "5d7889c9a1cdf9e3cd814d2a104ad69b75116ec7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/BedrockBlockUpgradeSchema/zipball/5d7889c9a1cdf9e3cd814d2a104ad69b75116ec7",
-                "reference": "5d7889c9a1cdf9e3cd814d2a104ad69b75116ec7",
-                "shasum": ""
-            },
-            "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "CC0-1.0"
-            ],
-            "description": "Schemas describing how to upgrade saved block data in older Minecraft: Bedrock Edition world saves",
-            "support": {
-                "issues": "https://github.com/pmmp/BedrockBlockUpgradeSchema/issues",
-                "source": "https://github.com/pmmp/BedrockBlockUpgradeSchema/tree/5.2.0"
-            },
-            "time": "2025-10-02T13:22:10+00:00"
-        },
-        {
-            "name": "pocketmine/bedrock-item-upgrade-schema",
-            "version": "1.17.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pmmp/BedrockItemUpgradeSchema.git",
-                "reference": "e19685d2e7e76eb7446115c556df34e5d627d072"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/BedrockItemUpgradeSchema/zipball/e19685d2e7e76eb7446115c556df34e5d627d072",
-                "reference": "e19685d2e7e76eb7446115c556df34e5d627d072",
-                "shasum": ""
-            },
-            "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "CC0-1.0"
-            ],
-            "description": "JSON schemas for upgrading items found in older Minecraft: Bedrock world saves",
-            "support": {
-                "issues": "https://github.com/pmmp/BedrockItemUpgradeSchema/issues",
-                "source": "https://github.com/pmmp/BedrockItemUpgradeSchema/tree/1.17.0"
-            },
-            "time": "2026-05-06T13:12:04+00:00"
         },
         {
             "name": "pocketmine/binaryutils",

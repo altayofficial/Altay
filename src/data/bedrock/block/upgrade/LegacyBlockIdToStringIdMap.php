@@ -31,6 +31,6 @@ final class LegacyBlockIdToStringIdMap extends LegacyToStringIdMap{
 	use SingletonTrait;
 
 	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_BLOCK_UPGRADE_SCHEMA_PATH, 'block_legacy_id_map.json'));
+		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/block_legacy_id_map.json'));
 	}
 }

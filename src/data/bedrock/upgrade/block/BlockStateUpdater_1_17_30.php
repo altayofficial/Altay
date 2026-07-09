@@ -21,16 +21,25 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock\item\upgrade;
+namespace pocketmine\data\bedrock\upgrade\block;
 
-use pocketmine\data\bedrock\LegacyToStringIdMap;
+use pocketmine\data\bedrock\upgrade\CompoundTagUpdaterContext;
+use pocketmine\data\bedrock\upgrade\Updater;
+use pocketmine\nbt\tag\ByteTag;
 use pocketmine\utils\SingletonTrait;
-use Symfony\Component\Filesystem\Path;
 
-final class LegacyItemIdToStringIdMap extends LegacyToStringIdMap{
+final class BlockStateUpdater_1_17_30 implements Updater{
 	use SingletonTrait;
 
-	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/item_legacy_id_map.json'));
+	public function registerUpdaters(CompoundTagUpdaterContext $context) : void{
+		$this->updateItemFrame("minecraft:frame", $context);
+		$this->updateItemFrame("minecraft:glow_frame", $context);
+	}
+
+	private function updateItemFrame(string $name, CompoundTagUpdaterContext $context) : void{
+		$context->addUpdater(1, 16, 210, true) // Palette version wasn't bumped so far
+			->match("name", $name)
+			->visit("states")
+			->tryAdd("item_frame_photo_bit", new ByteTag(0));
 	}
 }

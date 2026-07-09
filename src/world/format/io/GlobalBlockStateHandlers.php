@@ -32,12 +32,10 @@ use pocketmine\data\bedrock\block\convert\VanillaBlockMappings;
 use pocketmine\data\bedrock\block\upgrade\BlockDataUpgrader;
 use pocketmine\data\bedrock\block\upgrade\BlockIdMetaUpgrader;
 use pocketmine\data\bedrock\block\upgrade\BlockStateUpgrader;
-use pocketmine\data\bedrock\block\upgrade\BlockStateUpgradeSchemaUtils;
 use pocketmine\data\bedrock\block\upgrade\LegacyBlockIdToStringIdMap;
 use pocketmine\utils\Filesystem;
 use Symfony\Component\Filesystem\Path;
-use const PHP_INT_MAX;
-use const pocketmine\BEDROCK_BLOCK_UPGRADE_SCHEMA_PATH;
+use const pocketmine\BEDROCK_DATA_PATH;
 
 /**
  * Provides global access to blockstate serializers for all world providers.
@@ -72,15 +70,12 @@ final class GlobalBlockStateHandlers{
 
 	public static function getUpgrader() : BlockDataUpgrader{
 		if(self::$blockDataUpgrader === null){
-			$blockStateUpgrader = new BlockStateUpgrader(BlockStateUpgradeSchemaUtils::loadSchemas(
-				Path::join(BEDROCK_BLOCK_UPGRADE_SCHEMA_PATH, 'nbt_upgrade_schema'),
-				PHP_INT_MAX
-			));
+			$blockStateUpgrader = new BlockStateUpgrader();
 			self::$blockDataUpgrader = new BlockDataUpgrader(
-				BlockIdMetaUpgrader::loadFromString(
+				BlockIdMetaUpgrader::loadFromJsonString(
 					Filesystem::fileGetContents(Path::join(
-						BEDROCK_BLOCK_UPGRADE_SCHEMA_PATH,
-						'id_meta_to_nbt/1.12.0.bin'
+						BEDROCK_DATA_PATH,
+						'upgrade/legacy_block_data_map.json'
 					)),
 					LegacyBlockIdToStringIdMap::getInstance(),
 					$blockStateUpgrader

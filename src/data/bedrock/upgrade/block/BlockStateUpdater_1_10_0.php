@@ -21,16 +21,16 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock\item\upgrade;
+namespace pocketmine\data\bedrock\upgrade\block;
 
-use pocketmine\data\bedrock\LegacyToStringIdMap;
+use pocketmine\data\bedrock\upgrade\CompoundTagUpdaterContext;
+use pocketmine\data\bedrock\upgrade\Updater;
 use pocketmine\utils\SingletonTrait;
-use Symfony\Component\Filesystem\Path;
 
-final class LegacyItemIdToStringIdMap extends LegacyToStringIdMap{
+final class BlockStateUpdater_1_10_0 implements Updater{
 	use SingletonTrait;
 
-	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/item_legacy_id_map.json'));
+	public function registerUpdaters(CompoundTagUpdaterContext $context) : void{
+		// TODO: mapped types. (I'm not sure if these are needed)
 	}
 }

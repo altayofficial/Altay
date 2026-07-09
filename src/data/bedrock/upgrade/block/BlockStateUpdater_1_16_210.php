@@ -21,16 +21,26 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock\item\upgrade;
+namespace pocketmine\data\bedrock\upgrade\block;
 
-use pocketmine\data\bedrock\LegacyToStringIdMap;
+use pocketmine\data\bedrock\upgrade\CompoundTagUpdaterContext;
+use pocketmine\data\bedrock\upgrade\Updater;
 use pocketmine\utils\SingletonTrait;
-use Symfony\Component\Filesystem\Path;
 
-final class LegacyItemIdToStringIdMap extends LegacyToStringIdMap{
+final class BlockStateUpdater_1_16_210 implements Updater{
 	use SingletonTrait;
 
-	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/item_legacy_id_map.json'));
+	private static function registerUpdater(CompoundTagUpdaterContext $context, string $name) : void{
+		$context->addUpdater(1, 16, 210)
+			->match("name", $name)
+			->visit("states")
+			->remove("deprecated");
+	}
+
+	public function registerUpdaters(CompoundTagUpdaterContext $context) : void{
+		self::registerUpdater($context, "minecraft:stripped_crimson_stem");
+		self::registerUpdater($context, "minecraft:stripped_warped_stem");
+		self::registerUpdater($context, "minecraft:stripped_crimson_hyphae");
+		self::registerUpdater($context, "minecraft:stripped_warped_hyphae");
 	}
 }

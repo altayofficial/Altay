@@ -23,12 +23,19 @@ declare(strict_types=1);
 
 namespace pocketmine\data\bedrock\block\upgrade;
 
-use pmmp\encoding\ByteBufferReader;
-use pmmp\encoding\DataDecodeException;
-use pmmp\encoding\VarInt;
 use pocketmine\data\bedrock\block\BlockStateData;
 use pocketmine\data\bedrock\block\BlockStateDeserializeException;
-use pocketmine\nbt\LittleEndianNbtSerializer;
+use pocketmine\nbt\tag\ByteTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\StringTag;
+use pocketmine\nbt\tag\Tag;
+use pocketmine\utils\Utils;
+use function is_array;
+use function is_bool;
+use function is_int;
+use function is_string;
+use function json_decode;
+use const JSON_THROW_ON_ERROR;
 
 /**
  * Handles translating legacy 1.12 block ID/meta into modern blockstates.
@@ -82,30 +89,54 @@ final class BlockIdMetaUpgrader{
 		$this->mappingTable[$stringId][$meta] = $stateData;
 	}
 
-	public static function loadFromString(string $data, LegacyBlockIdToStringIdMap $idMap, BlockStateUpgrader $blockStateUpgrader) : self{
+	/**
+	 * Loads the legacy id+meta to blockstate mapping table from JSON data. The states in the map are old format
+	 * states, so they are passed through the blockstate upgrader before being stored.
+	 */
+	public static function loadFromJsonString(string $data, LegacyBlockIdToStringIdMap $idMap, BlockStateUpgrader $blockStateUpgrader) : self{
 		$mappingTable = [];
 
-		$legacyStateMapReader = new ByteBufferReader($data);
-		$nbtReader = new LittleEndianNbtSerializer();
+		$json = json_decode($data, true, flags: JSON_THROW_ON_ERROR);
+		if(!is_array($json)){
+			throw new BlockStateDeserializeException("Invalid legacy block data map, expected array as root type");
+		}
 
-		$idCount = VarInt::readUnsignedInt($legacyStateMapReader);
-		for($idIndex = 0; $idIndex < $idCount; $idIndex++){
-			$id = $legacyStateMapReader->readByteArray(VarInt::readUnsignedInt($legacyStateMapReader));
-
-			$metaCount = VarInt::readUnsignedInt($legacyStateMapReader);
-			for($metaIndex = 0; $metaIndex < $metaCount; $metaIndex++){
-				$meta = VarInt::readUnsignedInt($legacyStateMapReader);
-
-				$offset = $legacyStateMapReader->getOffset();
-				$state = $nbtReader->read($legacyStateMapReader->getData(), $offset)->mustGetCompoundTag();
-				$legacyStateMapReader->setOffset($offset);
-				$mappingTable[$id][$meta] = $blockStateUpgrader->upgrade(BlockStateData::fromNbt($state));
+		foreach(Utils::promoteKeys($json) as $id => $stateList){
+			if(!is_string($id) || !is_array($stateList)){
+				throw new BlockStateDeserializeException("Invalid legacy block data map entry");
+			}
+			foreach(Utils::promoteKeys($stateList) as $meta => $stateProperties){
+				if(!is_int($meta) || !is_array($stateProperties)){
+					throw new BlockStateDeserializeException("Invalid legacy block data map states for $id");
+				}
+				$states = [];
+				foreach(Utils::promoteKeys($stateProperties) as $name => $value){
+					$states[(string) $name] = self::jsonValueToTag($id, (string) $name, $value);
+				}
+				$mappingTable[$id][$meta] = $blockStateUpgrader->upgrade(new BlockStateData($id, $states, 0));
 			}
 		}
-		if($legacyStateMapReader->getUnreadLength() > 0){
-			throw new DataDecodeException("Unexpected trailing data in legacy state map data");
+
+		//blocks without state variants don't appear in the legacy data map, but they are still valid legacy ids
+		foreach($idMap->getLegacyToStringMap() as $id){
+			if(!isset($mappingTable[$id])){
+				$mappingTable[$id][0] = $blockStateUpgrader->upgrade(new BlockStateData($id, [], 0));
+			}
 		}
 
 		return new self($mappingTable, $idMap);
+	}
+
+	private static function jsonValueToTag(string $id, string $name, mixed $value) : Tag{
+		if(is_bool($value)){
+			return new ByteTag($value ? 1 : 0);
+		}
+		if(is_int($value)){
+			return new IntTag($value);
+		}
+		if(is_string($value)){
+			return new StringTag($value);
+		}
+		throw new BlockStateDeserializeException("Invalid legacy block state value type for $id ($name)");
 	}
 }

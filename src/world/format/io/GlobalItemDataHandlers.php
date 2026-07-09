@@ -28,13 +28,9 @@ use pocketmine\data\bedrock\item\ItemDeserializer;
 use pocketmine\data\bedrock\item\ItemSerializer;
 use pocketmine\data\bedrock\item\upgrade\ItemDataUpgrader;
 use pocketmine\data\bedrock\item\upgrade\ItemIdMetaUpgrader;
-use pocketmine\data\bedrock\item\upgrade\ItemIdMetaUpgradeSchemaUtils;
 use pocketmine\data\bedrock\item\upgrade\LegacyItemIdToStringIdMap;
 use pocketmine\data\bedrock\item\upgrade\R12ItemIdToBlockIdMap;
 use pocketmine\network\mcpe\convert\TypeConverter;
-use Symfony\Component\Filesystem\Path;
-use const PHP_INT_MAX;
-use const pocketmine\BEDROCK_ITEM_UPGRADE_SCHEMA_PATH;
 
 final class GlobalItemDataHandlers{
 	private static ?ItemSerializer $itemSerializer = null;
@@ -53,7 +49,7 @@ final class GlobalItemDataHandlers{
 
 	public static function getUpgrader() : ItemDataUpgrader{
 		return self::$itemDataUpgrader ??= new ItemDataUpgrader(
-			new ItemIdMetaUpgrader(ItemIdMetaUpgradeSchemaUtils::loadSchemas(Path::join(BEDROCK_ITEM_UPGRADE_SCHEMA_PATH, 'id_meta_upgrade_schema'), PHP_INT_MAX)),
+			new ItemIdMetaUpgrader(),
 			LegacyItemIdToStringIdMap::getInstance(),
 			R12ItemIdToBlockIdMap::getInstance(),
 			GlobalBlockStateHandlers::getUpgrader(),

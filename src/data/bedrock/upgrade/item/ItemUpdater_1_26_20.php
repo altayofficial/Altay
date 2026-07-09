@@ -21,16 +21,29 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock\item\upgrade;
+namespace pocketmine\data\bedrock\upgrade\item;
 
-use pocketmine\data\bedrock\LegacyToStringIdMap;
 use pocketmine\utils\SingletonTrait;
-use Symfony\Component\Filesystem\Path;
 
-final class LegacyItemIdToStringIdMap extends LegacyToStringIdMap{
+final class ItemUpdater_1_26_20 extends ItemUpdaterBase{
 	use SingletonTrait;
 
-	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/item_legacy_id_map.json'));
+	protected function getVersion() : array{
+		return [1, 26, 20];
+	}
+
+	protected function getRemappedMetas() : array{
+		return [
+			"minecraft:bucket" => [
+				14 => "minecraft:sulfur_cube_bucket",
+			],
+			"minecraft:spawn_egg" => [
+				149 => "minecraft:nautilus_spawn_egg",
+				150 => "minecraft:zombie_nautilus_spawn_egg",
+				151 => "minecraft:parched_spawn_egg",
+				152 => "minecraft:camel_husk_spawn_egg",
+				153 => "minecraft:sulfur_cube_spawn_egg",
+			],
+		];
 	}
 }

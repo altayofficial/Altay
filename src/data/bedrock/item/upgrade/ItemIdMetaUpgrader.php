@@ -23,61 +23,35 @@ declare(strict_types=1);
 
 namespace pocketmine\data\bedrock\item\upgrade;
 
-use function ksort;
-use const SORT_NUMERIC;
+use pocketmine\data\bedrock\upgrade\item\ItemUpdaters;
+use pocketmine\nbt\tag\CompoundTag;
+use function mb_strtolower;
 
 /**
- * Upgrades old item string IDs and metas to newer ones according to the given schemas.
+ * Upgrades old item string IDs and metas to newer ones using the version based updater chain.
  */
 final class ItemIdMetaUpgrader{
-
-	/**
-	 * @var ItemIdMetaUpgradeSchema[]
-	 * @phpstan-var array<int, ItemIdMetaUpgradeSchema>
-	 */
-	private array $idMetaUpgradeSchemas = [];
-
-	/**
-	 * @param ItemIdMetaUpgradeSchema[] $idMetaUpgradeSchemas
-	 * @phpstan-param array<int, ItemIdMetaUpgradeSchema> $idMetaUpgradeSchemas
-	 */
-	public function __construct(
-		array $idMetaUpgradeSchemas,
-	){
-		foreach($idMetaUpgradeSchemas as $schema){
-			$this->addSchema($schema);
-		}
-	}
-
-	public function addSchema(ItemIdMetaUpgradeSchema $schema) : void{
-		if(isset($this->idMetaUpgradeSchemas[$schema->getSchemaId()])){
-			throw new \InvalidArgumentException("Already have a schema with priority " . $schema->getSchemaId());
-		}
-		$this->idMetaUpgradeSchemas[$schema->getSchemaId()] = $schema;
-		ksort($this->idMetaUpgradeSchemas, SORT_NUMERIC);
-	}
-
-	/**
-	 * @return ItemIdMetaUpgradeSchema[]
-	 * @phpstan-return array<int, ItemIdMetaUpgradeSchema>
-	 */
-	public function getSchemas() : array{ return $this->idMetaUpgradeSchemas; }
+	private const TAG_NAME = "Name";
+	private const TAG_DAMAGE = "Damage";
 
 	/**
 	 * @phpstan-return array{string, int}
 	 */
 	public function upgrade(string $id, int $meta) : array{
-		$newId = $id;
-		$newMeta = $meta;
-		foreach($this->idMetaUpgradeSchemas as $schema){
-			if(($remappedMetaId = $schema->remapMeta($newId, $newMeta)) !== null){
-				$newId = $remappedMetaId;
-				$newMeta = 0;
-			}elseif(($renamedId = $schema->renameId($newId)) !== null){
-				$newId = $renamedId;
-			}
+		$lowerId = mb_strtolower($id, 'US-ASCII');
+
+		$tag = new CompoundTag();
+		$tag->setString(self::TAG_NAME, $lowerId);
+		$tag->setShort(self::TAG_DAMAGE, $meta);
+
+		$upgraded = ItemUpdaters::updateItem($tag, 0);
+
+		$newId = $upgraded->getString(self::TAG_NAME);
+		if($newId === $lowerId){
+			//nothing matched, keep the original ID with its original case
+			$newId = $id;
 		}
 
-		return [$newId, $newMeta];
+		return [$newId, $upgraded->getShort(self::TAG_DAMAGE)];
 	}
 }

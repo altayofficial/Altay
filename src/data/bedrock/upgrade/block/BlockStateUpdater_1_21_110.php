@@ -21,16 +21,28 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\data\bedrock\item\upgrade;
+namespace pocketmine\data\bedrock\upgrade\block;
 
-use pocketmine\data\bedrock\LegacyToStringIdMap;
+use pocketmine\data\bedrock\upgrade\CompoundTagEditHelper;
+use pocketmine\data\bedrock\upgrade\CompoundTagUpdaterContext;
+use pocketmine\data\bedrock\upgrade\Updater;
+use pocketmine\nbt\tag\ByteTag;
+use pocketmine\nbt\tag\StringTag;
 use pocketmine\utils\SingletonTrait;
-use Symfony\Component\Filesystem\Path;
 
-final class LegacyItemIdToStringIdMap extends LegacyToStringIdMap{
+final class BlockStateUpdater_1_21_110 implements Updater{
 	use SingletonTrait;
 
-	public function __construct(){
-		parent::__construct(Path::join(\pocketmine\BEDROCK_DATA_PATH, 'upgrade/item_legacy_id_map.json'));
+	public function registerUpdaters(CompoundTagUpdaterContext $context) : void{
+		$context->addUpdater(1, 21, 110)
+			->match("name", "minecraft:chain")
+			->edit("name", function(CompoundTagEditHelper $helper) : void{
+				$helper->replaceWith("name", new StringTag("minecraft:iron_chain"));
+			});
+
+		$context->addUpdater(1, 21, 110)
+			->match("name", "minecraft:lightning_rod")
+			->visit("states")
+			->tryAdd("powered_bit", new ByteTag(0));
 	}
 }

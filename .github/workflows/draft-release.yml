@@ -1,0 +1,132 @@
+name: Draft release
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+env:
+  PHP_VERSION: "8.1"
+
+jobs:
+  skip:
+    name: Check whether to ignore this tag
+    runs-on: ubuntu-22.04
+
+    outputs:
+      skip: ${{ steps.exists.outputs.exists == 'true' }}
+
+    steps:
+      - name: Check if release already exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          exists=false
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            tag="$(echo "${{ github.ref }}" | cut -d/ -f3-)"
+            if gh release view "$tag" --repo "${{ github.repository }}"; then
+              exists=true
+            fi
+          fi
+          echo exists=$exists >> $GITHUB_OUTPUT
+
+  draft:
+    name: Create GitHub draft release
+    needs: [skip]
+    if: needs.skip.outputs.skip != 'true'
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@2.32.0
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Restore Composer package cache
+        uses: actions/cache@v4
+        with:
+          path: "~/.cache/composer"
+          key: "php-${{ env.PHP_VERSION }}-composer-release-${{ hashFiles('**/composer.json') }}"
+          restore-keys: "php-${{ env.PHP_VERSION }}-composer-release-"
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --prefer-dist --no-interaction --ignore-platform-reqs
+
+      - name: Calculate build number
+        id: build-number
+        run: |
+          BUILD_NUMBER=$((2300+$GITHUB_RUN_NUMBER))
+          echo "Build number: $BUILD_NUMBER"
+          echo BUILD_NUMBER=$BUILD_NUMBER >> $GITHUB_OUTPUT
+
+      - name: Build Altay.phar
+        run: php -dphar.readonly=0 build/server-phar.php --git ${{ github.sha }} --build ${{ steps.build-number.outputs.BUILD_NUMBER }}
+
+      - name: Get Altay release version
+        id: get-version
+        run: |
+          VERSION=$(php build/dump-version-info.php base_version)
+          echo VERSION=$VERSION >> $GITHUB_OUTPUT
+          echo MAJOR_VERSION=$(php build/dump-version-info.php major_version) >> $GITHUB_OUTPUT
+          echo MCPE_VERSION=$(php build/dump-version-info.php mcpe_version) >> $GITHUB_OUTPUT
+          echo MCPE_DISPLAY_VERSION=$(php build/dump-version-info.php mcpe_display_version) >> $GITHUB_OUTPUT
+          echo CHANGELOG_FILE_NAME=$(php build/dump-version-info.php changelog_file_name) >> $GITHUB_OUTPUT
+          echo CHANGELOG_MD_HEADER=$(php build/dump-version-info.php changelog_md_header) >> $GITHUB_OUTPUT
+          echo PRERELEASE=$(php build/dump-version-info.php prerelease) >> $GITHUB_OUTPUT
+
+          if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+            tag="$(echo "${{ github.ref }}" | cut -d/ -f3-)"
+          else
+            tag="$VERSION"
+          fi
+          echo TAG_NAME=$tag >> $GITHUB_OUTPUT
+
+      - name: Generate PHP binary download URL
+        id: php-binary-url
+        run: |
+          echo PHP_BINARY_URL="${{ github.server_url }}/pmmp/PHP-Binaries/releases/tag/pm${{ steps.get-version.outputs.MAJOR_VERSION }}-php-${{ env.PHP_VERSION }}-latest" >> $GITHUB_OUTPUT
+
+      - name: Generate build info
+        run: |
+          php build/generate-build-info-json.php \
+            ${{ github.sha }} \
+            ${{ steps.get-version.outputs.TAG_NAME }} \
+            ${{ github.repository }} \
+            ${{ steps.build-number.outputs.BUILD_NUMBER }} \
+            ${{ github.run_id }} \
+            ${{ steps.php-binary-url.outputs.PHP_BINARY_URL }} \
+            > build_info.json
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release_artifacts
+          path: |
+            ${{ github.workspace }}/Altay.phar
+            ${{ github.workspace }}/build_info.json
+
+      - name: Create draft release
+        uses: ncipollo/release-action@v1.15.0
+        id: create-draft
+        with:
+          artifacts: ${{ github.workspace }}/Altay.phar,${{ github.workspace }}/build_info.json
+          commit: ${{ github.sha }}
+          draft: true
+          prerelease: ${{ steps.get-version.outputs.PRERELEASE }}
+          name: Altay ${{ steps.get-version.outputs.VERSION }}
+          tag: ${{ steps.get-version.outputs.TAG_NAME }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            **For Minecraft: Bedrock Edition ${{ steps.get-version.outputs.MCPE_VERSION }} (display version ${{ steps.get-version.outputs.MCPE_DISPLAY_VERSION }})**
+
+            Please see the [changelogs](${{ github.server_url }}/${{ github.repository }}/blob/${{ steps.get-version.outputs.VERSION }}/changelogs/${{ steps.get-version.outputs.CHANGELOG_FILE_NAME }}#${{ steps.get-version.outputs.CHANGELOG_MD_HEADER }}) for details.
+
+            :information_source: Download the recommended PHP binary [here](${{ steps.php-binary-url.outputs.PHP_BINARY_URL }}).
+
+            :warning: Found a bug? Report it on our [issue tracker](${{ github.server_url }}/${{ github.repository }}/issues). **We can't fix bugs if you don't report them.**

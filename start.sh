@@ -8,7 +8,7 @@ while getopts "p:f:l" OPTION 2> /dev/null; do
 			PHP_BINARY="$OPTARG"
 			;;
 		f)
-			POCKETMINE_FILE="$OPTARG"
+			ALTAY_FILE="$OPTARG"
 			;;
 		l)
 			DO_LOOP="yes"
@@ -32,12 +32,12 @@ if [ "$PHP_BINARY" == "" ]; then
 	fi
 fi
 
-if [ "$POCKETMINE_FILE" == "" ]; then
-	if [ -f ./PocketMine-MP.phar ]; then
-		POCKETMINE_FILE="./PocketMine-MP.phar"
+if [ "$ALTAY_FILE" == "" ]; then
+	if [ -f ./Altay.phar ]; then
+		ALTAY_FILE="./Altay.phar"
 	else
-		echo "PocketMine-MP.phar not found"
-		echo "Downloads can be found at https://github.com/pmmp/PocketMine-MP/releases"
+		echo "Altay.phar not found"
+		echo "Downloads can be found at https://github.com/altayofficial/Altay/releases"
 		exit 1
 	fi
 fi
@@ -72,7 +72,7 @@ if [ "$DO_LOOP" == "yes" ]; then
 		if [ ${LOOPS} -gt 0 ]; then
 			echo "Restarted $LOOPS times"
 		fi
-		"$PHP_BINARY" "$POCKETMINE_FILE" "$@"
+		"$PHP_BINARY" "$ALTAY_FILE" "$@"
 		handle_exit_code $?
 		echo "To escape the loop, press CTRL+C now. Otherwise, wait 5 seconds for the server to restart."
 		echo ""
@@ -80,7 +80,7 @@ if [ "$DO_LOOP" == "yes" ]; then
 		((LOOPS++))
 	done
 else
-	"$PHP_BINARY" "$POCKETMINE_FILE" "$@"
+	"$PHP_BINARY" "$ALTAY_FILE" "$@"
 	exitcode=$?
 	handle_exit_code $exitcode
 	exit $exitcode

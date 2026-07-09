@@ -79,6 +79,14 @@ class Slab extends Transparent{
 		return false;
 	}
 
+	public function canBeWaterlogged() : bool{
+		return $this->slabType !== SlabType::DOUBLE;
+	}
+
+	public function isSideOpenToWaterFlow(int $face) : bool{
+		return $this->slabType === SlabType::TOP || $face !== Facing::DOWN;
+	}
+
 	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($blockReplace instanceof Slab && $blockReplace->slabType !== SlabType::DOUBLE && $blockReplace->hasSameTypeId($this) && (
 			($blockReplace->slabType === SlabType::TOP && ($clickVector->y <= 0.5 || $face === Facing::UP)) ||

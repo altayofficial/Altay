@@ -310,6 +310,14 @@ class World implements ChunkManager{
 	 */
 	private array $scheduledBlockUpdateQueueIndex = [];
 
+	/** @phpstan-var ReversePriorityQueue<int, Vector3> */
+	private ReversePriorityQueue $scheduledDisplacedBlockUpdateQueue;
+	/**
+	 * @var int[] blockHash => tick delay
+	 * @phpstan-var array<BlockPosHash, int>
+	 */
+	private array $scheduledDisplacedBlockUpdateQueueIndex = [];
+
 	/** @phpstan-var \SplQueue<int> */
 	private \SplQueue $neighbourBlockUpdateQueue;
 	/**
@@ -534,6 +542,9 @@ class World implements ChunkManager{
 
 		$this->scheduledBlockUpdateQueue = new ReversePriorityQueue();
 		$this->scheduledBlockUpdateQueue->setExtractFlags(\SplPriorityQueue::EXTR_BOTH);
+
+		$this->scheduledDisplacedBlockUpdateQueue = new ReversePriorityQueue();
+		$this->scheduledDisplacedBlockUpdateQueue->setExtractFlags(\SplPriorityQueue::EXTR_BOTH);
 
 		$this->neighbourBlockUpdateQueue = new \SplQueue();
 
@@ -963,6 +974,15 @@ class World implements ChunkManager{
 			$block = $this->getBlock($vec);
 			$block->onScheduledUpdate();
 		}
+		while($this->scheduledDisplacedBlockUpdateQueue->count() > 0 && $this->scheduledDisplacedBlockUpdateQueue->current()["priority"] <= $currentTick){
+			/** @var Vector3 $vec */
+			$vec = $this->scheduledDisplacedBlockUpdateQueue->extract()["data"];
+			unset($this->scheduledDisplacedBlockUpdateQueueIndex[World::blockHash($vec->x, $vec->y, $vec->z)]);
+			if(!$this->isInLoadedTerrain($vec)){
+				continue;
+			}
+			$this->getBlock($vec)->getDisplacedBlock()?->onDisplacedScheduledUpdate();
+		}
 		$this->timings->scheduledBlockUpdates->stopTiming();
 
 		$this->timings->neighbourBlockUpdates->startTiming();
@@ -1126,6 +1146,12 @@ class World implements ChunkManager{
 				UpdateBlockPacket::FLAG_NETWORK,
 				UpdateBlockPacket::DATA_LAYER_NORMAL
 			);
+			$packets[] = UpdateBlockPacket::create(
+				$blockPosition,
+				$blockTranslator->internalIdToNetworkId($fullBlock->getDisplacedBlock()?->getStateId() ?? Block::EMPTY_STATE_ID),
+				UpdateBlockPacket::FLAG_NETWORK,
+				UpdateBlockPacket::DATA_LAYER_LIQUID
+			);
 
 			if($tile instanceof Spawnable){
 				$packets[] = BlockActorDataPacket::create($blockPosition, $tile->getSerializedSpawnCompound());
@@ -1133,6 +1159,21 @@ class World implements ChunkManager{
 		}
 
 		return $packets;
+	}
+
+	/**
+	 * @internal
+	 */
+	public function delayDisplacedBlockUpdate(Vector3 $pos, int $delay) : void{
+		$targetTick = $delay + $this->server->getTick();
+		if(
+			!$this->isInWorld($pos->x, $pos->y, $pos->z) ||
+			(isset($this->scheduledDisplacedBlockUpdateQueueIndex[$index = World::blockHash($pos->x, $pos->y, $pos->z)]) && $this->scheduledDisplacedBlockUpdateQueueIndex[$index] <= $targetTick)
+		){
+			return;
+		}
+		$this->scheduledDisplacedBlockUpdateQueueIndex[$index] = $targetTick;
+		$this->scheduledDisplacedBlockUpdateQueue->insert(new Vector3((int) $pos->x, (int) $pos->y, (int) $pos->z), $targetTick);
 	}
 
 	public function clearCache(bool $force = false) : void{

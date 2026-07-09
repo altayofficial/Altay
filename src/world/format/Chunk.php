@@ -110,6 +110,15 @@ class Chunk{
 		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BLOCKS;
 	}
 
+	public function getDisplacedBlockStateId(int $x, int $y, int $z) : int{
+		return $this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->getDisplacedBlockStateId($x, $y & SubChunk::COORD_MASK, $z);
+	}
+
+	public function setDisplacedBlockStateId(int $x, int $y, int $z, int $block) : void{
+		$this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->setDisplacedBlockStateId($x, $y & SubChunk::COORD_MASK, $z, $block);
+		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BLOCKS;
+	}
+
 	/**
 	 * Returns the Y coordinate of the highest non-air block at the specified X/Z chunk block coordinates
 	 *

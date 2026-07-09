@@ -54,6 +54,10 @@ class Fence extends Transparent{
 		return $this;
 	}
 
+	public function canBeWaterlogged() : bool{
+		return true;
+	}
+
 	protected function recalculateCollisionBoxes() : array{
 		$inset = 0.5 - $this->getThickness() / 2;
 

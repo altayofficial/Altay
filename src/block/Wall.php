@@ -34,7 +34,6 @@ use pocketmine\math\Facing;
  * @phpstan-type WallConnectionSet array<Facing::NORTH|Facing::EAST|Facing::SOUTH|Facing::WEST, WallConnectionType>
  */
 class Wall extends Transparent{
-
 	/**
 	 * @var WallConnectionType[]
 	 * @phpstan-var WallConnectionSet
@@ -88,7 +87,19 @@ class Wall extends Transparent{
 		return $this;
 	}
 
+	public function readStateFromWorld() : Block{
+		parent::readStateFromWorld();
+		$this->collisionBoxes = null;
+		$this->recalculateConnections();
+		return $this;
+	}
+
+	public function canBeWaterlogged() : bool{
+		return true;
+	}
+
 	public function onNearbyBlockChange() : void{
+		parent::onNearbyBlockChange();
 		if($this->recalculateConnections()){
 			$this->position->getWorld()->setBlock($this->position, $this);
 		}

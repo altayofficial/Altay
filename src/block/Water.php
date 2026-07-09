@@ -51,6 +51,44 @@ class Water extends Liquid{
 		return 2;
 	}
 
+	protected function getFlowResult(Block $target, int $newFlowDecay, bool $falling) : Block{
+		$new = parent::getFlowResult($target, $newFlowDecay, $falling);
+		if($this->canWaterlog($target)){
+			$target = clone $target;
+			$containedWater = clone $this;
+			$containedWater->falling = false;
+			$containedWater->decay = 0;
+			return $target->setContainedWater($containedWater);
+		}
+		return $new;
+	}
+
+	protected function getDecayResult(Block $oldForm) : Block{
+		return $oldForm->canBeWaterlogged() ? $oldForm->setContainedWater(null) : parent::getDecayResult($oldForm);
+	}
+
+	protected function isSideAvailable(Block $block, int $face) : bool{
+		return !$block->canBeWaterlogged() || $block->isSideOpenToWaterFlow($face);
+	}
+
+	protected function unpackLiquid(Block $block) : Block{
+		return $block->canBeWaterlogged() ? ($block->getContainedWater() ?? $block) : $block;
+	}
+
+	protected function canFlowInto(Block $block) : bool{
+		if($this->canWaterlog($block)){
+			return $this->position->getWorld()->isInWorld($block->position->x, $block->position->y, $block->position->z);
+		}
+		return parent::canFlowInto($block);
+	}
+
+	private function canWaterlog(Block $block) : bool{
+		return
+			$block->canBeWaterlogged() &&
+			$block->getContainedWater() === null &&
+			($this->isSource() || $block->canBeWaterloggedByNonSource());
+	}
+
 	public function onEntityInside(Entity $entity) : bool{
 		$entity->resetFallDistance();
 		if($entity->isOnFire()){

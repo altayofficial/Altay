@@ -89,6 +89,8 @@ class Block{
 
 	private int $stateIdXorMask;
 
+	private ?Block $displacedBlock = null;
+
 	/**
 	 * Computes the mask to be XOR'd with the state data.
 	 * This is to improve distribution of the state data bits, which occupy the least significant bits of the state ID.
@@ -132,6 +134,7 @@ class Block{
 
 	public function __clone(){
 		$this->position = clone $this->position;
+		$this->displacedBlock = $this->displacedBlock !== null ? clone $this->displacedBlock : null;
 	}
 
 	/**
@@ -371,7 +374,26 @@ class Block{
 	 * @phpstan-impure
 	 */
 	public function readStateFromWorld() : Block{
+		$this->readDisplacedBlockStateFromWorld();
 		return $this;
+	}
+
+	protected function readDisplacedBlockStateFromWorld() : void{
+		$world = $this->position->getWorld();
+		$chunk = $world->getChunk($this->position->getFloorX() >> Chunk::COORD_BIT_SIZE, $this->position->getFloorZ() >> Chunk::COORD_BIT_SIZE);
+		if($chunk === null){
+			$this->displacedBlock = null;
+			return;
+		}
+
+		$stateId = $chunk->getDisplacedBlockStateId($this->position->getFloorX() & Chunk::COORD_MASK, $this->position->getFloorY(), $this->position->getFloorZ() & Chunk::COORD_MASK);
+		if($stateId !== self::EMPTY_STATE_ID){
+			$displacedBlock = RuntimeBlockStateRegistry::getInstance()->fromStateId($stateId);
+			$displacedBlock->position($world, $this->position->getFloorX(), $this->position->getFloorY(), $this->position->getFloorZ());
+			$this->displacedBlock = $displacedBlock;
+		}else{
+			$this->displacedBlock = null;
+		}
 	}
 
 	/**
@@ -387,6 +409,7 @@ class Block{
 			throw new AssumptionFailedError("World::setBlock() should have loaded the chunk before calling this method");
 		}
 		$chunk->setBlockStateId($this->position->x & Chunk::COORD_MASK, $this->position->y, $this->position->z & Chunk::COORD_MASK, $this->getStateId());
+		$chunk->setDisplacedBlockStateId($this->position->x & Chunk::COORD_MASK, $this->position->y, $this->position->z & Chunk::COORD_MASK, $this->getDisplacedBlock()?->getStateId() ?? self::EMPTY_STATE_ID);
 
 		$tileType = $this->idInfo->getTileClass();
 		$oldTile = $world->getTile($this->position);
@@ -406,6 +429,47 @@ class Block{
 			$tile = new $tileType($world, $this->position->asVector3());
 			$world->addTile($tile);
 		}
+	}
+
+	/**
+	 * @internal
+	 * Returns the block stored in the secondary layer at the same position.
+	 */
+	public function getDisplacedBlock() : ?Block{
+		return $this->displacedBlock !== null ? clone $this->displacedBlock : null;
+	}
+
+	/**
+	 * @internal
+	 * @return $this
+	 */
+	public function setDisplacedBlock(?Block $block) : self{
+		$this->displacedBlock = $block !== null ? clone $block : null;
+		return $this;
+	}
+
+	public function getContainedWater() : ?Water{
+		return $this->displacedBlock instanceof Water ? clone $this->displacedBlock : null;
+	}
+
+	/**
+	 * @return $this
+	 */
+	public function setContainedWater(?Water $water) : self{
+		$this->displacedBlock = $water !== null ? clone $water : null;
+		return $this;
+	}
+
+	public function canBeWaterlogged() : bool{
+		return false;
+	}
+
+	public function canBeWaterloggedByNonSource() : bool{
+		return $this->hasTypeTag(BlockTypeTags::NON_SOURCE_WATERLOGGABLE);
+	}
+
+	public function isSideOpenToWaterFlow(int $face) : bool{
+		return true;
 	}
 
 	/**
@@ -445,6 +509,9 @@ class Block{
 	 * @return bool whether the placement should go ahead
 	 */
 	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+		if($this->canBeWaterlogged() && $blockReplace instanceof Water && ($blockReplace->isSource() || $this->canBeWaterloggedByNonSource())){
+			$this->setContainedWater($blockReplace);
+		}
 		$tx->addBlock($blockReplace->position, $this);
 		return true;
 	}
@@ -487,7 +554,7 @@ class Block{
 		if(($t = $world->getTile($this->position)) !== null){
 			$t->onBlockDestroyed();
 		}
-		$world->setBlock($this->position, VanillaBlocks::AIR());
+		$world->setBlock($this->position, $this->getDisplacedBlock() ?? VanillaBlocks::AIR());
 		return true;
 	}
 
@@ -495,6 +562,9 @@ class Block{
 	 * Called when this block or a block immediately adjacent to it changes state.
 	 */
 	public function onNearbyBlockChange() : void{
+		if(($water = $this->getContainedWater()) !== null){
+			$this->position->getWorld()->delayDisplacedBlockUpdate($this->position, $water->tickRate());
+		}
 
 	}
 
@@ -517,6 +587,14 @@ class Block{
 	 * Called when this block is updated by the delayed blockupdate scheduler in the world.
 	 */
 	public function onScheduledUpdate() : void{
+
+	}
+
+	/**
+	 * @internal
+	 * Called for blocks stored in the secondary layer, such as water inside waterlogged blocks.
+	 */
+	public function onDisplacedScheduledUpdate() : void{
 
 	}
 
@@ -623,6 +701,9 @@ class Block{
 	final public function position(World $world, int $x, int $y, int $z) : void{
 		$this->position = new Position($x, $y, $z, $world);
 		$this->collisionBoxes = null;
+		if($this->displacedBlock !== null){
+			$this->displacedBlock->position($world, $x, $y, $z);
+		}
 	}
 
 	/**
@@ -859,7 +940,7 @@ class Block{
 	 * @see Block::onEntityInside()
 	 */
 	public function hasEntityCollision() : bool{
-		return false;
+		return $this->displacedBlock instanceof Water;
 	}
 
 	/**
@@ -872,6 +953,7 @@ class Block{
 	 * being ignited), this should return false.
 	 */
 	public function onEntityInside(Entity $entity) : bool{
+		$this->getContainedWater()?->onEntityInside($entity);
 		return true;
 	}
 
@@ -885,6 +967,9 @@ class Block{
 	 * WARNING: This will not be called if {@link Block::hasEntityCollision()} does not return true!
 	 */
 	public function addVelocityToEntity(Entity $entity) : ?Vector3{
+		if(($water = $this->getContainedWater()) !== null && $entity->canBeMovedByCurrents()){
+			return $water->getFlowVector();
+		}
 		return null;
 	}
 

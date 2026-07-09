@@ -83,6 +83,26 @@ class SubChunk{
 		$this->blockLayers[0]->set($x, $y, $z, $block);
 	}
 
+	public function getDisplacedBlockStateId(int $x, int $y, int $z) : int{
+		if(count($this->blockLayers) < 2){
+			return $this->emptyBlockId;
+		}
+		return $this->blockLayers[1]->get($x, $y, $z);
+	}
+
+	public function setDisplacedBlockStateId(int $x, int $y, int $z, int $block) : void{
+		if(count($this->blockLayers) < 2){
+			if($block === $this->emptyBlockId){
+				return;
+			}
+			if(count($this->blockLayers) === 0){
+				$this->blockLayers[] = new PalettedBlockArray($this->emptyBlockId);
+			}
+			$this->blockLayers[] = new PalettedBlockArray($this->emptyBlockId);
+		}
+		$this->blockLayers[1]->set($x, $y, $z, $block);
+	}
+
 	/**
 	 * @return PalettedBlockArray[]
 	 * @phpstan-return list<PalettedBlockArray>

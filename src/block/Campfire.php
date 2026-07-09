@@ -68,7 +68,6 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 	use LightableTrait{
 		LightableTrait::describeBlockOnlyState as encodeLitState;
 	}
-
 	private const UPDATE_INTERVAL_TICKS = 10;
 
 	/**
@@ -99,6 +98,10 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 		}
 
 		return $this;
+	}
+
+	public function canBeWaterlogged() : bool{
+		return true;
 	}
 
 	public function writeStateToWorld() : void{
@@ -184,17 +187,19 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if(!$this->lit){
-			if($item->getTypeId() === ItemTypeIds::FIRE_CHARGE){
-				$item->pop();
-				$this->ignite();
-				$this->position->getWorld()->addSound($this->position, new BlazeShootSound());
-				return true;
-			}elseif($item->getTypeId() === ItemTypeIds::FLINT_AND_STEEL || $item->hasEnchantment(VanillaEnchantments::FIRE_ASPECT())){
-				if($item instanceof Durable){
-					$item->applyDamage(1);
+			if($this->getContainedWater() === null){
+				if($item->getTypeId() === ItemTypeIds::FIRE_CHARGE){
+					$item->pop();
+					$this->ignite();
+					$this->position->getWorld()->addSound($this->position, new BlazeShootSound());
+					return true;
+				}elseif($item->getTypeId() === ItemTypeIds::FLINT_AND_STEEL || $item->hasEnchantment(VanillaEnchantments::FIRE_ASPECT())){
+					if($item instanceof Durable){
+						$item->applyDamage(1);
+					}
+					$this->ignite();
+					return true;
 				}
-				$this->ignite();
-				return true;
 			}
 		}elseif($item instanceof Shovel){
 			$item->applyDamage(1);
@@ -215,13 +220,14 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 	}
 
 	public function onNearbyBlockChange() : void{
-		if($this->lit && $this->getSide(Facing::UP)->getTypeId() === BlockTypeIds::WATER){
+		parent::onNearbyBlockChange();
+		if($this->lit && ($this->getContainedWater() !== null || $this->getSide(Facing::UP)->getTypeId() === BlockTypeIds::WATER)){
 			$this->extinguish();
-			//TODO: Waterlogging
 		}
 	}
 
 	public function onEntityInside(Entity $entity) : bool{
+		parent::onEntityInside($entity);
 		if(!$this->lit){
 			if($entity->isOnFire()){
 				$this->ignite();

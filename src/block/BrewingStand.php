@@ -106,6 +106,10 @@ class BrewingStand extends Transparent{
 		return true;
 	}
 
+	public function canBeWaterlogged() : bool{
+		return true;
+	}
+
 	public function onScheduledUpdate() : void{
 		$world = $this->position->getWorld();
 		$brewing = $world->getTile($this->position);

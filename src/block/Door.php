@@ -68,6 +68,10 @@ class Door extends Transparent implements HorizontalFacing{
 		return $this;
 	}
 
+	public function canBeWaterlogged() : bool{
+		return true;
+	}
+
 	public function isTop() : bool{ return $this->top; }
 
 	/** @return $this */
@@ -106,6 +110,7 @@ class Door extends Transparent implements HorizontalFacing{
 	}
 
 	public function onNearbyBlockChange() : void{
+		parent::onNearbyBlockChange();
 		if(!$this->canBeSupportedAt($this) && !$this->getSide(Facing::DOWN) instanceof Door){ //Replace with common break method
 			$this->position->getWorld()->useBreakOn($this->position); //this will delete both halves if they exist
 		}
@@ -131,6 +136,13 @@ class Door extends Transparent implements HorizontalFacing{
 
 			$topHalf = clone $this;
 			$topHalf->top = true;
+
+			if($blockReplace instanceof Water && $blockReplace->isSource()){
+				$this->setContainedWater($blockReplace);
+			}
+			if($blockUp instanceof Water && $blockUp->isSource()){
+				$topHalf->setContainedWater($blockUp);
+			}
 
 			$tx->addBlock($blockReplace->position, $this)->addBlock($blockUp->position, $topHalf);
 			return true;

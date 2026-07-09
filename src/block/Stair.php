@@ -64,6 +64,14 @@ class Stair extends Transparent implements HorizontalFacing{
 		return $this;
 	}
 
+	public function canBeWaterlogged() : bool{
+		return true;
+	}
+
+	public function isSideOpenToWaterFlow(int $face) : bool{
+		return $this->getSupportType($face) !== SupportType::FULL;
+	}
+
 	public function isUpsideDown() : bool{ return $this->upsideDown; }
 
 	/** @return $this */

@@ -46,6 +46,10 @@ abstract class Button extends Flowable implements AnyFacing{
 
 	public function isPressed() : bool{ return $this->pressed; }
 
+	public function canBeWaterlogged() : bool{
+		return true;
+	}
+
 	/** @return $this */
 	public function setPressed(bool $pressed) : self{
 		$this->pressed = $pressed;
@@ -84,6 +88,7 @@ abstract class Button extends Flowable implements AnyFacing{
 	}
 
 	public function onNearbyBlockChange() : void{
+		parent::onNearbyBlockChange();
 		if(!$this->canBeSupportedAt($this, $this->facing)){
 			$this->position->getWorld()->useBreakOn($this->position);
 		}

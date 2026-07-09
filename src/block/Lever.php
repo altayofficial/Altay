@@ -39,6 +39,10 @@ class Lever extends Flowable{
 	protected LeverFacing $facing = LeverFacing::UP_AXIS_X;
 	protected bool $activated = false;
 
+	public function canBeWaterlogged() : bool{
+		return true;
+	}
+
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
 		$w->enum($this->facing);
 		$w->bool($this->activated);
@@ -85,6 +89,7 @@ class Lever extends Flowable{
 	}
 
 	public function onNearbyBlockChange() : void{
+		parent::onNearbyBlockChange();
 		if(!$this->canBeSupportedAt($this, Facing::opposite($this->facing->getFacing()))){
 			$this->position->getWorld()->useBreakOn($this->position);
 		}

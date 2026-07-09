@@ -45,4 +45,4 @@ jobs:
           fi
 
       - name: Run webhook post script
-        run: php .github/workflows/discord-release-embed.php ${{ github.repository }} ${{ steps.tag-name.outputs.TAG_NAME }} ${{ github.token }} ${{ secrets.DISCORD_RELEASE_WEBHOOK }} ${{ secrets.DISCORD_NEWS_PING_ROLE_ID }}
+        run: php .github/workflows/discord-release-embed.php ${{ github.repository }} ${{ steps.tag-name.outputs.TAG_NAME }} ${{ github.token }} ${{ secrets.DISCORD_RELEASE_WEBHOOK }}

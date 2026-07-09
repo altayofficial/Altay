@@ -19,14 +19,14 @@ require dirname(__DIR__, 2) . '/vendor/autoload.php';
 /**
  * @phpstan-return array<string, mixed>
  */
-function generateDiscordEmbed(string $version, string $channel, string $description, string $detailsUrl, string $sourceUrl, string $pharDownloadUrl, string $buildLogUrl, int $newsPingRoleId, ?string $phpDownloadUrl) : array{
+function generateDiscordEmbed(string $version, string $channel, string $description, string $detailsUrl, string $sourceUrl, string $pharDownloadUrl, string $buildLogUrl, ?string $phpDownloadUrl) : array{
 	if($phpDownloadUrl !== null){
 		$phpEmbedLink = " | [PHP Binaries]($phpDownloadUrl)";
 	}else{
 		$phpEmbedLink = "";
 	}
 	return [
-		"content" => "<@&$newsPingRoleId> New Altay release: $version ($channel)",
+		"content" => "New Altay release: $version ($channel)",
 		"embeds" => [
 			[
 				"title" => "New Altay release: $version ($channel)",
@@ -42,11 +42,11 @@ DESCRIPTION,
 	];
 }
 
-if(count($argv) !== 6){
-	fwrite(STDERR, "Required arguments: github repo, version, API token, webhook URL, ping role ID\n");
+if(count($argv) !== 5){
+	fwrite(STDERR, "Required arguments: github repo, version, API token, webhook URL\n");
 	exit(1);
 }
-[, $repo, $tagName, $token, $hookURL, $newsPingRoleId] = $argv;
+[, $repo, $tagName, $token, $hookURL] = $argv;
 
 $result = Internet::getURL('https://api.github.com/repos/' . $repo . '/releases/tags/' . $tagName, extraHeaders: [
 	'Authorization: token ' . $token
@@ -102,7 +102,6 @@ $discordPayload = generateDiscordEmbed(
 	$sourceUrl,
 	$pharDownloadUrl,
 	$buildLogUrl,
-	(int) $newsPingRoleId,
 	$phpBinaryUrl
 );
 

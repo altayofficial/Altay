@@ -26,74 +26,82 @@ namespace pocketmine\network\mcpe\cache;
 use pocketmine\color\Color;
 use pocketmine\data\bedrock\BedrockDataFiles;
 use pocketmine\data\SavedDataLoadingException;
+use pocketmine\nbt\BigEndianNbtSerializer;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ShortTag;
+use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\mcpe\protocol\AvailableActorIdentifiersPacket;
 use pocketmine\network\mcpe\protocol\BiomeDefinitionListPacket;
-use pocketmine\network\mcpe\protocol\serializer\NetworkNbtSerializer;
 use pocketmine\network\mcpe\protocol\types\biome\BiomeDefinitionEntry;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
 use pocketmine\utils\Filesystem;
 use pocketmine\utils\SingletonTrait;
-use pocketmine\utils\Utils;
-use pocketmine\world\biome\model\BiomeDefinitionEntryData;
-use function count;
-use function get_debug_type;
-use function is_array;
-use function json_decode;
+use function zlib_decode;
 
 class StaticPacketCache{
 	use SingletonTrait;
 
-	/**
-	 * @phpstan-return CacheableNbt<\pocketmine\nbt\tag\CompoundTag>
-	 */
-	private static function loadCompoundFromFile(string $filePath) : CacheableNbt{
-		return new CacheableNbt((new NetworkNbtSerializer())->read(Filesystem::fileGetContents($filePath))->mustGetCompoundTag());
+	private static function loadCompoundFromFile(string $filePath) : CompoundTag{
+		$raw = zlib_decode(Filesystem::fileGetContents($filePath));
+		if($raw === false){
+			throw new SavedDataLoadingException("Failed to decompress $filePath");
+		}
+		return (new BigEndianNbtSerializer())->read($raw)->mustGetCompoundTag();
 	}
 
 	/**
+	 * Loads biome definitions from a bedrock-network-data biome_definitions.nbt, which stores the definitions in the
+	 * same string-pooled layout as BiomeDefinitionListPacket.
+	 *
 	 * @return list<BiomeDefinitionEntry>
 	 */
 	private static function loadBiomeDefinitionModel(string $filePath) : array{
-		$biomeEntries = json_decode(Filesystem::fileGetContents($filePath), associative: true);
-		if(!is_array($biomeEntries)){
-			throw new SavedDataLoadingException("$filePath root should be an array, got " . get_debug_type($biomeEntries));
+		$root = self::loadCompoundFromFile($filePath);
+
+		$stringListTag = $root->getListTag("biomeStringList") ?? throw new SavedDataLoadingException("$filePath missing biomeStringList");
+		$strings = [];
+		foreach($stringListTag as $i => $tag){
+			if(!($tag instanceof StringTag)){
+				throw new SavedDataLoadingException("biomeStringList should only contain strings");
+			}
+			$strings[$i] = $tag->getValue();
 		}
+		$locateString = function(int $index) use ($strings, $filePath) : string{
+			return $strings[$index] ?? throw new SavedDataLoadingException("$filePath refers to unknown string index $index");
+		};
 
-		$jsonMapper = new \JsonMapper();
-		$jsonMapper->bExceptionOnMissingData = true;
-		$jsonMapper->bStrictObjectTypeChecking = true;
-		$jsonMapper->bEnforceMapType = false;
-
+		$biomeDataTag = $root->getListTag("biomeData") ?? throw new SavedDataLoadingException("$filePath missing biomeData");
 		$entries = [];
-		foreach(Utils::promoteKeys($biomeEntries) as $biomeName => $entry){
-			if(!is_array($entry)){
-				throw new SavedDataLoadingException("$filePath should be an array of objects, got " . get_debug_type($entry));
+		foreach($biomeDataTag as $entryTag){
+			if(!($entryTag instanceof CompoundTag)){
+				throw new SavedDataLoadingException("biomeData should only contain compounds");
+			}
+			$data = $entryTag->getCompoundTag("data") ?? throw new SavedDataLoadingException("Biome entry is missing data");
+
+			$tags = null;
+			$tagsTag = $data->getCompoundTag("tags")?->getListTag("tags");
+			if($tagsTag !== null){
+				$tags = [];
+				foreach($tagsTag as $tagIndexTag){
+					if(!($tagIndexTag instanceof ShortTag)){
+						throw new SavedDataLoadingException("Biome tag list should only contain shorts");
+					}
+					$tags[] = $locateString($tagIndexTag->getValue() & 0xffff);
+				}
 			}
 
-			try{
-				$biomeDefinition = $jsonMapper->map($entry, new BiomeDefinitionEntryData());
-
-				$mapWaterColour = $biomeDefinition->mapWaterColour;
-				$entries[] = new BiomeDefinitionEntry(
-					(string) $biomeName,
-					$biomeDefinition->id,
-					$biomeDefinition->temperature,
-					$biomeDefinition->downfall,
-					$biomeDefinition->foliageSnow,
-					$biomeDefinition->depth,
-					$biomeDefinition->scale,
-					new Color(
-						$mapWaterColour->r,
-						$mapWaterColour->g,
-						$mapWaterColour->b,
-						$mapWaterColour->a
-					),
-					$biomeDefinition->rain,
-					count($biomeDefinition->tags) > 0 ? $biomeDefinition->tags : null,
-				);
-			}catch(\JsonMapper_Exception $e){
-				throw new \RuntimeException($e->getMessage(), 0, $e);
-			}
+			$entries[] = new BiomeDefinitionEntry(
+				$locateString($entryTag->getShort("index") & 0xffff),
+				$data->getShort("id") & 0xffff,
+				$data->getFloat("temperature"),
+				$data->getFloat("downfall"),
+				$data->getFloat("foliageSnow"),
+				$data->getFloat("depth"),
+				$data->getFloat("scale"),
+				Color::fromARGB($data->getInt("mapWaterColorARGB") & 0xffffffff),
+				$data->getByte("rain") !== 0,
+				$tags,
+			);
 		}
 
 		return $entries;
@@ -101,8 +109,8 @@ class StaticPacketCache{
 
 	private static function make() : self{
 		return new self(
-			BiomeDefinitionListPacket::fromDefinitions(self::loadBiomeDefinitionModel(BedrockDataFiles::BIOME_DEFINITIONS_JSON)),
-			AvailableActorIdentifiersPacket::create(self::loadCompoundFromFile(BedrockDataFiles::ENTITY_IDENTIFIERS_NBT))
+			BiomeDefinitionListPacket::fromDefinitions(self::loadBiomeDefinitionModel(BedrockDataFiles::BIOME_DEFINITIONS_NBT)),
+			AvailableActorIdentifiersPacket::create(new CacheableNbt(self::loadCompoundFromFile(BedrockDataFiles::ENTITY_IDENTIFIERS_NBT)))
 		);
 	}
 

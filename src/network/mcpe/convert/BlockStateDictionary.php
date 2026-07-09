@@ -25,7 +25,9 @@ namespace pocketmine\network\mcpe\convert;
 
 use pocketmine\data\bedrock\block\BlockStateData;
 use pocketmine\data\bedrock\block\BlockTypeNames;
+use pocketmine\nbt\BigEndianNbtSerializer;
 use pocketmine\nbt\NbtDataException;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\TreeRoot;
 use pocketmine\network\mcpe\protocol\serializer\NetworkNbtSerializer;
 use pocketmine\utils\Utils;
@@ -37,6 +39,7 @@ use function is_array;
 use function is_int;
 use function is_string;
 use function json_decode;
+use function zlib_decode;
 use const JSON_THROW_ON_ERROR;
 
 /**
@@ -56,9 +59,9 @@ final class BlockStateDictionary{
 	private ?array $idMetaToStateIdLookupCache = null;
 
 	/**
-	 * @param BlockStateDictionaryEntry[] $states
+	 * @param BlockStateDictionaryEntry[] $states keyed by hashed network runtime ID
 	 *
-	 * @phpstan-param list<BlockStateDictionaryEntry> $states
+	 * @phpstan-param array<int, BlockStateDictionaryEntry> $states
 	 */
 	public function __construct(
 		private array $states
@@ -165,11 +168,22 @@ final class BlockStateDictionary{
 		);
 	}
 
+	/**
+	 * Loads the dictionary from a gzipped big-endian NBT block palette (bedrock-network-data block_palette.nbt).
+	 * Each palette entry provides its hashed network runtime ID (network_id), which is used as the state ID.
+	 */
 	public static function loadFromString(string $blockPaletteContents, string $metaMapContents) : self{
 		$metaMap = json_decode($metaMapContents, flags: JSON_THROW_ON_ERROR);
 		if(!is_array($metaMap)){
 			throw new \InvalidArgumentException("Invalid metaMap, expected array for root type, got " . get_debug_type($metaMap));
 		}
+
+		$paletteRaw = zlib_decode($blockPaletteContents);
+		if($paletteRaw === false){
+			throw new \InvalidArgumentException("Failed to decompress block palette");
+		}
+		$blocks = (new BigEndianNbtSerializer())->read($paletteRaw)->mustGetCompoundTag()->getListTag("blocks") ??
+			throw new \InvalidArgumentException("Missing \"blocks\" list in block palette");
 
 		$entries = [];
 
@@ -183,16 +197,23 @@ final class BlockStateDictionary{
 			}
 		}
 
-		foreach(self::loadPaletteFromString($blockPaletteContents) as $i => $state){
+		foreach($blocks as $i => $blockTag){
+			if(!($blockTag instanceof CompoundTag)){
+				throw new \InvalidArgumentException("Invalid block palette entry at offset $i, expected TAG_Compound, got " . get_debug_type($blockTag));
+			}
 			$meta = $metaMap[$i] ?? null;
 			if($meta === null){
-				throw new \InvalidArgumentException("Missing associated meta value for state $i (" . $state->toNbt() . ")");
+				throw new \InvalidArgumentException("Missing associated meta value for state $i (" . $blockTag . ")");
 			}
 			if(!is_int($meta)){
 				throw new \InvalidArgumentException("Invalid metaMap offset $i, expected int, got " . get_debug_type($meta));
 			}
-			$uniqueName = $uniqueNames[$state->getName()] ??= $state->getName();
-			$entries[$i] = new BlockStateDictionaryEntry($uniqueName, $state->getStates(), $meta);
+			$networkId = $blockTag->getInt("network_id");
+			$name = $blockTag->getString(BlockStateData::TAG_NAME);
+			$states = $blockTag->getCompoundTag(BlockStateData::TAG_STATES) ??
+				throw new \InvalidArgumentException("Missing states for palette entry $i");
+			$uniqueName = $uniqueNames[$name] ??= $name;
+			$entries[$networkId] = new BlockStateDictionaryEntry($uniqueName, $states->getValue(), $meta);
 		}
 
 		return new self($entries);

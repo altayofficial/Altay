@@ -83,14 +83,17 @@ class TypeConverter{
 		//TODO: inject stuff via constructor
 		$this->blockItemIdMap = BlockItemIdMap::getInstance();
 
-		$canonicalBlockStatesRaw = Filesystem::fileGetContents(BedrockDataFiles::CANONICAL_BLOCK_STATES_NBT);
+		$blockPaletteRaw = Filesystem::fileGetContents(BedrockDataFiles::BLOCK_PALETTE_NBT);
 		$metaMappingRaw = Filesystem::fileGetContents(BedrockDataFiles::BLOCK_STATE_META_MAP_JSON);
 		$this->blockTranslator = new BlockTranslator(
-			BlockStateDictionary::loadFromString($canonicalBlockStatesRaw, $metaMappingRaw),
+			BlockStateDictionary::loadFromString($blockPaletteRaw, $metaMappingRaw),
 			GlobalBlockStateHandlers::getSerializer()
 		);
 
-		$this->itemTypeDictionary = ItemTypeDictionaryFromDataHelper::loadFromString(Filesystem::fileGetContents(BedrockDataFiles::REQUIRED_ITEM_LIST_JSON));
+		$this->itemTypeDictionary = ItemTypeDictionaryFromDataHelper::loadFromString(
+			Filesystem::fileGetContents(BedrockDataFiles::ITEM_PALETTE_JSON),
+			Filesystem::fileGetContents(BedrockDataFiles::ITEM_COMPONENTS_NBT)
+		);
 		$this->shieldRuntimeId = $this->itemTypeDictionary->fromStringId(ItemTypeNames::SHIELD);
 
 		$this->itemTranslator = new ItemTranslator(

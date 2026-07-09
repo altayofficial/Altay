@@ -1003,7 +1003,7 @@ class Server {
 
 			$this->commandMap = new SimpleCommandMap($this);
 
-			$this->craftingManager = CraftingManagerFromDataHelper::make(BedrockDataFiles::RECIPES);
+			$this->craftingManager = CraftingManagerFromDataHelper::make(BedrockDataFiles::RECIPES_JSON);
 
 			$this->resourceManager = new ResourcePackManager(Path::join($this->dataPath, "resource_packs"), $this->logger);
 

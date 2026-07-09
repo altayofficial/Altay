@@ -157,7 +157,7 @@ function main() : void{
 		}
 		$pharPath = $opts["out"];
 	}else{
-		$pharPath = getcwd() . DIRECTORY_SEPARATOR . "Zenith.phar";
+		$pharPath = getcwd() . DIRECTORY_SEPARATOR . "Altay.phar";
 	}
 	foreach(buildPhar(
 		$pharPath,

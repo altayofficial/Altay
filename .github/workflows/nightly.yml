@@ -40,7 +40,7 @@ jobs:
         run: composer install --no-dev --classmap-authoritative --ignore-platform-reqs --prefer-dist --no-interaction
 
       - name: Build server phar
-        run: php -dphar.readonly=0 build/server-phar.php --out Zenith.phar --git "${{ github.sha }}"
+        run: php -dphar.readonly=0 build/server-phar.php --out Altay.phar --git "${{ github.sha }}"
 
       - name: Delete existing nightly release
         uses: dev-drprasad/delete-tag-and-release@v1.1
@@ -63,7 +63,7 @@ jobs:
             **Built at:** ${{ github.event.head_commit.timestamp }}
 
             > This is a development build. Not recommended for production use.
-          artifacts: "Zenith.phar"
+          artifacts: "Altay.phar"
           prerelease: true
           makeLatest: false
           token: ${{ secrets.GITHUB_TOKEN }}

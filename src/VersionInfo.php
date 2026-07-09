@@ -30,11 +30,11 @@ use function is_int;
 use function str_repeat;
 
 final class VersionInfo{
-	public const NAME = "Zenith";
+	public const NAME = "Altay";
 	public const BASE_VERSION = "5.43.2";
 	public const IS_DEVELOPMENT_BUILD = true;
 	public const BUILD_CHANNEL = "master";
-	public const GITHUB_URL = "https://github.com/ZenithPE/Zenith";
+	public const GITHUB_URL = "https://github.com/altayofficial/Altay";
 
 	/**
 	 * PocketMine-MP-specific version ID for world data. Used to determine what fixes need to be applied to old world

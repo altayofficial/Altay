@@ -1,8 +1,7 @@
 {
-   "name": "zenithpe/zenith",
+   "name": "altayofficial/altay",
    "description": "A server software for Minecraft: Bedrock Edition written in PHP",
    "type": "project",
-   "homepage": "https://zenith.org",
    "license": "LGPL-3.0",
    "require": {
       "php": "^8.1",
@@ -35,9 +34,9 @@
       "adhocore/json-comment": "~1.2.0",
       "netresearch/jsonmapper": "~v5.0.0",
       "pocketmine/bedrock-block-upgrade-schema": "~5.2.0+bedrock-1.21.110",
-      "zenith/bedrock-data": "dev-bedrock-1.26.30",
+      "altayofficial/bedrock-data": "dev-bedrock-1.26.30",
       "pocketmine/bedrock-item-upgrade-schema": "~1.17.0+bedrock-1.26.20",
-      "zenith/bedrock-protocol": "dev-master",
+      "altayofficial/bedrock-protocol": "dev-master",
       "pocketmine/binaryutils": "^0.2.1",
       "pocketmine/callback-validator": "~1.0.4",
       "pocketmine/color": "^0.3.0",
@@ -87,11 +86,11 @@
    "repositories": [
       {
          "type": "vcs",
-         "url":  "git@github.com:ZenithPE/BedrockProtocol.git"
+         "url":  "git@github.com:altayofficial/BedrockProtocol.git"
       },
       {
          "type": "vcs",
-         "url":  "git@github.com:ZenithPE/BedrockData.git"
+         "url":  "git@github.com:altayofficial/BedrockData.git"
       }
    ],
    "scripts": {

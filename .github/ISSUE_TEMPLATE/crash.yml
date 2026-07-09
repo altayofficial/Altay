@@ -1,5 +1,5 @@
 name: Crash
-description: Report a crash in Zenith (not plugins)
+description: Report a crash in Altay (not plugins)
 title: Server crashed
 body:
   - type: markdown
@@ -8,7 +8,7 @@ body:
         > [!CAUTION]
         > If the crash can be triggered over the network (e.g. by a player / hack client), DO NOT report it here.
         > 
-        > Read our [Security Policy](https://github.com/ZenithPE/Zenith/blob/master/SECURITY.md) first.
+        > Read our [Security Policy](https://github.com/altayofficial/Altay/blob/master/SECURITY.md) first.
 
         > [!TIP]
         > Don't paste raw crashdump data into the issue.

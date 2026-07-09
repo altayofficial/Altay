@@ -6,15 +6,15 @@
 - [`composer`](https://getcomposer.org) available in your shell
 
 ## Custom PHP binaries
-Because Zenith requires several non-standard PHP extensions and configuration, Zenith provides scripts to build custom binaries for running Zenith, as well as prebuilt binaries.
+Because Altay requires several non-standard PHP extensions and configuration, Zenith provides scripts to build custom binaries for running Zenith, as well as prebuilt binaries.
 
-- [Prebuilt binaries](https://github.com/ZenithPE/PHP-Binaries/releases)
-- [Compile scripts](https://github.com/ZenithPE/php-build-scripts) are provided as a submodule in the path `build/php`
+- [Prebuilt binaries](https://github.com/pmmp/PHP-Binaries/releases)
+- [Compile scripts](https://github.com/pmmp/php-build-scripts) are provided as a submodule in the path `build/php`
 
 If you use a custom binary, you'll need to replace `composer` usages in this guide with `path/to/your/php path/to/your/composer.phar`.
 
 ## Setting up environment
-1. `git clone https://github.com/ZenithPE/Zenith.git`
+1. `git clone https://github.com/altayofficial/Altay.git`
 2. `composer install`
 
 ## Checking out a different branch to build
@@ -24,10 +24,10 @@ If you use a custom binary, you'll need to replace `composer` usages in this gui
 ## Optimizing for release builds
 1. Add the flags `--no-dev --classmap-authoritative` to your `composer install` command. This will reduce build size and improve autoloading speed.
 
-## Building `Zenith.phar`
-Run `composer make-server` using your preferred PHP binary. It'll drop a `Zenith.phar` into the current working directory.
+## Building `Altay.phar`
+Run `composer make-server` using your preferred PHP binary. It'll drop a `Altay.phar` into the current working directory.
 
 You can also use the `--out` option to change the output filename.
 
-## Running Zenith from source code
+## Running Altay from source code
 Run `src/PocketMine.php` using your preferred PHP binary.

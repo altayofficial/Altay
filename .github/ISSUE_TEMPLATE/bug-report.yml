@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a feature of Zenith not working as expected
+description: Report a feature of Altay not working as expected
 body:
   - type: markdown
     attributes:
@@ -63,20 +63,20 @@ body:
 
   - type: input
     attributes:
-      label: Zenith version
-      placeholder: Use the /version command in your Zenith server
+      label: Altay version
+      placeholder: Use the /version command in your Altay server
     validations:
       required: true
   - type: input
     attributes:
       label: PHP version
-      placeholder: Use the /version command in your Zenith server
+      placeholder: Use the /version command in your Altay server
     validations:
       required: true
   - type: input
     attributes:
       label: Server OS
-      placeholder: Use the /version command in your Zenith server
+      placeholder: Use the /version command in your Altay server
     validations:
       required: true
   - type: input

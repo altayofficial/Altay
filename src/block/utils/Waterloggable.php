@@ -30,11 +30,6 @@ interface Waterloggable{
 
 	public function getWaterlogging() : ?Liquid;
 
-	/**
-	 * @return $this
-	 */
-	public function setWaterlogging(?Liquid $waterlogging) : self;
-
 	public function canBeWaterlogged() : bool;
 
 	public function isSideOpenToFlow(int $face) : bool;

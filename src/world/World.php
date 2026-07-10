@@ -29,6 +29,7 @@ namespace pocketmine\world;
 use pocketmine\block\Air;
 use pocketmine\block\Block;
 use pocketmine\block\BlockTypeIds;
+use pocketmine\block\Liquid;
 use pocketmine\block\RuntimeBlockStateRegistry;
 use pocketmine\block\tile\Spawnable;
 use pocketmine\block\tile\Tile;
@@ -124,7 +125,10 @@ use function floor;
 use function get_class;
 use function gettype;
 use function is_a;
+use function is_array;
 use function is_object;
+use function constant;
+use function defined;
 use function max;
 use function microtime;
 use function min;
@@ -309,6 +313,14 @@ class World implements ChunkManager{
 	 * @phpstan-var array<BlockPosHash, int>
 	 */
 	private array $scheduledBlockUpdateQueueIndex = [];
+
+	/** @phpstan-var ReversePriorityQueue<int, Vector3> */
+	private ReversePriorityQueue $scheduledDisplacedBlockUpdateQueue;
+	/**
+	 * @var int[] blockHash => tick delay
+	 * @phpstan-var array<BlockPosHash, int>
+	 */
+	private array $scheduledDisplacedBlockUpdateQueueIndex = [];
 
 	/** @phpstan-var \SplQueue<int> */
 	private \SplQueue $neighbourBlockUpdateQueue;
@@ -534,6 +546,8 @@ class World implements ChunkManager{
 
 		$this->scheduledBlockUpdateQueue = new ReversePriorityQueue();
 		$this->scheduledBlockUpdateQueue->setExtractFlags(\SplPriorityQueue::EXTR_BOTH);
+		$this->scheduledDisplacedBlockUpdateQueue = new ReversePriorityQueue();
+		$this->scheduledDisplacedBlockUpdateQueue->setExtractFlags(\SplPriorityQueue::EXTR_BOTH);
 
 		$this->neighbourBlockUpdateQueue = new \SplQueue();
 
@@ -963,6 +977,22 @@ class World implements ChunkManager{
 			$block = $this->getBlock($vec);
 			$block->onScheduledUpdate();
 		}
+		while($this->scheduledDisplacedBlockUpdateQueue->count() > 0){
+			$current = $this->scheduledDisplacedBlockUpdateQueue->current();
+			if(!is_array($current) || $current["priority"] > $currentTick){
+				break;
+			}
+			$entry = $this->scheduledDisplacedBlockUpdateQueue->extract();
+			if(!is_array($entry) || !($entry["data"] instanceof Vector3)){
+				continue;
+			}
+			$vec = $entry["data"];
+			unset($this->scheduledDisplacedBlockUpdateQueueIndex[World::blockHash($vec->getFloorX(), $vec->getFloorY(), $vec->getFloorZ())]);
+			if(!$this->isInLoadedTerrain($vec)){
+				continue;
+			}
+			$this->getBlock($vec)->getDisplacedBlock()?->onDisplacedScheduledUpdate();
+		}
 		$this->timings->scheduledBlockUpdates->stopTiming();
 
 		$this->timings->neighbourBlockUpdates->startTiming();
@@ -988,6 +1018,9 @@ class World implements ChunkManager{
 				$entity->onNearbyBlockChange();
 			}
 			$block->onNearbyBlockChange();
+			if(($displacedBlock = $block->getDisplacedBlock()) instanceof Liquid){
+				$this->delayDisplacedBlockUpdate($block->getPosition(), $displacedBlock->tickRate());
+			}
 		}
 
 		$this->timings->neighbourBlockUpdates->stopTiming();
@@ -1093,6 +1126,7 @@ class World implements ChunkManager{
 		$packets = [];
 
 		$blockTranslator = TypeConverter::getInstance()->getBlockTranslator();
+		$liquidLayer = defined(UpdateBlockPacket::class . "::DATA_LAYER_LIQUID") ? constant(UpdateBlockPacket::class . "::DATA_LAYER_LIQUID") : 1;
 
 		foreach($blocks as $b){
 			if(!($b instanceof Vector3)){
@@ -1125,6 +1159,12 @@ class World implements ChunkManager{
 				$blockTranslator->internalIdToNetworkId($fullBlock->getStateId()),
 				UpdateBlockPacket::FLAG_NETWORK,
 				UpdateBlockPacket::DATA_LAYER_NORMAL
+			);
+			$packets[] = UpdateBlockPacket::create(
+				$blockPosition,
+				$blockTranslator->internalIdToNetworkId($fullBlock->getDisplacedBlock()?->getStateId() ?? Block::EMPTY_STATE_ID),
+				UpdateBlockPacket::FLAG_NETWORK,
+				$liquidLayer
 			);
 
 			if($tile instanceof Spawnable){
@@ -1474,6 +1514,20 @@ class World implements ChunkManager{
 		}
 		$this->scheduledBlockUpdateQueueIndex[$index] = $delay;
 		$this->scheduledBlockUpdateQueue->insert(new Vector3((int) $pos->x, (int) $pos->y, (int) $pos->z), $delay + $this->server->getTick());
+	}
+
+	public function delayDisplacedBlockUpdate(Vector3 $pos, int $delay) : void{
+		$x = $pos->getFloorX();
+		$y = $pos->getFloorY();
+		$z = $pos->getFloorZ();
+		if(
+			!$this->isInWorld($x, $y, $z) ||
+			(isset($this->scheduledDisplacedBlockUpdateQueueIndex[$index = World::blockHash($x, $y, $z)]) && $this->scheduledDisplacedBlockUpdateQueueIndex[$index] <= $delay)
+		){
+			return;
+		}
+		$this->scheduledDisplacedBlockUpdateQueueIndex[$index] = $delay;
+		$this->scheduledDisplacedBlockUpdateQueue->insert(new Vector3($x, $y, $z), $delay + $this->server->getTick());
 	}
 
 	private function tryAddToNeighbourUpdateQueue(int $x, int $y, int $z) : void{
@@ -1954,6 +2008,29 @@ class World implements ChunkManager{
 		return $this->getBlockAt((int) floor($pos->x), (int) floor($pos->y), (int) floor($pos->z), $cached, $addToCache);
 	}
 
+	public function getLiquid(Vector3 $pos) : ?Liquid{
+		return $this->getLiquidAt((int) floor($pos->x), (int) floor($pos->y), (int) floor($pos->z));
+	}
+
+	public function getLiquidAt(int $x, int $y, int $z) : ?Liquid{
+		if(!$this->isInWorld($x, $y, $z)){
+			return null;
+		}
+
+		$chunk = $this->chunks[World::chunkHash($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE)] ?? null;
+		if($chunk === null){
+			return null;
+		}
+
+		$liquid = $this->blockStateRegistry->fromStateId($chunk->getDisplacedBlockStateId($x & Chunk::COORD_MASK, $y, $z & Chunk::COORD_MASK));
+		if(!$liquid instanceof Liquid){
+			return null;
+		}
+
+		$liquid->position($this, $x, $y, $z);
+		return $liquid;
+	}
+
 	/**
 	 * Gets the Block object at the specified coordinates.
 	 *
@@ -2022,6 +2099,60 @@ class World implements ChunkManager{
 		$this->setBlockAt((int) floor($pos->x), (int) floor($pos->y), (int) floor($pos->z), $block, $update);
 	}
 
+	public function setLiquid(Vector3 $pos, ?Liquid $liquid, bool $update = true) : void{
+		$this->setLiquidAt((int) floor($pos->x), (int) floor($pos->y), (int) floor($pos->z), $liquid, $update);
+	}
+
+	public function setLiquidAt(int $x, int $y, int $z, ?Liquid $liquid, bool $update = true) : void{
+		if(!$this->isInWorld($x, $y, $z)){
+			throw new \InvalidArgumentException("Pos x=$x,y=$y,z=$z is outside of the world bounds");
+		}
+		$chunkX = $x >> Chunk::COORD_BIT_SIZE;
+		$chunkZ = $z >> Chunk::COORD_BIT_SIZE;
+		$chunk = $this->loadChunk($chunkX, $chunkZ);
+		if($chunk === null){
+			throw new WorldException("Cannot set a liquid in un-generated terrain");
+		}
+
+		$stateId = $liquid?->getStateId() ?? VanillaBlocks::AIR()->getStateId();
+		if(!$this->blockStateRegistry->hasStateId($stateId)){
+			throw new \LogicException("Liquid state ID not known to RuntimeBlockStateRegistry (probably not registered)");
+		}
+
+		$localX = $x & Chunk::COORD_MASK;
+		$localZ = $z & Chunk::COORD_MASK;
+		if($chunk->getBlockStateIdLayer(SubChunk::BLOCK_LAYER_LIQUID, $localX, $y, $localZ) === $stateId){
+			return;
+		}
+		$chunk->setDisplacedBlockStateId($localX, $y, $localZ, $stateId);
+
+		$pos = new Vector3($x, $y, $z);
+		$chunkHash = World::chunkHash($chunkX, $chunkZ);
+		$relativeBlockHash = World::chunkBlockHash($x, $y, $z);
+
+		if(isset($this->blockCache[$chunkHash][$relativeBlockHash])){
+			unset($this->blockCache[$chunkHash][$relativeBlockHash]);
+			$this->blockCacheSize--;
+		}
+
+		if(!isset($this->changedBlocks[$chunkHash])){
+			$this->changedBlocks[$chunkHash] = [];
+		}
+		$this->changedBlocks[$chunkHash][$relativeBlockHash] = $pos;
+
+		foreach($this->getChunkListeners($chunkX, $chunkZ) as $listener){
+			$listener->onBlockChanged($pos);
+		}
+
+		if($update){
+			$this->updateAllLight($x, $y, $z);
+			if($liquid !== null){
+				$this->delayDisplacedBlockUpdate($pos, $liquid->tickRate());
+			}
+			$this->internalNotifyNeighbourBlockUpdate($x, $y, $z);
+		}
+	}
+
 	/**
 	 * Sets the block at the given coordinates.
 	 *
@@ -2057,6 +2188,9 @@ class World implements ChunkManager{
 
 		$block->position($this, $x, $y, $z);
 		$block->writeStateToWorld();
+		if(($waterlogging = $block->getWaterlogging()) !== null){
+			$this->delayDisplacedBlockUpdate($block->getPosition(), $waterlogging->tickRate());
+		}
 		$pos = new Vector3($x, $y, $z);
 
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
@@ -2253,12 +2387,13 @@ class World implements ChunkManager{
 			);
 		}
 
-		if(!$this->isInWorld($blockReplace->getPosition()->x, $blockReplace->getPosition()->y, $blockReplace->getPosition()->z)){
+		$blockReplacePosition = $blockReplace->getPosition();
+		if(!$this->isInWorld($blockReplacePosition->getFloorX(), $blockReplacePosition->getFloorY(), $blockReplacePosition->getFloorZ())){
 			//TODO: build height limit messages for custom world heights and mcregion cap
 			return false;
 		}
-		$chunkX = $blockReplace->getPosition()->getFloorX() >> Chunk::COORD_BIT_SIZE;
-		$chunkZ = $blockReplace->getPosition()->getFloorZ() >> Chunk::COORD_BIT_SIZE;
+		$chunkX = $blockReplacePosition->getFloorX() >> Chunk::COORD_BIT_SIZE;
+		$chunkZ = $blockReplacePosition->getFloorZ() >> Chunk::COORD_BIT_SIZE;
 		if(!$this->isChunkLoaded($chunkX, $chunkZ) || $this->isChunkLocked($chunkX, $chunkZ)){
 			return false;
 		}

@@ -57,18 +57,14 @@ class LiquidBucket extends Item{
 
 	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
 		$waterlogTarget = null;
-		if(!$blockReplace->canBeReplaced()){
-			if($this->liquid instanceof Water && $blockClicked->getWaterlogging() === null && $blockClicked->canContainLiquid($this->liquid)){
-				$waterlogTarget = $blockClicked;
+		if($this->liquid instanceof Water && $blockClicked->getWaterlogging() === null && $blockClicked->canContainLiquid($this->liquid)){
+			$waterlogTarget = $blockClicked;
+		}elseif(!$blockReplace->canBeReplaced()){
+			if($this->liquid instanceof Water && $blockReplace->getWaterlogging() === null && $blockReplace->canContainLiquid($this->liquid)){
+				$waterlogTarget = $blockReplace;
 			}else{
 				return ItemUseResult::NONE;
 			}
-		}
-		if($waterlogTarget === null && $blockReplace->getWaterlogging() === null && $blockReplace->canContainLiquid($this->liquid)){
-			$waterlogTarget = $blockReplace;
-		}
-		if($waterlogTarget !== null && !($this->liquid instanceof Water)){
-			return ItemUseResult::NONE;
 		}
 
 		//TODO: move this to generic placement logic

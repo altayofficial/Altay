@@ -185,7 +185,7 @@ abstract class Liquid extends Transparent{
 			$sideBlock = $world->getBlockAt($sideX, $sideY, $sideZ);
 			$blockDecay = $this->getEffectiveFlowDecay($sideBlock);
 
-			if($blockDecay < 0 || !$this->isSideAvailable($sideBlock, $j)){
+			if($blockDecay < 0 || !$this->isSideAvailable($sideBlock, Facing::opposite($j))){
 				if(!$sideBlock->canBeFlowedInto()){
 					continue;
 				}

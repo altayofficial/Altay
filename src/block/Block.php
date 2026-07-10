@@ -31,6 +31,7 @@ use pmmp\encoding\LE;
 use pocketmine\block\tile\Spawnable;
 use pocketmine\block\tile\Tile;
 use pocketmine\block\utils\SupportType;
+use pocketmine\block\utils\Waterloggable;
 use pocketmine\data\runtime\InvalidSerializedRuntimeDataException;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\data\runtime\RuntimeDataReader;
@@ -373,7 +374,9 @@ class Block{
 	 * @phpstan-impure
 	 */
 	public function readStateFromWorld() : Block{
-		$this->waterlogging = $this->position->getWorld()->getLiquid($this->position);
+		if($this instanceof Waterloggable){
+			$this->waterlogging = $this->position->getWorld()->getLiquid($this->position);
+		}
 		return $this;
 	}
 
@@ -527,10 +530,7 @@ class Block{
 	 * Called when this block or a block immediately adjacent to it changes state.
 	 */
 	public function onNearbyBlockChange() : void{
-		$waterlogging = $this->getWaterlogging();
-		if($waterlogging !== null){
-			$this->position->getWorld()->delayDisplacedBlockUpdate($this->position, $waterlogging->tickRate());
-		}
+
 	}
 
 	/**

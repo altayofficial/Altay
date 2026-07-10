@@ -125,10 +125,7 @@ use function floor;
 use function get_class;
 use function gettype;
 use function is_a;
-use function is_array;
 use function is_object;
-use function constant;
-use function defined;
 use function max;
 use function microtime;
 use function min;
@@ -977,17 +974,10 @@ class World implements ChunkManager{
 			$block = $this->getBlock($vec);
 			$block->onScheduledUpdate();
 		}
-		while($this->scheduledDisplacedBlockUpdateQueue->count() > 0){
-			$current = $this->scheduledDisplacedBlockUpdateQueue->current();
-			if(!is_array($current) || $current["priority"] > $currentTick){
-				break;
-			}
-			$entry = $this->scheduledDisplacedBlockUpdateQueue->extract();
-			if(!is_array($entry) || !($entry["data"] instanceof Vector3)){
-				continue;
-			}
-			$vec = $entry["data"];
-			unset($this->scheduledDisplacedBlockUpdateQueueIndex[World::blockHash($vec->getFloorX(), $vec->getFloorY(), $vec->getFloorZ())]);
+		while($this->scheduledDisplacedBlockUpdateQueue->count() > 0 && $this->scheduledDisplacedBlockUpdateQueue->current()["priority"] <= $currentTick){
+			/** @var Vector3 $vec */
+			$vec = $this->scheduledDisplacedBlockUpdateQueue->extract()["data"];
+			unset($this->scheduledDisplacedBlockUpdateQueueIndex[World::blockHash($vec->x, $vec->y, $vec->z)]);
 			if(!$this->isInLoadedTerrain($vec)){
 				continue;
 			}
@@ -1126,7 +1116,6 @@ class World implements ChunkManager{
 		$packets = [];
 
 		$blockTranslator = TypeConverter::getInstance()->getBlockTranslator();
-		$liquidLayer = defined(UpdateBlockPacket::class . "::DATA_LAYER_LIQUID") ? constant(UpdateBlockPacket::class . "::DATA_LAYER_LIQUID") : 1;
 
 		foreach($blocks as $b){
 			if(!($b instanceof Vector3)){
@@ -1164,7 +1153,7 @@ class World implements ChunkManager{
 				$blockPosition,
 				$blockTranslator->internalIdToNetworkId($fullBlock->getDisplacedBlock()?->getStateId() ?? Block::EMPTY_STATE_ID),
 				UpdateBlockPacket::FLAG_NETWORK,
-				$liquidLayer
+				UpdateBlockPacket::DATA_LAYER_LIQUID
 			);
 
 			if($tile instanceof Spawnable){

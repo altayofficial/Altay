@@ -24,16 +24,16 @@ declare(strict_types=1);
 namespace pocketmine\block\utils;
 
 use pocketmine\block\Block;
-use pocketmine\block\Water;
+use pocketmine\block\Liquid;
 
 interface Waterloggable{
 
-	public function getContainedWater() : ?Water;
+	public function getWaterlogging() : ?Liquid;
 
 	/**
 	 * @return $this
 	 */
-	public function setContainedWater(?Water $water) : self;
+	public function setWaterlogging(?Liquid $waterlogging) : self;
 
 	public function canBeWaterlogged() : bool;
 

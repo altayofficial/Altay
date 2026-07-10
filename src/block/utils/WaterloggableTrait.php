@@ -30,17 +30,6 @@ use pocketmine\block\Water;
 
 trait WaterloggableTrait{
 
-	public function getContainedWater() : ?Water{
-		$water = $this->getWaterlogging();
-		return $water instanceof Water ? clone $water : null;
-	}
-
-	/** @return $this */
-	public function setContainedWater(?Water $water) : self{
-		$this->setWaterlogging($water !== null ? clone $water : null);
-		return $this;
-	}
-
 	public function canBeWaterlogged() : bool{
 		return true;
 	}

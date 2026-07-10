@@ -67,9 +67,6 @@ class Bucket extends Item{
 		}
 		$waterlogging = $blockClicked->getWaterlogging();
 		if($waterlogging instanceof Liquid && $waterlogging->isSource()){
-			$stack = clone $this;
-			$stack->pop();
-
 			$resultItem = match($waterlogging->getTypeId()){
 				BlockTypeIds::WATER => VanillaItems::WATER_BUCKET(),
 				default => null

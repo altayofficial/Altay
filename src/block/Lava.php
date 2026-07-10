@@ -72,7 +72,7 @@ class Lava extends Liquid{
 			return false;
 		}
 		foreach($this->getAdjacentBlocksExceptDown() as $colliding){
-			if($colliding instanceof Water || $colliding instanceof Waterloggable && $colliding->getContainedWater() !== null){
+			if($colliding instanceof Water || $colliding instanceof Waterloggable && $colliding->getWaterlogging() instanceof Water){
 				if($this->decay === 0){
 					$this->liquidCollide($colliding, VanillaBlocks::OBSIDIAN());
 					return true;
@@ -96,7 +96,7 @@ class Lava extends Liquid{
 	}
 
 	protected function flowIntoBlock(Block $block, int $newFlowDecay, bool $falling) : void{
-		if($block instanceof Water || $block instanceof Waterloggable && $block->hasTypeTag(BlockTypeTags::NON_SOURCE_WATERLOGGABLE) && $block->getContainedWater() !== null){
+		if($block instanceof Water || $block instanceof Waterloggable && $block->hasTypeTag(BlockTypeTags::NON_SOURCE_WATERLOGGABLE) && $block->getWaterlogging() instanceof Water){
 			$block->liquidCollide($this, VanillaBlocks::STONE());
 		}else{
 			parent::flowIntoBlock($block, $newFlowDecay, $falling);

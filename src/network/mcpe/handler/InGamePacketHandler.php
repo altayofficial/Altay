@@ -23,10 +23,14 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
+use pocketmine\block\Anvil;
 use pocketmine\block\BaseSign;
 use pocketmine\block\Lectern;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\block\tile\Sign;
 use pocketmine\block\utils\SignText;
+use pocketmine\world\sound\AnvilBreakSound;
+use pocketmine\world\sound\AnvilUseSound;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\InvalidSkinException;
 use pocketmine\entity\Living;
@@ -54,6 +58,7 @@ use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\ActorEventPacket;
 use pocketmine\network\mcpe\protocol\ActorPickRequestPacket;
 use pocketmine\network\mcpe\protocol\AnimatePacket;
+use pocketmine\network\mcpe\protocol\AnvilDamagePacket;
 use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
 use pocketmine\network\mcpe\protocol\BlockPickRequestPacket;
 use pocketmine\network\mcpe\protocol\BookEditPacket;
@@ -94,7 +99,6 @@ use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionD
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\types\PlayerAction;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
-use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
 use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
@@ -296,9 +300,7 @@ class InGamePacketHandler extends PacketHandler{
 			}
 			foreach(Utils::promoteKeys($blockActions) as $k => $blockAction){
 				$actionHandled = false;
-				if($blockAction instanceof PlayerBlockActionStopBreak){
-					$actionHandled = $this->handlePlayerActionFromData($blockAction->getActionType(), new BlockPosition(0, 0, 0), Facing::DOWN);
-				}elseif($blockAction instanceof PlayerBlockActionWithBlockInfo){
+				if($blockAction instanceof PlayerBlockActionWithBlockInfo){
 					$actionHandled = $this->handlePlayerActionFromData($blockAction->getActionType(), $blockAction->getBlockPosition(), $blockAction->getFace());
 				}
 
@@ -978,6 +980,33 @@ class InGamePacketHandler extends PacketHandler{
 		}
 
 		return false;
+	}
+
+	public function handleAnvilDamage(AnvilDamagePacket $packet) : bool{
+		$pos = new Vector3($packet->getBlockPosition()->getX(), $packet->getBlockPosition()->getY(), $packet->getBlockPosition()->getZ());
+		if($pos->distanceSquared($this->player->getLocation()) > 10000){
+			return false;
+		}
+
+		$world = $this->player->getLocation()->getWorld();
+		$block = $world->getBlock($pos);
+		if(!($block instanceof Anvil)){
+			return false;
+		}
+
+		if(Utils::getRandomFloat() >= 0.12){
+			return true;
+		}
+
+		if($block->getDamage() >= Anvil::VERY_DAMAGED){
+			$world->setBlock($pos, VanillaBlocks::AIR());
+			$world->addSound($pos, new AnvilBreakSound());
+		}else{
+			$world->setBlock($pos, $block->setDamage($block->getDamage() + 1));
+			$world->addSound($pos, new AnvilUseSound());
+		}
+
+		return true;
 	}
 
 	public function handleSetPlayerGameType(SetPlayerGameTypePacket $packet) : bool{

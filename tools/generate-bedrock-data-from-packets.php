@@ -56,16 +56,14 @@ use pocketmine\network\mcpe\protocol\types\inventory\CreativeGroupEntry;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackExtraData;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackExtraDataShield;
-use pocketmine\network\mcpe\protocol\types\recipe\ComplexAliasItemDescriptor;
-use pocketmine\network\mcpe\protocol\types\recipe\IntIdMetaItemDescriptor;
 use pocketmine\network\mcpe\protocol\types\recipe\MolangItemDescriptor;
+use pocketmine\network\mcpe\protocol\types\recipe\NameItemDescriptor;
 use pocketmine\network\mcpe\protocol\types\recipe\MultiRecipe;
 use pocketmine\network\mcpe\protocol\types\recipe\RecipeIngredient;
 use pocketmine\network\mcpe\protocol\types\recipe\ShapedRecipe;
 use pocketmine\network\mcpe\protocol\types\recipe\ShapelessRecipe;
 use pocketmine\network\mcpe\protocol\types\recipe\SmithingTransformRecipe;
 use pocketmine\network\mcpe\protocol\types\recipe\SmithingTrimRecipe;
-use pocketmine\network\mcpe\protocol\types\recipe\StringIdMetaItemDescriptor;
 use pocketmine\network\mcpe\protocol\types\recipe\TagItemDescriptor;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\utils\AssumptionFailedError;
@@ -325,13 +323,9 @@ class ParserPacketHandler extends PacketHandler{
 		}
 		$data = new RecipeIngredientData();
 
-		if($descriptor instanceof IntIdMetaItemDescriptor || $descriptor instanceof StringIdMetaItemDescriptor){
-			if($descriptor instanceof IntIdMetaItemDescriptor){
-				$data->name = $this->itemTypeDictionary->fromIntId($descriptor->getId());
-			}else{
-				$data->name = $descriptor->getId();
-			}
-			$meta = $descriptor->getMeta();
+		if($descriptor instanceof NameItemDescriptor){
+			$data->name = $descriptor->getName();
+			$meta = $descriptor->getAuxValue();
 			if($meta !== 32767){
 				$blockStateId = $this->blockTranslator->getBlockStateDictionary()->lookupStateIdFromIdMeta($data->name, $meta);
 				if($this->blockItemIdMap->lookupBlockId($data->name) !== null && $blockStateId !== null){
@@ -350,8 +344,6 @@ class ParserPacketHandler extends PacketHandler{
 		}elseif($descriptor instanceof MolangItemDescriptor){
 			$data->molang_expression = $descriptor->getMolangExpression();
 			$data->molang_version = $descriptor->getMolangVersion();
-		}elseif($descriptor instanceof ComplexAliasItemDescriptor){
-			$data->name = $descriptor->getAlias();
 		}else{
 			throw new \UnexpectedValueException("Unknown item descriptor type " . get_class($descriptor));
 		}
@@ -390,7 +382,7 @@ class ParserPacketHandler extends PacketHandler{
 				}
 			}
 		}
-		$unlockingIngredients = $entry->getUnlockingRequirement()->getUnlockingIngredients();
+		$unlockingIngredients = $entry->getUnlockingRequirement()?->getUnlockingIngredients();
 		return new ShapedRecipeData(
 			array_map(fn(array $array) => implode('', array_values($array)), array_values($shape)),
 			$outputsByKey,
@@ -402,7 +394,7 @@ class ParserPacketHandler extends PacketHandler{
 	}
 
 	private function shapelessRecipeToJson(ShapelessRecipe $recipe) : ShapelessRecipeData{
-		$unlockingIngredients = $recipe->getUnlockingRequirement()->getUnlockingIngredients();
+		$unlockingIngredients = $recipe->getUnlockingRequirement()?->getUnlockingIngredients();
 		return new ShapelessRecipeData(
 			array_map(fn(RecipeIngredient $input) => $this->recipeIngredientToJson($input), $recipe->getInputs()),
 			array_map(fn(ItemStack $output) => $this->itemStackToJson($output), $recipe->getOutputs()),
@@ -476,21 +468,21 @@ class ParserPacketHandler extends PacketHandler{
 			}
 		}
 
+		if($this->itemTypeDictionary === null){
+			throw new AssumptionFailedError("We should have already crashed if this was null");
+		}
 		foreach($packet->potionTypeRecipes as $recipe){
 			$recipes["potion_type"][] = new PotionTypeRecipeData(
-				$this->recipeIngredientToJson(new RecipeIngredient(new IntIdMetaItemDescriptor($recipe->getInputItemId(), $recipe->getInputItemMeta()), 1)),
-				$this->recipeIngredientToJson(new RecipeIngredient(new IntIdMetaItemDescriptor($recipe->getIngredientItemId(), $recipe->getIngredientItemMeta()), 1)),
+				$this->recipeIngredientToJson(new RecipeIngredient(new NameItemDescriptor($this->itemTypeDictionary->fromIntId($recipe->getInputItemId()), $recipe->getInputItemMeta()), 1)),
+				$this->recipeIngredientToJson(new RecipeIngredient(new NameItemDescriptor($this->itemTypeDictionary->fromIntId($recipe->getIngredientItemId()), $recipe->getIngredientItemMeta()), 1)),
 				$this->itemStackToJson(new ItemStack($recipe->getOutputItemId(), $recipe->getOutputItemMeta(), 1, 0, "")),
 			);
 		}
 
-		if($this->itemTypeDictionary === null){
-			throw new AssumptionFailedError("We should have already crashed if this was null");
-		}
 		foreach($packet->potionContainerRecipes as $recipe){
 			$recipes["potion_container_change"][] = new PotionContainerChangeRecipeData(
 				$this->itemTypeDictionary->fromIntId($recipe->getInputItemId()),
-				$this->recipeIngredientToJson(new RecipeIngredient(new IntIdMetaItemDescriptor($recipe->getIngredientItemId(), 0), 1)),
+				$this->recipeIngredientToJson(new RecipeIngredient(new NameItemDescriptor($this->itemTypeDictionary->fromIntId($recipe->getIngredientItemId()), 0), 1)),
 				$this->itemTypeDictionary->fromIntId($recipe->getOutputItemId()),
 			);
 		}

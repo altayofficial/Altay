@@ -116,7 +116,6 @@ class PreSpawnPacketHandler extends PacketHandler{
 				Uuid::fromString(Uuid::NIL),
 				false,
 				true, //blockNetworkIdsAreHashes - the dictionary uses hashed network IDs from block_palette.nbt
-				false,
 				new NetworkPermissions(disableClientSounds: true),
 				null,
 				new ServerTelemetryData("", "", "", ""),

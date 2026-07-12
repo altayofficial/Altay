@@ -295,7 +295,7 @@ class ItemEntity extends Entity{
 		$networkSession->sendDataPacket(AddItemActorPacket::create(
 			$this->getId(), //TODO: entity unique ID
 			$this->getId(),
-			ItemStackWrapper::legacy($networkSession->getTypeConverter()->coreItemStackToNet($this->getItem())),
+			new ItemStackWrapper(0, $networkSession->getTypeConverter()->coreItemStackToNet($this->getItem())),
 			$this->location->asVector3(),
 			$this->getMotion(),
 			$this->getAllNetworkData(),

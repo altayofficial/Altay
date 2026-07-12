@@ -49,12 +49,12 @@ use function json_decode;
 
 final class CraftingManagerFromDataHelper{
 
-	private const NETWORK_RECIPE_TYPE_SHAPELESS = 0;
-	private const NETWORK_RECIPE_TYPE_SHAPED = 1;
-	private const NETWORK_RECIPE_TYPE_MULTI = 4;
-	private const NETWORK_RECIPE_TYPE_USER_DATA_SHAPELESS = 5;
-	private const NETWORK_RECIPE_TYPE_SMITHING_TRANSFORM = 8;
-	private const NETWORK_RECIPE_TYPE_SMITHING_TRIM = 9;
+	private const NETWORK_RECIPE_TYPE_SHAPED = 0;
+	private const NETWORK_RECIPE_TYPE_SHAPELESS = 1;
+	private const NETWORK_RECIPE_TYPE_MULTI = 2;
+	private const NETWORK_RECIPE_TYPE_USER_DATA_SHAPELESS = 3;
+	private const NETWORK_RECIPE_TYPE_SMITHING_TRANSFORM = 6;
+	private const NETWORK_RECIPE_TYPE_SMITHING_TRIM = 7;
 
 	private const NETWORK_INGREDIENT_WILDCARD_META = 0x7fff;
 
@@ -189,7 +189,7 @@ final class CraftingManagerFromDataHelper{
 			return self::deserializeComplexAliasIngredient($data["name"]);
 		}
 
-		if($type !== "default"){
+		if($type !== "default" && $type !== "name"){
 			throw new SavedDataLoadingException("Unsupported recipe ingredient type \"$type\"");
 		}
 
@@ -201,7 +201,7 @@ final class CraftingManagerFromDataHelper{
 			throw new SavedDataLoadingException("default ingredient auxValue should be an int");
 		}
 
-		if($meta === self::NETWORK_INGREDIENT_WILDCARD_META){
+		if($meta === self::NETWORK_INGREDIENT_WILDCARD_META || $meta === -1){
 			//this could be an unimplemented item, but it doesn't really matter, since the item shouldn't be able to
 			//be obtained anyway - filtering unknown items is only really important for outputs, to prevent players
 			//obtaining them

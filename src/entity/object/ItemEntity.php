@@ -35,10 +35,10 @@ use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\EntityEventBroadcaster;
+use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\NetworkBroadcastUtils;
 use pocketmine\network\mcpe\protocol\AddItemActorPacket;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
-use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use pocketmine\player\Player;
 use pocketmine\timings\Timings;
 use function max;
@@ -295,7 +295,7 @@ class ItemEntity extends Entity{
 		$networkSession->sendDataPacket(AddItemActorPacket::create(
 			$this->getId(), //TODO: entity unique ID
 			$this->getId(),
-			new ItemStackWrapper(0, $networkSession->getTypeConverter()->coreItemStackToNet($this->getItem())),
+			TypeConverter::legacyItemStackWrapper($networkSession->getTypeConverter()->coreItemStackToNet($this->getItem())),
 			$this->location->asVector3(),
 			$this->getMotion(),
 			$this->getAllNetworkData(),

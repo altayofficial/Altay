@@ -42,7 +42,6 @@ use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use pocketmine\network\mcpe\protocol\types\entity\UpdateAttribute;
 use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
-use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use function array_map;
 use function count;
@@ -107,7 +106,7 @@ final class StandardEntityEventBroadcaster implements EntityEventBroadcaster{
 		$inv = $mob->getInventory();
 		$this->sendDataPacket($recipients, MobEquipmentPacket::create(
 			$mob->getId(),
-			new ItemStackWrapper(0, $this->typeConverter->coreItemStackToNet($inv->getItemInHand())),
+			TypeConverter::legacyItemStackWrapper($this->typeConverter->coreItemStackToNet($inv->getItemInHand())),
 			$inv->getHeldItemIndex(),
 			$inv->getHeldItemIndex(),
 			ContainerIds::INVENTORY
@@ -118,7 +117,7 @@ final class StandardEntityEventBroadcaster implements EntityEventBroadcaster{
 		$inv = $mob->getOffHandInventory();
 		$this->sendDataPacket($recipients, MobEquipmentPacket::create(
 			$mob->getId(),
-			new ItemStackWrapper(0, $this->typeConverter->coreItemStackToNet($inv->getItem(0))),
+			TypeConverter::legacyItemStackWrapper($this->typeConverter->coreItemStackToNet($inv->getItem(0))),
 			0,
 			0,
 			ContainerIds::OFFHAND
@@ -130,11 +129,11 @@ final class StandardEntityEventBroadcaster implements EntityEventBroadcaster{
 		$converter = $this->typeConverter;
 		$this->sendDataPacket($recipients, MobArmorEquipmentPacket::create(
 			$mob->getId(),
-			new ItemStackWrapper(0, $converter->coreItemStackToNet($inv->getHelmet())),
-			new ItemStackWrapper(0, $converter->coreItemStackToNet($inv->getChestplate())),
-			new ItemStackWrapper(0, $converter->coreItemStackToNet($inv->getLeggings())),
-			new ItemStackWrapper(0, $converter->coreItemStackToNet($inv->getBoots())),
-			new ItemStackWrapper(0, ItemStack::null())
+			TypeConverter::legacyItemStackWrapper($converter->coreItemStackToNet($inv->getHelmet())),
+			TypeConverter::legacyItemStackWrapper($converter->coreItemStackToNet($inv->getChestplate())),
+			TypeConverter::legacyItemStackWrapper($converter->coreItemStackToNet($inv->getLeggings())),
+			TypeConverter::legacyItemStackWrapper($converter->coreItemStackToNet($inv->getBoots())),
+			TypeConverter::legacyItemStackWrapper(ItemStack::null())
 		));
 	}
 

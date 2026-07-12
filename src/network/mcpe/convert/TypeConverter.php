@@ -49,6 +49,7 @@ use pocketmine\nbt\UnexpectedTagTypeException;
 use pocketmine\network\mcpe\protocol\serializer\ItemTypeDictionary;
 use pocketmine\network\mcpe\protocol\types\GameMode as ProtocolGameMode;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
+use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackExtraData;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackExtraDataShield;
 use pocketmine\network\mcpe\protocol\types\recipe\NameItemDescriptor;
@@ -284,6 +285,10 @@ class TypeConverter{
 			$tag->setByteArray(self::PM_FULL_NBT_HASH_TAG, $this->hashNBT($original));
 		}
 		return $tag;
+	}
+
+	public static function legacyItemStackWrapper(ItemStack $itemStack) : ItemStackWrapper{
+		return new ItemStackWrapper($itemStack->getId() === 0 ? 0 : 1, $itemStack);
 	}
 
 	public function coreItemStackToNet(Item $itemStack) : ItemStack{

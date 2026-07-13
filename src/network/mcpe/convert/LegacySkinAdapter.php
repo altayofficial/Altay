@@ -37,12 +37,18 @@ use const JSON_THROW_ON_ERROR;
 
 class LegacySkinAdapter implements SkinAdapter{
 
+	private const DEFAULT_GEOMETRY_NAME = "geometry.humanoid.custom";
+
+	private const FALLBACK_GEOMETRY_DATA = '{"format_version":"1.12.0","minecraft:geometry":[{"description":{"identifier":"geometry.humanoid.custom","texture_width":64,"texture_height":64,"visible_bounds_width":1,"visible_bounds_height":2,"visible_bounds_offset":[0,1,0]},"bones":[{"name":"body","pivot":[0,24,0],"cubes":[{"origin":[-4,12,-2],"size":[8,12,4],"uv":[16,16]}]},{"name":"waist","pivot":[0,12,0]},{"name":"head","parent":"body","pivot":[0,24,0],"cubes":[{"origin":[-4,24,-4],"size":[8,8,8],"uv":[0,0]}]},{"name":"hat","parent":"head","pivot":[0,24,0],"inflate":0.5,"cubes":[{"origin":[-4,24,-4],"size":[8,8,8],"uv":[32,0]}]},{"name":"rightArm","parent":"body","pivot":[-5,22,0],"cubes":[{"origin":[-8,12,-2],"size":[4,12,4],"uv":[40,16]}]},{"name":"leftArm","parent":"body","pivot":[5,22,0],"mirror":true,"cubes":[{"origin":[4,12,-2],"size":[4,12,4],"uv":[40,16]}]},{"name":"rightLeg","parent":"body","pivot":[-1.9,12,0],"cubes":[{"origin":[-3.9,0,-2],"size":[4,12,4],"uv":[0,16]}]},{"name":"leftLeg","parent":"body","pivot":[1.9,12,0],"mirror":true,"cubes":[{"origin":[-0.1,0,-2],"size":[4,12,4],"uv":[0,16]}]}]}]}'; // okay this is horrible
+
 	public function toSkinData(Skin $skin) : SkinData{
 		$capeData = $skin->getCapeData();
 		$capeImage = $capeData === "" ? new SkinImage(0, 0, "") : new SkinImage(32, 64, $capeData);
 		$geometryName = $skin->getGeometryName();
-		if($geometryName === ""){
-			$geometryName = "geometry.humanoid.custom";
+		$geometryData = $skin->getGeometryData();
+		if($geometryName === "" || $geometryData === ""){
+			$geometryName = self::DEFAULT_GEOMETRY_NAME;
+			$geometryData = self::FALLBACK_GEOMETRY_DATA;
 		}
 		return new SkinData(
 			$skin->getSkinId(),
@@ -50,7 +56,7 @@ class LegacySkinAdapter implements SkinAdapter{
 			json_encode(["geometry" => ["default" => $geometryName]], JSON_THROW_ON_ERROR),
 			SkinImage::fromLegacy($skin->getSkinData()), [],
 			$capeImage,
-			$skin->getGeometryData()
+			$geometryData
 		);
 	}
 

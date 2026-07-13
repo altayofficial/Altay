@@ -71,12 +71,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "9c675fbd5377e2629a51b6f45a2fc0e2a420fcf3"
+                "reference": "d00a3a3f36e44a0f5b222d5d369e7194abc3d8ce"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/9c675fbd5377e2629a51b6f45a2fc0e2a420fcf3",
-                "reference": "9c675fbd5377e2629a51b6f45a2fc0e2a420fcf3",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/d00a3a3f36e44a0f5b222d5d369e7194abc3d8ce",
+                "reference": "d00a3a3f36e44a0f5b222d5d369e7194abc3d8ce",
                 "shasum": ""
             },
             "type": "library",
@@ -87,7 +87,7 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.40"
             },
-            "time": "2026-07-12T18:11:54+00:00"
+            "time": "2026-07-12T18:49:10+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",

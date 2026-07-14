@@ -204,7 +204,7 @@ if($paletteRaw === false){
 }
 
 try{
-	$states = BlockStateDictionary::loadPaletteFromString($paletteRaw);
+	$states = BlockStateDictionary::loadStatesFromPalette($paletteRaw);
 }catch(NbtException){
 	fwrite(STDERR, "Invalid block palette file $argv[1]\n");
 	exit(1);

@@ -28,6 +28,7 @@ use pocketmine\data\bedrock\block\BlockTypeNames;
 use pocketmine\nbt\BigEndianNbtSerializer;
 use pocketmine\nbt\NbtDataException;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\TreeRoot;
 use pocketmine\network\mcpe\protocol\serializer\NetworkNbtSerializer;
 use pocketmine\utils\Utils;
@@ -169,6 +170,39 @@ final class BlockStateDictionary{
 	}
 
 	/**
+	 * Decompresses the gzipped big-endian NBT block palette (bedrock-network-data block_palette.nbt) and returns its
+	 * raw "blocks" list. Each entry carries its hashed network runtime ID (network_id), name and states.
+	 */
+	private static function loadBlocksFromString(string $blockPaletteContents) : ListTag{
+		$paletteRaw = zlib_decode($blockPaletteContents);
+		if($paletteRaw === false){
+			throw new \InvalidArgumentException("Failed to decompress block palette");
+		}
+		return (new BigEndianNbtSerializer())->read($paletteRaw)->mustGetCompoundTag()->getListTag("blocks") ??
+			throw new \InvalidArgumentException("Missing \"blocks\" list in block palette");
+	}
+
+	/**
+	 * Parses the gzipped big-endian NBT block palette into a list of block states, discarding network IDs and meta.
+	 * Used by codegen and tooling that only cares about the block type/state shapes.
+	 *
+	 * @return BlockStateData[]
+	 * @phpstan-return list<BlockStateData>
+	 */
+	public static function loadStatesFromPalette(string $blockPaletteContents) : array{
+		$states = [];
+		foreach(self::loadBlocksFromString($blockPaletteContents) as $i => $blockTag){
+			if(!($blockTag instanceof CompoundTag)){
+				throw new \InvalidArgumentException("Invalid block palette entry at offset $i, expected TAG_Compound, got " . get_debug_type($blockTag));
+			}
+			$stateTag = $blockTag->getCompoundTag(BlockStateData::TAG_STATES) ??
+				throw new \InvalidArgumentException("Missing states for palette entry $i");
+			$states[] = BlockStateData::current($blockTag->getString(BlockStateData::TAG_NAME), $stateTag->getValue());
+		}
+		return $states;
+	}
+
+	/**
 	 * Loads the dictionary from a gzipped big-endian NBT block palette (bedrock-network-data block_palette.nbt).
 	 * Each palette entry provides its hashed network runtime ID (network_id), which is used as the state ID.
 	 */
@@ -178,12 +212,7 @@ final class BlockStateDictionary{
 			throw new \InvalidArgumentException("Invalid metaMap, expected array for root type, got " . get_debug_type($metaMap));
 		}
 
-		$paletteRaw = zlib_decode($blockPaletteContents);
-		if($paletteRaw === false){
-			throw new \InvalidArgumentException("Failed to decompress block palette");
-		}
-		$blocks = (new BigEndianNbtSerializer())->read($paletteRaw)->mustGetCompoundTag()->getListTag("blocks") ??
-			throw new \InvalidArgumentException("Missing \"blocks\" list in block palette");
+		$blocks = self::loadBlocksFromString($blockPaletteContents);
 
 		$entries = [];
 

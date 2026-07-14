@@ -1064,7 +1064,9 @@ class NetworkSession{
 			$yaw = $yaw ?? $location->getYaw();
 			$pitch = $pitch ?? $location->getPitch();
 
-			$this->sendDataPacket(MovePlayerPacket::simple(
+			$isTeleport = $mode === MovePlayerPacket::MODE_TELEPORT;
+
+			$this->sendDataPacket(MovePlayerPacket::create(
 				$this->player->getId(),
 				$this->player->getOffsetPosition($pos),
 				$pitch,
@@ -1073,6 +1075,8 @@ class NetworkSession{
 				$mode,
 				$this->player->onGround,
 				0, //TODO: riding entity ID
+				$isTeleport ? 0 : null,
+				$isTeleport ? 0 : null,
 				0 //TODO: tick
 			));
 

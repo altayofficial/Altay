@@ -174,7 +174,6 @@ class NetworkSession{
 	private bool $disconnectGuard = false;
 	private bool $loggedIn = false;
 	private bool $authenticated = false;
-	private bool $spawnResponseReceivedEarly = false;
 	private int $connectTime;
 	private ?CompoundTag $cachedOfflinePlayerData = null;
 
@@ -1030,20 +1029,10 @@ class NetworkSession{
 		$this->logger->debug("Waiting for chunk radius request");
 	}
 
-	public function notifyEarlySpawnResponse() : void{
-		$this->spawnResponseReceivedEarly = true;
-	}
-
 	public function notifyTerrainReady() : void{
+		$this->logger->debug("Sending spawn notification, waiting for spawn response");
 		$this->sendDataPacket(PlayStatusPacket::create(PlayStatusPacket::PLAYER_SPAWN));
-		if($this->spawnResponseReceivedEarly){
-			//some proxies (e.g. WaterdogPE) send SetLocalPlayerAsInitialized while transferring before terrain is ready
-			$this->logger->debug("Spawn response was received early, skipping wait");
-			$this->onClientSpawnResponse();
-		}else{
-			$this->logger->debug("Sending spawn notification, waiting for spawn response");
-			$this->setHandler(new SpawnResponsePacketHandler($this->onClientSpawnResponse(...)));
-		}
+		$this->setHandler(new SpawnResponsePacketHandler($this->onClientSpawnResponse(...)));
 	}
 
 	private function onClientSpawnResponse() : void{

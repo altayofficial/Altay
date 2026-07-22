@@ -65,6 +65,23 @@ jobs:
           echo "Build number: $BUILD_NUMBER"
           echo BUILD_NUMBER=$BUILD_NUMBER >> $GITHUB_OUTPUT
 
+      - name: Mark stable release build
+        run: |
+          php -r '
+            $path = "src/VersionInfo.php";
+            $contents = file_get_contents($path);
+            $updated = str_replace(
+              ["IS_DEVELOPMENT_BUILD = true;", "BUILD_CHANNEL = \"master\";"],
+              ["IS_DEVELOPMENT_BUILD = false;", "BUILD_CHANNEL = \"stable\";"],
+              $contents,
+              $replacements
+            );
+            if($replacements !== 2){
+              throw new RuntimeException("Failed to mark the build as a stable release");
+            }
+            file_put_contents($path, $updated);
+          '
+
       - name: Build Altay.phar
         run: php -dphar.readonly=0 build/server-phar.php --git ${{ github.sha }} --build ${{ steps.build-number.outputs.BUILD_NUMBER }}
 

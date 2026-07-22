@@ -1,0 +1,41 @@
+name: Docker image CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Docker image
+    runs-on: ubuntu-22.04
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true #needed for build/php submodule
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Create data directories
+        run: |
+          mkdir ./docker/test_data
+          sudo chown -R 1000:1000 ./docker/testsuite ./docker/test_data
+
+      - name: Build image for tag
+        uses: docker/build-push-action@v7.1.0
+        with:
+          context: ${{ github.workspace }}
+          push: false
+          load: true
+          file: ${{ github.workspace }}/docker/Dockerfile
+          tags: local-altay
+          build-args: |
+            GIT_HASH=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test if it runs the normal server properly
+        run: echo stop | docker run --rm -i -e POCKETMINE_ARGS="--settings.enable-dev-builds=1" local-altay

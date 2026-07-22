@@ -33,4 +33,4 @@ fi
 # Run the server
 cd /opt/pocketmine
 read -ra pm_args <<<"$POCKETMINE_ARGS"
-exec php PocketMine-MP.phar --no-wizard --enable-ansi --data=/data --plugins=/plugins "${pm_args[@]}"
+exec php Altay.phar --no-wizard --enable-ansi --data=/data --plugins=/plugins "${pm_args[@]}"

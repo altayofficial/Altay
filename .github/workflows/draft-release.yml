@@ -1,52 +1,66 @@
 name: Draft release
 
 on:
-  push:
-    tags:
-      - "*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "New release version (e.g. 5.44.0)"
+        required: true
+        type: string
 
 env:
   PHP_VERSION: "8.1"
 
 jobs:
-  skip:
-    name: Check whether to ignore this tag
-    runs-on: ubuntu-22.04
-
-    outputs:
-      skip: ${{ steps.exists.outputs.exists == 'true' }}
-
-    steps:
-      - name: Check if release already exists
-        id: exists
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          exists=false
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            tag="$(echo "${{ github.ref }}" | cut -d/ -f3-)"
-            if gh release view "$tag" --repo "${{ github.repository }}"; then
-              exists=true
-            fi
-          fi
-          echo exists=$exists >> $GITHUB_OUTPUT
-
   draft:
     name: Create GitHub draft release
-    needs: [skip]
-    if: needs.skip.outputs.skip != 'true'
     runs-on: ubuntu-22.04
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@2.32.0
         with:
           php-version: ${{ env.PHP_VERSION }}
+
+      - name: Validate version input
+        run: |
+          if [[ ! "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version must be in the form X.Y.Z"
+            exit 1
+          fi
+
+      - name: Bump version in VersionInfo
+        run: |
+          php -r '
+            $path = "src/VersionInfo.php";
+            $version = "${{ github.event.inputs.version }}";
+            $contents = file_get_contents($path);
+            $updated = preg_replace(
+              "/public const BASE_VERSION = \"[^\"]+\";/",
+              "public const BASE_VERSION = \"$version\";",
+              $contents,
+              1,
+              $count
+            );
+            if($count !== 1){
+              throw new RuntimeException("Failed to bump BASE_VERSION");
+            }
+            file_put_contents($path, $updated);
+          '
+
+      - name: Commit and push version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/VersionInfo.php
+          git commit -m "release: bump version to ${{ github.event.inputs.version }} [ci skip]"
+          git push origin HEAD:${{ github.ref_name }}
 
       - name: Restore Composer package cache
         uses: actions/cache@v4
@@ -96,13 +110,7 @@ jobs:
           echo CHANGELOG_FILE_NAME=$(php build/dump-version-info.php changelog_file_name) >> $GITHUB_OUTPUT
           echo CHANGELOG_MD_HEADER=$(php build/dump-version-info.php changelog_md_header) >> $GITHUB_OUTPUT
           echo PRERELEASE=$(php build/dump-version-info.php prerelease) >> $GITHUB_OUTPUT
-
-          if [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
-            tag="$(echo "${{ github.ref }}" | cut -d/ -f3-)"
-          else
-            tag="$VERSION"
-          fi
-          echo TAG_NAME=$tag >> $GITHUB_OUTPUT
+          echo TAG_NAME=$VERSION >> $GITHUB_OUTPUT
 
       - name: Generate PHP binary download URL
         id: php-binary-url
@@ -133,7 +141,7 @@ jobs:
         id: create-draft
         with:
           artifacts: ${{ github.workspace }}/Altay.phar,${{ github.workspace }}/build_info.json
-          commit: ${{ github.sha }}
+          commit: ${{ github.ref_name }}
           draft: true
           prerelease: ${{ steps.get-version.outputs.PRERELEASE }}
           name: Altay ${{ steps.get-version.outputs.VERSION }}

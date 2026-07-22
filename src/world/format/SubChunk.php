@@ -31,6 +31,9 @@ class SubChunk{
 	public const COORD_MASK = ~(~0 << self::COORD_BIT_SIZE);
 	public const EDGE_LENGTH = 1 << self::COORD_BIT_SIZE;
 
+	public const BLOCK_LAYER_NORMAL = 0;
+	public const BLOCK_LAYER_LIQUID = 1;
+
 	/**
 	 * SubChunk constructor.
 	 *
@@ -70,17 +73,42 @@ class SubChunk{
 	public function getEmptyBlockId() : int{ return $this->emptyBlockId; }
 
 	public function getBlockStateId(int $x, int $y, int $z) : int{
+		return $this->getBlockStateIdLayer(self::BLOCK_LAYER_NORMAL, $x, $y, $z);
+	}
+
+	public function getBlockStateIdLayer(int $layer, int $x, int $y, int $z) : int{
+		if($layer < 0){
+			throw new \InvalidArgumentException("Layer must be non-negative");
+		}
 		if(count($this->blockLayers) === 0){
 			return $this->emptyBlockId;
 		}
-		return $this->blockLayers[0]->get($x, $y, $z);
+		return ($this->blockLayers[$layer] ?? null)?->get($x, $y, $z) ?? $this->emptyBlockId;
 	}
 
 	public function setBlockStateId(int $x, int $y, int $z, int $block) : void{
-		if(count($this->blockLayers) === 0){
+		$this->setBlockStateIdLayer(self::BLOCK_LAYER_NORMAL, $x, $y, $z, $block);
+	}
+
+	public function setBlockStateIdLayer(int $layer, int $x, int $y, int $z, int $block) : void{
+		if($layer < 0){
+			throw new \InvalidArgumentException("Layer must be non-negative");
+		}
+		if($layer >= count($this->blockLayers) && $block === $this->emptyBlockId){
+			return;
+		}
+		for($i = count($this->blockLayers); $i <= $layer; ++$i){
 			$this->blockLayers[] = new PalettedBlockArray($this->emptyBlockId);
 		}
-		$this->blockLayers[0]->set($x, $y, $z, $block);
+		$this->blockLayers[$layer]->set($x, $y, $z, $block);
+	}
+
+	public function getDisplacedBlockStateId(int $x, int $y, int $z) : int{
+		return $this->getBlockStateIdLayer(self::BLOCK_LAYER_LIQUID, $x, $y, $z);
+	}
+
+	public function setDisplacedBlockStateId(int $x, int $y, int $z, int $block) : void{
+		$this->setBlockStateIdLayer(self::BLOCK_LAYER_LIQUID, $x, $y, $z, $block);
 	}
 
 	/**

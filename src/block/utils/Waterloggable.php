@@ -21,19 +21,18 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\block;
+namespace pocketmine\block\utils;
 
-final class BlockTypeTags{
-	private const PREFIX = "pocketmine:";
+use pocketmine\block\Block;
+use pocketmine\block\Liquid;
 
-	public const DIRT = self::PREFIX . "dirt";
-	public const MUD = self::PREFIX . "mud";
-	public const SAND = self::PREFIX . "sand";
-	public const POTTABLE_PLANTS = self::PREFIX . "pottable";
-	public const FIRE = self::PREFIX . "fire";
-	public const HANGING_SIGN = self::PREFIX . "hanging_sign";
-	public const NYLIUM = self::PREFIX . "nylium";
-	public const HUGE_FUNGUS_REPLACEABLE = self::PREFIX . "huge_fungus_replaceable";
-	public const BAMBOO_MOSAIC = self::PREFIX . "bamboo_mosaic";
-	public const NON_SOURCE_WATERLOGGABLE = self::PREFIX . "non_source_waterloggable";
+interface Waterloggable{
+
+	public function getWaterlogging() : ?Liquid;
+
+	public function canBeWaterlogged() : bool;
+
+	public function isSideOpenToFlow(int $face) : bool;
+
+	public function liquidCollide(Block $cause, Block $result) : bool;
 }

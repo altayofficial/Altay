@@ -25,6 +25,8 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\SupportType;
 use pocketmine\block\utils\WallConnectionType;
+use pocketmine\block\utils\Waterloggable;
+use pocketmine\block\utils\WaterloggableTrait;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\math\Axis;
 use pocketmine\math\AxisAlignedBB;
@@ -33,7 +35,8 @@ use pocketmine\math\Facing;
 /**
  * @phpstan-type WallConnectionSet array<Facing::NORTH|Facing::EAST|Facing::SOUTH|Facing::WEST, WallConnectionType>
  */
-class Wall extends Transparent{
+class Wall extends Transparent implements Waterloggable{
+	use WaterloggableTrait;
 
 	/**
 	 * @var WallConnectionType[]

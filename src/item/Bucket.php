@@ -65,6 +65,29 @@ class Bucket extends Item{
 
 			return ItemUseResult::FAIL;
 		}
+		$waterlogging = $blockClicked->getWaterlogging();
+		if($waterlogging instanceof Liquid && $waterlogging->isSource()){
+			$resultItem = match($waterlogging->getTypeId()){
+				BlockTypeIds::WATER => VanillaItems::WATER_BUCKET(),
+				default => null
+			};
+			if($resultItem === null){
+				return ItemUseResult::FAIL;
+			}
+
+			$ev = new PlayerBucketFillEvent($player, $blockClicked, $face, $this, $resultItem);
+			$ev->call();
+			if(!$ev->isCancelled()){
+				$player->getWorld()->setLiquid($blockClicked->getPosition(), null);
+				$player->getWorld()->addSound($blockClicked->getPosition()->add(0.5, 0.5, 0.5), $waterlogging->getBucketFillSound());
+
+				$this->pop();
+				$returnedItems[] = $ev->getItem();
+				return ItemUseResult::SUCCESS;
+			}
+
+			return ItemUseResult::FAIL;
+		}
 
 		return ItemUseResult::NONE;
 	}

@@ -31,6 +31,7 @@ use pmmp\encoding\LE;
 use pocketmine\block\tile\Spawnable;
 use pocketmine\block\tile\Tile;
 use pocketmine\block\utils\SupportType;
+use pocketmine\block\utils\Waterloggable;
 use pocketmine\data\runtime\InvalidSerializedRuntimeDataException;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\data\runtime\RuntimeDataReader;
@@ -75,6 +76,8 @@ class Block{
 	protected string $fallbackName;
 	protected BlockTypeInfo $typeInfo;
 	protected Position $position;
+
+	private ?Liquid $waterlogging = null;
 
 	/**
 	 * @var AxisAlignedBB[]|null
@@ -371,6 +374,9 @@ class Block{
 	 * @phpstan-impure
 	 */
 	public function readStateFromWorld() : Block{
+		if($this instanceof Waterloggable){
+			$this->waterlogging = $this->position->getWorld()->getLiquid($this->position);
+		}
 		return $this;
 	}
 
@@ -387,6 +393,12 @@ class Block{
 			throw new AssumptionFailedError("World::setBlock() should have loaded the chunk before calling this method");
 		}
 		$chunk->setBlockStateId($this->position->x & Chunk::COORD_MASK, $this->position->y, $this->position->z & Chunk::COORD_MASK, $this->getStateId());
+		$chunk->setDisplacedBlockStateId(
+			$this->position->x & Chunk::COORD_MASK,
+			$this->position->getFloorY(),
+			$this->position->z & Chunk::COORD_MASK,
+			$this->waterlogging !== null && $this->canContainLiquid($this->waterlogging) ? $this->waterlogging->getStateId() : self::EMPTY_STATE_ID
+		);
 
 		$tileType = $this->idInfo->getTileClass();
 		$oldTile = $world->getTile($this->position);
@@ -413,6 +425,14 @@ class Block{
 	 */
 	public function canBePlaced() : bool{
 		return true;
+	}
+
+	/**
+	 * @internal
+	 * Returns a block displaced to the second layer, such as water in a waterlogged block.
+	 */
+	public function getDisplacedBlock() : ?Block{
+		return $this->waterlogging;
 	}
 
 	/**
@@ -445,6 +465,13 @@ class Block{
 	 * @return bool whether the placement should go ahead
 	 */
 	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+		if(
+			$blockReplace instanceof Liquid &&
+			$this->canContainLiquid($blockReplace) &&
+			($blockReplace->isSource() || $this->canBeWaterloggedByFlowingLiquid($blockReplace))
+		){
+			$this->setWaterlogging(clone $blockReplace);
+		}
 		$tx->addBlock($blockReplace->position, $this);
 		return true;
 	}
@@ -487,8 +514,16 @@ class Block{
 		if(($t = $world->getTile($this->position)) !== null){
 			$t->onBlockDestroyed();
 		}
-		$world->setBlock($this->position, VanillaBlocks::AIR());
+		$world->setBlock($this->position, $this->getDisplacedBlock() ?? VanillaBlocks::AIR());
 		return true;
+	}
+
+	/**
+	 * @internal
+	 * Similar to onScheduledUpdate(), but called for displaced blocks in a secondary layer.
+	 */
+	public function onDisplacedScheduledUpdate() : void{
+
 	}
 
 	/**
@@ -604,6 +639,30 @@ class Block{
 	 */
 	public function canBeFlowedInto() : bool{
 		return false;
+	}
+
+	public function canContainLiquid(Liquid $liquid) : bool{
+		return false;
+	}
+
+	public function canBeWaterloggedByFlowingLiquid(Liquid $liquid) : bool{
+		return false;
+	}
+
+	final public function isWaterlogged() : bool{
+		return $this->waterlogging !== null;
+	}
+
+	final public function getWaterlogging() : ?Liquid{
+		return $this->waterlogging;
+	}
+
+	/**
+	 * @return $this
+	 */
+	final public function setWaterlogging(?Liquid $waterlogging) : self{
+		$this->waterlogging = $waterlogging;
+		return $this;
 	}
 
 	/**
@@ -859,7 +918,7 @@ class Block{
 	 * @see Block::onEntityInside()
 	 */
 	public function hasEntityCollision() : bool{
-		return false;
+		return $this->waterlogging?->hasEntityCollision() ?? false;
 	}
 
 	/**
@@ -872,7 +931,7 @@ class Block{
 	 * being ignited), this should return false.
 	 */
 	public function onEntityInside(Entity $entity) : bool{
-		return true;
+		return $this->waterlogging?->onEntityInside($entity) ?? true;
 	}
 
 	/**
@@ -885,7 +944,7 @@ class Block{
 	 * WARNING: This will not be called if {@link Block::hasEntityCollision()} does not return true!
 	 */
 	public function addVelocityToEntity(Entity $entity) : ?Vector3{
-		return null;
+		return $this->waterlogging?->addVelocityToEntity($entity);
 	}
 
 	/**

@@ -30,6 +30,8 @@ use pocketmine\block\utils\HorizontalFacingTrait;
 use pocketmine\block\utils\Lightable;
 use pocketmine\block\utils\LightableTrait;
 use pocketmine\block\utils\SupportType;
+use pocketmine\block\utils\Waterloggable;
+use pocketmine\block\utils\WaterloggableTrait;
 use pocketmine\crafting\FurnaceRecipe;
 use pocketmine\crafting\FurnaceType;
 use pocketmine\data\runtime\RuntimeDataDescriber;
@@ -61,13 +63,14 @@ use function count;
 use function min;
 use function mt_rand;
 
-class Campfire extends Transparent implements Lightable, HorizontalFacing{
+class Campfire extends Transparent implements Lightable, HorizontalFacing, Waterloggable{
 	use HorizontalFacingTrait{
 		HorizontalFacingTrait::describeBlockOnlyState as encodeFacingState;
 	}
 	use LightableTrait{
 		LightableTrait::describeBlockOnlyState as encodeLitState;
 	}
+	use WaterloggableTrait;
 
 	private const UPDATE_INTERVAL_TICKS = 10;
 
@@ -215,9 +218,8 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 	}
 
 	public function onNearbyBlockChange() : void{
-		if($this->lit && $this->getSide(Facing::UP)->getTypeId() === BlockTypeIds::WATER){
+		if($this->lit && ($this->isWaterlogged() || $this->getSide(Facing::UP)->getTypeId() === BlockTypeIds::WATER)){
 			$this->extinguish();
-			//TODO: Waterlogging
 		}
 	}
 

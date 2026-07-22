@@ -25,6 +25,8 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\SlabType;
 use pocketmine\block\utils\SupportType;
+use pocketmine\block\utils\Waterloggable;
+use pocketmine\block\utils\WaterloggableTrait;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\item\Item;
 use pocketmine\math\AxisAlignedBB;
@@ -33,7 +35,9 @@ use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
 
-class Slab extends Transparent{
+class Slab extends Transparent implements Waterloggable{
+	use WaterloggableTrait;
+
 	protected SlabType $slabType = SlabType::BOTTOM;
 
 	public function __construct(BlockIdentifier $idInfo, string $name, BlockTypeInfo $typeInfo){
@@ -77,6 +81,14 @@ class Slab extends Transparent{
 		}
 
 		return false;
+	}
+
+	public function canBeWaterlogged() : bool{
+		return $this->slabType !== SlabType::DOUBLE;
+	}
+
+	public function isSideOpenToFlow(int $face) : bool{
+		return $this->slabType === SlabType::TOP || $face !== Facing::DOWN;
 	}
 
 	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{

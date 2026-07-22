@@ -27,11 +27,14 @@ use pocketmine\block\utils\BlockEventHelper;
 use pocketmine\block\utils\CoralMaterial;
 use pocketmine\block\utils\CoralTypeTrait;
 use pocketmine\block\utils\SupportType;
+use pocketmine\block\utils\Waterloggable;
+use pocketmine\block\utils\WaterloggableTrait;
 use pocketmine\item\Item;
 use function mt_rand;
 
-abstract class BaseCoral extends Transparent implements CoralMaterial{
+abstract class BaseCoral extends WaterloggableFlowable implements CoralMaterial, Waterloggable{
 	use CoralTypeTrait;
+	use WaterloggableTrait;
 
 	public function onNearbyBlockChange() : void{
 		if(!$this->dead){
@@ -66,8 +69,7 @@ abstract class BaseCoral extends Transparent implements CoralMaterial{
 			}
 		}
 
-		//TODO: check water inside the block itself (not supported on the API yet)
-		return $hasWater;
+		return $hasWater || $this->isWaterlogged();
 	}
 
 	protected function recalculateCollisionBoxes() : array{ return []; }

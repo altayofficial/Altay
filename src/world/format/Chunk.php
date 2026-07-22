@@ -102,11 +102,29 @@ class Chunk{
 		return $this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->getBlockStateId($x, $y & SubChunk::COORD_MASK, $z);
 	}
 
+	public function getBlockStateIdLayer(int $layer, int $x, int $y, int $z) : int{
+		return $this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->getBlockStateIdLayer($layer, $x, $y & SubChunk::COORD_MASK, $z);
+	}
+
 	/**
 	 * Sets the blockstate at the given coordinate by internal ID.
 	 */
 	public function setBlockStateId(int $x, int $y, int $z, int $block) : void{
 		$this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->setBlockStateId($x, $y & SubChunk::COORD_MASK, $z, $block);
+		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BLOCKS;
+	}
+
+	public function setBlockStateIdLayer(int $layer, int $x, int $y, int $z, int $block) : void{
+		$this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->setBlockStateIdLayer($layer, $x, $y & SubChunk::COORD_MASK, $z, $block);
+		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BLOCKS;
+	}
+
+	public function getDisplacedBlockStateId(int $x, int $y, int $z) : int{
+		return $this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->getDisplacedBlockStateId($x, $y & SubChunk::COORD_MASK, $z);
+	}
+
+	public function setDisplacedBlockStateId(int $x, int $y, int $z, int $block) : void{
+		$this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->setDisplacedBlockStateId($x, $y & SubChunk::COORD_MASK, $z, $block);
 		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BLOCKS;
 	}
 

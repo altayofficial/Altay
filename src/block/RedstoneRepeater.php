@@ -27,8 +27,9 @@ use pocketmine\block\utils\HorizontalFacing;
 use pocketmine\block\utils\HorizontalFacingTrait;
 use pocketmine\block\utils\PoweredByRedstone;
 use pocketmine\block\utils\PoweredByRedstoneTrait;
-use pocketmine\block\utils\StaticSupportTrait;
 use pocketmine\block\utils\SupportType;
+use pocketmine\block\utils\Waterloggable;
+use pocketmine\block\utils\WaterloggableTrait;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\item\Item;
 use pocketmine\math\AxisAlignedBB;
@@ -37,10 +38,10 @@ use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
 
-class RedstoneRepeater extends Flowable implements PoweredByRedstone, HorizontalFacing{
+class RedstoneRepeater extends WaterloggableFlowable implements PoweredByRedstone, HorizontalFacing, Waterloggable{
 	use HorizontalFacingTrait;
 	use PoweredByRedstoneTrait;
-	use StaticSupportTrait;
+	use WaterloggableTrait;
 
 	public const MIN_DELAY = 1;
 	public const MAX_DELAY = 4;
@@ -76,6 +77,10 @@ class RedstoneRepeater extends Flowable implements PoweredByRedstone, Horizontal
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
+	public function canBePlacedAt(Block $blockReplace, Vector3 $clickVector, int $face, bool $isClickedBlock) : bool{
+		return $this->canBeSupportedAt($blockReplace) && parent::canBePlacedAt($blockReplace, $clickVector, $face, $isClickedBlock);
+	}
+
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if(++$this->delay > self::MAX_DELAY){
 			$this->delay = self::MIN_DELAY;
@@ -86,6 +91,12 @@ class RedstoneRepeater extends Flowable implements PoweredByRedstone, Horizontal
 
 	private function canBeSupportedAt(Block $block) : bool{
 		return $block->getAdjacentSupportType(Facing::DOWN) !== SupportType::NONE;
+	}
+
+	public function onNearbyBlockChange() : void{
+		if(!$this->canBeSupportedAt($this)){
+			$this->position->getWorld()->useBreakOn($this->position);
+		}
 	}
 
 	//TODO: redstone functionality

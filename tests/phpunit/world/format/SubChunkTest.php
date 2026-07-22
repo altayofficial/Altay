@@ -48,4 +48,24 @@ class SubChunkTest extends TestCase{
 		self::assertNotSame($sub1->getBlockLightArray()->get(0, 0, 0), $sub2->getBlockLightArray()->get(0, 0, 0));
 		self::assertNotSame($sub1->getBlockSkyLightArray()->get(0, 0, 0), $sub2->getBlockSkyLightArray()->get(0, 0, 0));
 	}
+
+	public function testBlockLayersAreIndependent() : void{
+		$subChunk = new SubChunk(0, [], new PalettedBlockArray(BiomeIds::OCEAN));
+
+		$subChunk->setBlockStateIdLayer(SubChunk::BLOCK_LAYER_LIQUID, 0, 0, 0, 2);
+
+		self::assertSame(0, $subChunk->getBlockStateId(0, 0, 0));
+		self::assertSame(2, $subChunk->getBlockStateIdLayer(SubChunk::BLOCK_LAYER_LIQUID, 0, 0, 0));
+	}
+
+	public function testCloneCopiesBlockLayers() : void{
+		$sub1 = new SubChunk(0, [], new PalettedBlockArray(BiomeIds::OCEAN));
+		$sub1->setBlockStateIdLayer(SubChunk::BLOCK_LAYER_LIQUID, 0, 0, 0, 1);
+
+		$sub2 = clone $sub1;
+		$sub2->setBlockStateIdLayer(SubChunk::BLOCK_LAYER_LIQUID, 0, 0, 0, 2);
+
+		self::assertSame(1, $sub1->getBlockStateIdLayer(SubChunk::BLOCK_LAYER_LIQUID, 0, 0, 0));
+		self::assertSame(2, $sub2->getBlockStateIdLayer(SubChunk::BLOCK_LAYER_LIQUID, 0, 0, 0));
+	}
 }

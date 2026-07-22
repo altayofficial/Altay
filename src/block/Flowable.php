@@ -36,6 +36,10 @@ abstract class Flowable extends Transparent{
 		return true;
 	}
 
+	public function canContainLiquid(Liquid $liquid) : bool{
+		return false;
+	}
+
 	public function isSolid() : bool{
 		return false;
 	}

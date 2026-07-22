@@ -26,6 +26,7 @@ namespace pocketmine\item;
 use pocketmine\block\Block;
 use pocketmine\block\Lava;
 use pocketmine\block\Liquid;
+use pocketmine\block\Water;
 use pocketmine\event\player\PlayerBucketEmptyEvent;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
@@ -55,18 +56,32 @@ class LiquidBucket extends Item{
 	}
 
 	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
-		if(!$blockReplace->canBeReplaced()){
-			return ItemUseResult::NONE;
+		$waterlogTarget = null;
+		if($this->liquid instanceof Water && $blockClicked->getWaterlogging() === null && $blockClicked->canContainLiquid($this->liquid)){
+			$waterlogTarget = $blockClicked;
+		}elseif(!$blockReplace->canBeReplaced()){
+			if($this->liquid instanceof Water && $blockReplace->getWaterlogging() === null && $blockReplace->canContainLiquid($this->liquid)){
+				$waterlogTarget = $blockReplace;
+			}else{
+				return ItemUseResult::NONE;
+			}
 		}
 
 		//TODO: move this to generic placement logic
 		$resultBlock = clone $this->liquid;
 
-		$ev = new PlayerBucketEmptyEvent($player, $blockReplace, $face, $this, VanillaItems::BUCKET());
+		$ev = new PlayerBucketEmptyEvent($player, $waterlogTarget ?? $blockReplace, $face, $this, VanillaItems::BUCKET());
 		$ev->call();
 		if(!$ev->isCancelled()){
-			$player->getWorld()->setBlock($blockReplace->getPosition(), $resultBlock->getFlowingForm());
-			$player->getWorld()->addSound($blockReplace->getPosition()->add(0.5, 0.5, 0.5), $resultBlock->getBucketEmptySound());
+			if($waterlogTarget !== null){
+				$containedLiquid = clone $this->liquid;
+				$containedLiquid->setStill();
+				$player->getWorld()->setLiquid($waterlogTarget->getPosition(), $containedLiquid);
+				$player->getWorld()->addSound($waterlogTarget->getPosition()->add(0.5, 0.5, 0.5), $resultBlock->getBucketEmptySound());
+			}else{
+				$player->getWorld()->setBlock($blockReplace->getPosition(), $resultBlock->getFlowingForm());
+				$player->getWorld()->addSound($blockReplace->getPosition()->add(0.5, 0.5, 0.5), $resultBlock->getBucketEmptySound());
+			}
 
 			$this->pop();
 			$returnedItems[] = $ev->getItem();

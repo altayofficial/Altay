@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4f99367e9a709f5bc7d823b6db5b0655",
+    "content-hash": "db0bfeac265f6dd81f065366f8852390",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -95,12 +95,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "d1802b5411fe3552d4df9c7f3afab24e314aa875"
+                "reference": "e5a8a5944994b849514763faf0667620112f9b5b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/d1802b5411fe3552d4df9c7f3afab24e314aa875",
-                "reference": "d1802b5411fe3552d4df9c7f3afab24e314aa875",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/e5a8a5944994b849514763faf0667620112f9b5b",
+                "reference": "e5a8a5944994b849514763faf0667620112f9b5b",
                 "shasum": ""
             },
             "require": {
@@ -143,7 +143,54 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.40"
             },
-            "time": "2026-07-22T12:09:40+00:00"
+            "time": "2026-07-22T12:43:00+00:00"
+        },
+        {
+            "name": "altayofficial/nbt",
+            "version": "dev-stable",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/altayofficial/NBT.git",
+                "reference": "2b1399b905db2937478435d596417c47e4120437"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/altayofficial/NBT/zipball/2b1399b905db2937478435d596417c47e4120437",
+                "reference": "2b1399b905db2937478435d596417c47e4120437",
+                "shasum": ""
+            },
+            "require": {
+                "ext-encoding": "^1.0.0",
+                "php": "^8.1",
+                "php-64bit": "*"
+            },
+            "require-dev": {
+                "phpstan/extension-installer": "^1.0",
+                "phpstan/phpstan": "2.1.33",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "pocketmine\\nbt\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "pocketmine\\nbt\\": "tests/phpunit/"
+                }
+            },
+            "license": [
+                "LGPL-3.0"
+            ],
+            "description": "PHP library for working with Named Binary Tags",
+            "support": {
+                "source": "https://github.com/altayofficial/NBT/tree/stable"
+            },
+            "time": "2026-07-22T13:04:40+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",
@@ -2744,6 +2791,7 @@
     "stability-flags": {
         "altayofficial/bedrock-data": 20,
         "altayofficial/bedrock-protocol": 20,
+        "altayofficial/nbt": 20,
         "altayofficial/worldupgraderschemas": 20
     },
     "prefer-stable": false,

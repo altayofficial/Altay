@@ -71,12 +71,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "d00a3a3f36e44a0f5b222d5d369e7194abc3d8ce"
+                "reference": "3c0831ef88481dde6177d9aa18178695ad8bd7a2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/d00a3a3f36e44a0f5b222d5d369e7194abc3d8ce",
-                "reference": "d00a3a3f36e44a0f5b222d5d369e7194abc3d8ce",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/3c0831ef88481dde6177d9aa18178695ad8bd7a2",
+                "reference": "3c0831ef88481dde6177d9aa18178695ad8bd7a2",
                 "shasum": ""
             },
             "type": "library",
@@ -87,7 +87,7 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.40"
             },
-            "time": "2026-07-12T18:49:10+00:00"
+            "time": "2026-07-22T14:51:47+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
@@ -95,22 +95,22 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "e5a8a5944994b849514763faf0667620112f9b5b"
+                "reference": "a5d25ecfaee70152e7476e6fe08dabcd3d7207f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/e5a8a5944994b849514763faf0667620112f9b5b",
-                "reference": "e5a8a5944994b849514763faf0667620112f9b5b",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/a5d25ecfaee70152e7476e6fe08dabcd3d7207f4",
+                "reference": "a5d25ecfaee70152e7476e6fe08dabcd3d7207f4",
                 "shasum": ""
             },
             "require": {
+                "altayofficial/nbt": "dev-stable",
                 "ext-encoding": "~1.0.0",
                 "ext-json": "*",
                 "php": "^8.1",
                 "pocketmine/binaryutils": "^0.2.0",
                 "pocketmine/color": "^0.2.0 || ^0.3.0",
                 "pocketmine/math": "^0.3.0 || ^0.4.0 || ^1.0.0",
-                "pocketmine/nbt": "^1.0.0",
                 "ramsey/uuid": "^4.1"
             },
             "require-dev": {
@@ -143,7 +143,7 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.40"
             },
-            "time": "2026-07-22T12:43:00+00:00"
+            "time": "2026-07-22T15:11:04+00:00"
         },
         {
             "name": "altayofficial/nbt",
@@ -579,49 +579,6 @@
                 "source": "https://github.com/pmmp/Math/tree/1.0.0"
             },
             "time": "2023-08-03T12:56:33+00:00"
-        },
-        {
-            "name": "pocketmine/nbt",
-            "version": "1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pmmp/NBT.git",
-                "reference": "51b8d6a97065fb93e0b4f660b65164b6e1ed2fff"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/NBT/zipball/51b8d6a97065fb93e0b4f660b65164b6e1ed2fff",
-                "reference": "51b8d6a97065fb93e0b4f660b65164b6e1ed2fff",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.4 || ^8.0",
-                "php-64bit": "*",
-                "pocketmine/binaryutils": "^0.2.0"
-            },
-            "require-dev": {
-                "phpstan/extension-installer": "^1.0",
-                "phpstan/phpstan": "2.1.27",
-                "phpstan/phpstan-phpunit": "^2.0",
-                "phpstan/phpstan-strict-rules": "^2.0",
-                "phpunit/phpunit": "^9.5"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "pocketmine\\nbt\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "LGPL-3.0"
-            ],
-            "description": "PHP library for working with Named Binary Tags",
-            "support": {
-                "issues": "https://github.com/pmmp/NBT/issues",
-                "source": "https://github.com/pmmp/NBT/tree/1.2.0"
-            },
-            "time": "2025-09-19T18:09:30+00:00"
         },
         {
             "name": "pocketmine/raklib",

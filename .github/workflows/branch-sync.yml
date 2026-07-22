@@ -1,0 +1,71 @@
+name: Sync primary branches
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: altay_branch_sync
+
+jobs:
+  merge:
+    name: Sync dev branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set Git config
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Clone composer-git-merge-driver
+      uses: actions/checkout@v4
+      with:
+        repository: balbuf/composer-git-merge-driver
+        path: ${{ github.workspace }}/composer-git-merge-driver
+
+    - name: Setup composer-git-merge-driver
+      run: |
+        echo "${{ github.workspace }}/composer-git-merge-driver/bin" >> $GITHUB_PATH
+        echo "composer.lock merge=composer_lock" >> ./.git/info/attributes
+
+        git config merge.composer_lock.name "composer.lock merge driver"
+        git config merge.composer_lock.driver "composer-git-merge-driver %O %A %B %L %P"
+        git config merge.composer_lock.recursive binary
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@2.32.0
+      with:
+        php-version: "8.1"
+
+    - name: Load Composer package cache
+      uses: actions/cache@v4
+      with:
+        path: "~/.cache/composer"
+        key: "php-8.1-composer-${{ hashFiles('**/composer.json') }}"
+        restore-keys: "php-8.1-composer-"
+
+    - name: Merge "master" into "dev" and push changes
+      run: |
+        LOWER_BRANCH="master"
+        TARGET_BRANCH="dev"
+        git checkout -f "$TARGET_BRANCH"
+        git pull --no-commit --ff origin "$LOWER_BRANCH" || (git diff && exit 1)
+
+        echo "Making sure merged composer.lock is valid"
+        composer update --lock --prefer-dist --no-interaction --ignore-platform-reqs
+        echo "Composer install succeeded"
+        git status
+        git add composer.lock
+
+        git commit \
+          -m "Merge '$LOWER_BRANCH' into '$TARGET_BRANCH'" \
+          -m "Automatic merge performed by: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+          || true
+        git push

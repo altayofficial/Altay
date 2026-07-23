@@ -205,6 +205,12 @@ class NetworkSession{
 	private ?InventoryManager $invManager = null;
 
 	/**
+	 * @var true[][]
+	 * @phpstan-var array<int, array<int, true>>
+	 */
+	private array $usedChunkCacheReferences = [];
+
+	/**
 	 * @var \Closure[]|ObjectSet
 	 * @phpstan-var ObjectSet<\Closure() : void>
 	 */
@@ -1281,7 +1287,14 @@ class NetworkSession{
 	 */
 	public function startUsingChunk(int $chunkX, int $chunkZ, \Closure $onCompletion) : void{
 		$world = $this->player->getLocation()->getWorld();
-		$promiseOrPacket = ChunkCache::getInstance($world, $this->compressor)->request($chunkX, $chunkZ);
+		$chunkCache = ChunkCache::getInstance($world, $this->compressor);
+		$worldId = $world->getId();
+		$chunkHash = World::chunkHash($chunkX, $chunkZ);
+		if(!isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){
+			$this->usedChunkCacheReferences[$worldId][$chunkHash] = true;
+			$chunkCache->retain($chunkX, $chunkZ);
+		}
+		$promiseOrPacket = $chunkCache->request($chunkX, $chunkZ);
 		if(is_string($promiseOrPacket)){
 			$this->sendChunkPacket($promiseOrPacket, $onCompletion, $world);
 			return;
@@ -1309,8 +1322,20 @@ class NetworkSession{
 		);
 	}
 
-	public function stopUsingChunk(int $chunkX, int $chunkZ) : void{
-
+	public function stopUsingChunk(int $chunkX, int $chunkZ, ?World $world = null) : void{
+		$world ??= $this->player?->getLocation()->getWorld();
+		if($world === null){
+			return;
+		}
+		$worldId = $world->getId();
+		$chunkHash = World::chunkHash($chunkX, $chunkZ);
+		if(isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){
+			unset($this->usedChunkCacheReferences[$worldId][$chunkHash]);
+			if(count($this->usedChunkCacheReferences[$worldId]) === 0){
+				unset($this->usedChunkCacheReferences[$worldId]);
+			}
+			ChunkCache::getInstance($world, $this->compressor)->release($chunkX, $chunkZ);
+		}
 	}
 
 	public function onEnterWorld() : void{

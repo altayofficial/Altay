@@ -96,12 +96,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "afee09608c5ddc478c01f64e8d6fbbb71d170fbd"
+                "reference": "05abc59ad06e31e28d9d13b48cd85f284cc38ed3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/afee09608c5ddc478c01f64e8d6fbbb71d170fbd",
-                "reference": "afee09608c5ddc478c01f64e8d6fbbb71d170fbd",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/05abc59ad06e31e28d9d13b48cd85f284cc38ed3",
+                "reference": "05abc59ad06e31e28d9d13b48cd85f284cc38ed3",
                 "shasum": ""
             },
             "require": {
@@ -143,9 +143,10 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/master"
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/master",
+                "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-07-12T12:08:26+00:00"
+            "time": "2026-07-23T09:29:12+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",

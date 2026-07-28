@@ -47,8 +47,11 @@ use const STDERR;
 require dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 function constifyMcId(string $id) : string{
-	//some ids (e.g. minecraft:item.straw_bed) contain chars that aren't valid in PHP identifiers - normalize them to _
-	return preg_replace('/[^A-Z0-9_]/', "_", strtoupper(explode(":", $id, 2)[1]));
+	$result = preg_replace('/[^A-Z0-9_]/', "_", strtoupper(explode(":", $id, 2)[1]));
+	if($result === null){
+		throw new \RuntimeException("Failed to normalize id: $id");
+	}
+	return $result;
 }
 
 /**

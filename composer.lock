@@ -154,12 +154,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/Network.git",
-                "reference": "f3dcfbc6d75b08e05406d53517e104fd15883f4e"
+                "reference": "1f3ae82f7b89d720032a60c574ee51775f31d04a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/Network/zipball/f3dcfbc6d75b08e05406d53517e104fd15883f4e",
-                "reference": "f3dcfbc6d75b08e05406d53517e104fd15883f4e",
+                "url": "https://api.github.com/repos/altayofficial/Network/zipball/1f3ae82f7b89d720032a60c574ee51775f31d04a",
+                "reference": "1f3ae82f7b89d720032a60c574ee51775f31d04a",
                 "shasum": ""
             },
             "require": {
@@ -207,7 +207,7 @@
                 "source": "https://github.com/altayofficial/Network/tree/main",
                 "issues": "https://github.com/altayofficial/Network/issues"
             },
-            "time": "2026-08-01T17:44:24+00:00"
+            "time": "2026-08-01T18:04:22+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",

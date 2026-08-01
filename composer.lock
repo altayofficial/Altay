@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2b7b621d09bdc476e2e92152d393d2ed",
+    "content-hash": "9fdf75b6f17ae2560b649c1a3cedceb8",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -96,12 +96,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "afee09608c5ddc478c01f64e8d6fbbb71d170fbd"
+                "reference": "05abc59ad06e31e28d9d13b48cd85f284cc38ed3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/afee09608c5ddc478c01f64e8d6fbbb71d170fbd",
-                "reference": "afee09608c5ddc478c01f64e8d6fbbb71d170fbd",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/05abc59ad06e31e28d9d13b48cd85f284cc38ed3",
+                "reference": "05abc59ad06e31e28d9d13b48cd85f284cc38ed3",
                 "shasum": ""
             },
             "require": {
@@ -143,9 +143,71 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/master"
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/master",
+                "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-07-12T12:08:26+00:00"
+            "time": "2026-07-23T09:29:12+00:00"
+        },
+        {
+            "name": "altayofficial/network",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/altayofficial/Network.git",
+                "reference": "f3dcfbc6d75b08e05406d53517e104fd15883f4e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/altayofficial/Network/zipball/f3dcfbc6d75b08e05406d53517e104fd15883f4e",
+                "reference": "f3dcfbc6d75b08e05406d53517e104fd15883f4e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-gmp": "*",
+                "ext-openssl": "*",
+                "ext-sockets": "*",
+                "php": "^8.1",
+                "pocketmine/binaryutils": "^0.2.6",
+                "pocketmine/log": "^0.4.0",
+                "react/event-loop": "^1.5"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.0",
+                "phpunit/phpunit": "^10.5",
+                "quasarstream/webrtc": "^1.0"
+            },
+            "suggest": {
+                "quasarstream/webrtc": "Required for the NetherNet transport"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "altay\\network\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "altay\\network\\tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ],
+                "analyse": [
+                    "phpstan analyse"
+                ]
+            },
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "description": "Central network library for Altay written in PHP",
+            "support": {
+                "source": "https://github.com/altayofficial/Network/tree/main",
+                "issues": "https://github.com/altayofficial/Network/issues"
+            },
+            "time": "2026-08-01T17:44:24+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",
@@ -175,25 +237,24 @@
         },
         {
             "name": "brick/math",
-            "version": "0.13.1",
+            "version": "0.18.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/brick/math.git",
-                "reference": "fc7ed316430118cc7836bf45faff18d5dfc8de04"
+                "reference": "82944324d1c1bdb2c2618e89978d4e2ad78d69ad"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/brick/math/zipball/fc7ed316430118cc7836bf45faff18d5dfc8de04",
-                "reference": "fc7ed316430118cc7836bf45faff18d5dfc8de04",
+                "url": "https://api.github.com/repos/brick/math/zipball/82944324d1c1bdb2c2618e89978d4e2ad78d69ad",
+                "reference": "82944324d1c1bdb2c2618e89978d4e2ad78d69ad",
                 "shasum": ""
             },
             "require": {
-                "php": "^8.1"
+                "php": "^8.2"
             },
             "require-dev": {
-                "php-coveralls/php-coveralls": "^2.2",
-                "phpunit/phpunit": "^10.1",
-                "vimeo/psalm": "6.8.8"
+                "phpstan/phpstan": "2.1.22",
+                "phpunit/phpunit": "^11.5"
             },
             "type": "library",
             "autoload": {
@@ -223,7 +284,7 @@
             ],
             "support": {
                 "issues": "https://github.com/brick/math/issues",
-                "source": "https://github.com/brick/math/tree/0.13.1"
+                "source": "https://github.com/brick/math/tree/0.18.0"
             },
             "funding": [
                 {
@@ -231,7 +292,54 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-03-29T13:50:30+00:00"
+            "time": "2026-06-14T18:21:03+00:00"
+        },
+        {
+            "name": "evenement/evenement",
+            "version": "v3.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/igorw/evenement.git",
+                "reference": "0a16b0d71ab13284339abb99d9d2bd813640efbc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/igorw/evenement/zipball/0a16b0d71ab13284339abb99d9d2bd813640efbc",
+                "reference": "0a16b0d71ab13284339abb99d9d2bd813640efbc",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9 || ^6"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Evenement\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Igor Wiedler",
+                    "email": "igor@wiedler.ch"
+                }
+            ],
+            "description": "Événement is a very simple event dispatching library for PHP",
+            "keywords": [
+                "event-dispatcher",
+                "event-emitter"
+            ],
+            "support": {
+                "issues": "https://github.com/igorw/evenement/issues",
+                "source": "https://github.com/igorw/evenement/tree/v3.0.2"
+            },
+            "time": "2023-08-08T05:53:35+00:00"
         },
         {
             "name": "netresearch/jsonmapper",
@@ -579,90 +687,6 @@
             "time": "2025-09-19T18:09:30+00:00"
         },
         {
-            "name": "pocketmine/raklib",
-            "version": "1.2.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pmmp/RakLib.git",
-                "reference": "669eb4d1e644f91437323ef24ce3ee985182b829"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/RakLib/zipball/669eb4d1e644f91437323ef24ce3ee985182b829",
-                "reference": "669eb4d1e644f91437323ef24ce3ee985182b829",
-                "shasum": ""
-            },
-            "require": {
-                "ext-sockets": "*",
-                "php": "^8.1",
-                "php-64bit": "*",
-                "php-ipv6": "*",
-                "pocketmine/binaryutils": "^0.2.0",
-                "pocketmine/log": "^0.3.0 || ^0.4.0"
-            },
-            "require-dev": {
-                "phpstan/phpstan": "2.1.33",
-                "phpstan/phpstan-strict-rules": "^2.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "raklib\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-3.0"
-            ],
-            "description": "A RakNet server implementation written in PHP",
-            "support": {
-                "issues": "https://github.com/pmmp/RakLib/issues",
-                "source": "https://github.com/pmmp/RakLib/tree/1.2.1"
-            },
-            "time": "2025-12-24T03:02:42+00:00"
-        },
-        {
-            "name": "pocketmine/raklib-ipc",
-            "version": "1.0.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pmmp/RakLibIpc.git",
-                "reference": "ce632ef2c6743e71eddb5dc329c49af6555f90bc"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/RakLibIpc/zipball/ce632ef2c6743e71eddb5dc329c49af6555f90bc",
-                "reference": "ce632ef2c6743e71eddb5dc329c49af6555f90bc",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^8.0",
-                "php-64bit": "*",
-                "pocketmine/binaryutils": "^0.2.0",
-                "pocketmine/raklib": "^0.15.0 || ^1.0.0"
-            },
-            "require-dev": {
-                "phpstan/phpstan": "1.10.1",
-                "phpstan/phpstan-strict-rules": "^1.0.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "raklib\\server\\ipc\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GPL-3.0"
-            ],
-            "description": "Channel-based protocols for inter-thread/inter-process communication with RakLib",
-            "support": {
-                "issues": "https://github.com/pmmp/RakLibIpc/issues",
-                "source": "https://github.com/pmmp/RakLibIpc/tree/1.0.1"
-            },
-            "time": "2024-03-01T15:55:05+00:00"
-        },
-        {
             "name": "pocketmine/snooze",
             "version": "0.5.0",
             "source": {
@@ -701,6 +725,1519 @@
                 "source": "https://github.com/pmmp/Snooze/tree/0.5.0"
             },
             "time": "2023-05-22T23:43:01+00:00"
+        },
+        {
+            "name": "psr/log",
+            "version": "3.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-fig/log.git",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "reference": "f16e1d5863e37f8d8c2a01719f5b34baa2b714d3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Psr\\Log\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "PHP-FIG",
+                    "homepage": "https://www.php-fig.org/"
+                }
+            ],
+            "description": "Common interface for logging libraries",
+            "homepage": "https://github.com/php-fig/log",
+            "keywords": [
+                "log",
+                "psr",
+                "psr-3"
+            ],
+            "support": {
+                "source": "https://github.com/php-fig/log/tree/3.0.2"
+            },
+            "time": "2024-09-11T13:17:53+00:00"
+        },
+        {
+            "name": "quasarstream/av",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/av.git",
+                "reference": "91efb6ad9d07852c85c2496375ba2cc0f4938212"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/av/zipball/91efb6ad9d07852c85c2496375ba2cc0f4938212",
+                "reference": "91efb6ad9d07852c85c2496375ba2cc0f4938212",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": "*",
+                "php": "^8.4",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/mixin": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\AVCodec\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "This PHP library leverages the Foreign Function Interface (FFI) to directly interact with native FFmpeg shared libraries (libavcodec, libavfilter, libavformat, etc.), providing low-level access to powerful multimedia processing capabilities within PHP.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "avcodec",
+                "avfilter",
+                "avformat",
+                "codec",
+                "ffmpeg",
+                "libavcodec",
+                "libavfilter",
+                "libavformat",
+                "libswscale",
+                "swscale"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/av/issues",
+                "source": "https://github.com/PHP-WebRTC/av/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-02T11:51:50+00:00"
+        },
+        {
+            "name": "quasarstream/codecs",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/codec.git",
+                "reference": "94bbd1e8b8278e4a5e23e044e97c7246f75a0efb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/codec/zipball/94bbd1e8b8278e4a5e23e044e97c7246f75a0efb",
+                "reference": "94bbd1e8b8278e4a5e23e044e97c7246f75a0efb",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": "*",
+                "php": "^8.4",
+                "quasarstream/av": "^1.0",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/opus": "^1.0",
+                "quasarstream/rtp-parameter": "^1.0",
+                "quasarstream/vpx": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\Codecs\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A comprehensive codec implementation package for WebRTC applications, providing audio/video encoding and decoding capabilities.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "codecs",
+                "h264",
+                "opus",
+                "pcma",
+                "pcmu",
+                "vp8"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/codec/issues",
+                "source": "https://github.com/PHP-WebRTC/codec/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-14T12:44:58+00:00"
+        },
+        {
+            "name": "quasarstream/datachannel",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/datachannel.git",
+                "reference": "d0b96cf269e58b5945ce06fd217fdeca53c4a7b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/datachannel/zipball/d0b96cf269e58b5945ce06fd217fdeca53c4a7b7",
+                "reference": "d0b96cf269e58b5945ce06fd217fdeca53c4a7b7",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0",
+                "php": "^8.4",
+                "psr/log": "^3.0",
+                "quasarstream/exception": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\DataChannel\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP implementation of WebRTC's RTCDataChannel interface for bidirectional peer-to-peer data communication.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "datachannel"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/datachannel/issues",
+                "source": "https://github.com/PHP-WebRTC/datachannel/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-13T21:29:48+00:00"
+        },
+        {
+            "name": "quasarstream/dtls",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/dtls.git",
+                "reference": "b4015c1eae4a2ac57ebaa1efc1b07ac982afc94f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/dtls/zipball/b4015c1eae4a2ac57ebaa1efc1b07ac982afc94f",
+                "reference": "b4015c1eae4a2ac57ebaa1efc1b07ac982afc94f",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0",
+                "php": "^8.4",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/ice": "^1.0",
+                "quasarstream/rtp": "^1.0",
+                "quasarstream/sctp": "^1.0",
+                "quasarstream/sdp": "^1.0",
+                "quasarstream/srtp": "^1.0",
+                "quasarstream/ssl": "^1.0",
+                "quasarstream/stats": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\DTLS\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP implementation of Datagram Transport Layer Security (DTLS), designed for secure communication over UDP, especially in real-time communication protocols such as WebRTC and SRTP.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "dtls",
+                "rtp"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/dtls/issues",
+                "source": "https://github.com/PHP-WebRTC/dtls/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-14T19:45:39+00:00"
+        },
+        {
+            "name": "quasarstream/exception",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/exception.git",
+                "reference": "249477a56d16a78dde8d7df4fc9ba2cc2d137ec3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/exception/zipball/249477a56d16a78dde8d7df4fc9ba2cc2d137ec3",
+                "reference": "249477a56d16a78dde8d7df4fc9ba2cc2d137ec3",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\Exception\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A lightweight exception handling package for PHP WebRTC applications.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/exception/issues",
+                "source": "https://github.com/PHP-WebRTC/exception/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-02T11:07:01+00:00"
+        },
+        {
+            "name": "quasarstream/ice",
+            "version": "v1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/ice.git",
+                "reference": "a95c088090409e71a9978d309f1ce03deeb086b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/ice/zipball/a95c088090409e71a9978d309f1ce03deeb086b7",
+                "reference": "a95c088090409e71a9978d309f1ce03deeb086b7",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "psr/log": "^3.0",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/mdns": "^1.0",
+                "quasarstream/stun": "^1.0",
+                "quasarstream/turn": "^1.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\ICE\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP implementation of WebRTC's RTC ICE interface for bidirectional peer-to-peer data communication.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "ice",
+                "stun",
+                "turn"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/ice/issues",
+                "source": "https://github.com/PHP-WebRTC/ice/tree/v1.0.3"
+            },
+            "time": "2025-10-08T21:33:17+00:00"
+        },
+        {
+            "name": "quasarstream/mdns",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/mdns.git",
+                "reference": "70ff3c8d430d8ffe95c373613f0f08020f230e31"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/mdns/zipball/70ff3c8d430d8ffe95c373613f0f08020f230e31",
+                "reference": "70ff3c8d430d8ffe95c373613f0f08020f230e31",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": "*",
+                "php": "^8.4",
+                "react/async": "^4.3",
+                "react/datagram": "^1.10",
+                "react/dns": "^1.13"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\MDNS\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "This library provides a Multicast DNS (mDNS) resolver.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "mDNS",
+                "multicastdns"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/mdns/issues",
+                "source": "https://github.com/PHP-WebRTC/mdns/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-13T11:20:53+00:00"
+        },
+        {
+            "name": "quasarstream/mixin",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/mixin.git",
+                "reference": "e8bc3418a13b9be56c31eebeb69d3609680c184f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/mixin/zipball/e8bc3418a13b9be56c31eebeb69d3609680c184f",
+                "reference": "e8bc3418a13b9be56c31eebeb69d3609680c184f",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0",
+                "php": "^8.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\Mixin\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "This library builds upon common PHP classes and traits shared across the WebRTC ecosystem.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/mixin/issues",
+                "source": "https://github.com/PHP-WebRTC/mixin/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-02T10:06:06+00:00"
+        },
+        {
+            "name": "quasarstream/ntp",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/ntp.git",
+                "reference": "032a491e5add4a54514c8d1c33b61248fdfe1ed6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/ntp/zipball/032a491e5add4a54514c8d1c33b61248fdfe1ed6",
+                "reference": "032a491e5add4a54514c8d1c33b61248fdfe1ed6",
+                "shasum": ""
+            },
+            "require": {
+                "ext-gmp": "*",
+                "php": "^8.4"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3",
+                "symfony/phpunit-bridge": "7.3.x-dev"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\NTP\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "The NetworkTimeProtocol class provides utility methods for working with NTP (Network Time Protocol) timestamps in PHP.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "multicastdns",
+                "ntp"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/ntp/issues",
+                "source": "https://github.com/PHP-WebRTC/ntp/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-13T11:46:39+00:00"
+        },
+        {
+            "name": "quasarstream/opus",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/opus.git",
+                "reference": "c1bbfa5ba861b20ec012cf71ed051c0036c5147d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/opus/zipball/c1bbfa5ba861b20ec012cf71ed051c0036c5147d",
+                "reference": "c1bbfa5ba861b20ec012cf71ed051c0036c5147d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": "*",
+                "php": "^8.4",
+                "quasarstream/av": "^1.0",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/mixin": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\Opus\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A lightweight PHP wrapper for the libopus audio codec using PHP FFI.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "libopus",
+                "opus"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/opus/issues",
+                "source": "https://github.com/PHP-WebRTC/opus/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-12T20:32:09+00:00"
+        },
+        {
+            "name": "quasarstream/rtcp",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/rtcp.git",
+                "reference": "f1188997598ff1903e932a8771dfcc0b501d0e0d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/rtcp/zipball/f1188997598ff1903e932a8771dfcc0b501d0e0d",
+                "reference": "f1188997598ff1903e932a8771dfcc0b501d0e0d",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "quasarstream/exception": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\RTCP\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A pure PHP implementation of RTP Control Protocol (RTCP) packet parsing and generation, compliant with RFC 3550 and related specifications.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "rtcp",
+                "rtp"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/rtcp/issues",
+                "source": "https://github.com/PHP-WebRTC/rtcp/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-13T12:02:19+00:00"
+        },
+        {
+            "name": "quasarstream/rtp",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/rtp.git",
+                "reference": "4fbaab459dc8658b918260ef466eb42ab244a887"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/rtp/zipball/4fbaab459dc8658b918260ef466eb42ab244a887",
+                "reference": "4fbaab459dc8658b918260ef466eb42ab244a887",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "quasarstream/codecs": "^1.0",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/ntp": "^1.0",
+                "quasarstream/rtcp": "^1.0",
+                "quasarstream/rtp-parameter": "^1.0",
+                "quasarstream/sdp": "^1.0",
+                "quasarstream/stats": "^1.0",
+                "ramsey/uuid": "^4.7"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3",
+                "symfony/phpunit-bridge": "7.3.x-dev"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\RTP\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP library for handling RTP (Real-time Transport Protocol) packets.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "real-time-transport-protocol",
+                "rtp"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/rtp/issues",
+                "source": "https://github.com/PHP-WebRTC/rtp/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-14T15:41:50+00:00"
+        },
+        {
+            "name": "quasarstream/rtp-parameter",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/rtpparameter.git",
+                "reference": "95c6656fdd46a1221ac33f0387ad5e915eb86038"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/rtpparameter/zipball/95c6656fdd46a1221ac33f0387ad5e915eb86038",
+                "reference": "95c6656fdd46a1221ac33f0387ad5e915eb86038",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "quasarstream/mixin": "^1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\RTPParameter\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "RTP parameters define the configuration of a media stream in Real-time Transport Protocol, including codec information, payload types, SSRCs, header extensions, and RTCP settings.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "rtp",
+                "rtp-parameter"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/rtpparameter/issues",
+                "source": "https://github.com/PHP-WebRTC/rtpparameter/tree/v1.0.0"
+            },
+            "time": "2025-05-13T20:46:31+00:00"
+        },
+        {
+            "name": "quasarstream/sctp",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/sctp.git",
+                "reference": "40361ff46eef9f32192452d24447dacdd8b525d0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/sctp/zipball/40361ff46eef9f32192452d24447dacdd8b525d0",
+                "reference": "40361ff46eef9f32192452d24447dacdd8b525d0",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "quasarstream/datachannel": "^1.0",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/ice": "^1.0",
+                "quasarstream/sdp": "^1.0",
+                "quasarstream/stats": "^1.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3",
+                "symfony/phpunit-bridge": "7.3.x-dev"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\SCTP\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP library implementing SCTP (Stream Control Transmission Protocol) for WebRTC data channels.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "datachannel",
+                "sctp"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/sctp/issues",
+                "source": "https://github.com/PHP-WebRTC/sctp/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-14T19:25:33+00:00"
+        },
+        {
+            "name": "quasarstream/sdp",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/sdp.git",
+                "reference": "21df5e440c25e84207f4662bec61b6d76c0b1f09"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/sdp/zipball/21df5e440c25e84207f4662bec61b6d76c0b1f09",
+                "reference": "21df5e440c25e84207f4662bec61b6d76c0b1f09",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/ice": "^1.0",
+                "quasarstream/rtp-parameter": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\SDP\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP library for parsing and generating SDP (Session Description Protocol).",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "SDP",
+                "rtp"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/sdp/issues",
+                "source": "https://github.com/PHP-WebRTC/sdp/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-14T15:09:08+00:00"
+        },
+        {
+            "name": "quasarstream/srtp",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/srtp.git",
+                "reference": "263a50ed6a83231cee4897bdf6adf4cfb17dda70"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/srtp/zipball/263a50ed6a83231cee4897bdf6adf4cfb17dda70",
+                "reference": "263a50ed6a83231cee4897bdf6adf4cfb17dda70",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": "*",
+                "php": "^8.4",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/mixin": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\Srtp\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP library for Secure RTP (SRTP) packet encryption and decryption using OpenSSL FFI.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "srtp"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/srtp/issues",
+                "source": "https://github.com/PHP-WebRTC/srtp/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-12T13:30:36+00:00"
+        },
+        {
+            "name": "quasarstream/ssl",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/ssl.git",
+                "reference": "1d8f222b292993ed151079261d0330c7ebba82e2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/ssl/zipball/1d8f222b292993ed151079261d0330c7ebba82e2",
+                "reference": "1d8f222b292993ed151079261d0330c7ebba82e2",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": "*",
+                "php": "^8.4",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/mixin": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\SSL\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP wrapper for OpenSSL using FFI, tailored for WebRTC components.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "certificate",
+                "crypto",
+                "openssl",
+                "privateKey",
+                "ssl",
+                "x509"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/ssl/issues",
+                "source": "https://github.com/PHP-WebRTC/ssl/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-12T12:55:45+00:00"
+        },
+        {
+            "name": "quasarstream/stats",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/stats.git",
+                "reference": "278d04029a37da5278c2de376e304bea922b7a81"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/stats/zipball/278d04029a37da5278c2de376e304bea922b7a81",
+                "reference": "278d04029a37da5278c2de376e304bea922b7a81",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "quasarstream/ice": "^v1.0",
+                "quasarstream/mixin": "^v1.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\Stats\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP implementation of the WebRTC Statistics API for tracking RTP, DTLS, and media performance metrics.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "stats"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/stats/issues",
+                "source": "https://github.com/PHP-WebRTC/stats/tree/v1.0.0"
+            },
+            "time": "2025-05-14T13:27:03+00:00"
+        },
+        {
+            "name": "quasarstream/stun",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/stun.git",
+                "reference": "1f569520edc75b17ed068b103bf112835c3b5d20"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/stun/zipball/1f569520edc75b17ed068b103bf112835c3b5d20",
+                "reference": "1f569520edc75b17ed068b103bf112835c3b5d20",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "psr/log": "^3.0",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/mixin": "^1.0",
+                "ramsey/uuid": "^4.7",
+                "react/async": "^4.3",
+                "react/datagram": "^1.10"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\STUN\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP library for STUN (Session Traversal Utilities for NAT) protocol, enabling NAT discovery and reflexive address retrieval for ICE connectivity in WebRTC applications.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "SessionTraversalUtilitiesForNAT",
+                "WebRTC",
+                "stun"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/stun/issues",
+                "source": "https://github.com/PHP-WebRTC/stun/tree/v1.0.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-10-06T23:40:31+00:00"
+        },
+        {
+            "name": "quasarstream/turn",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/turn.git",
+                "reference": "456770e6baf18af80116a97b232509c3d344cdec"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/turn/zipball/456770e6baf18af80116a97b232509c3d344cdec",
+                "reference": "456770e6baf18af80116a97b232509c3d344cdec",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4",
+                "psr/log": "^3.0",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/mixin": "^1.0",
+                "quasarstream/stun": "^1.0",
+                "react/event-loop": "^1.5",
+                "react/promise": "^3.2",
+                "react/socket": "^1.16"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\TURN\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP implementation of TURN (Traversal Using Relays around NAT) ",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "traversal-using-relays-around-nat",
+                "turn"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/turn/issues",
+                "source": "https://github.com/PHP-WebRTC/turn/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-13T18:50:09+00:00"
+        },
+        {
+            "name": "quasarstream/vpx",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/vpx.git",
+                "reference": "9e96dea0605775d71d2c8f521176c08d83f24ef0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/vpx/zipball/9e96dea0605775d71d2c8f521176c08d83f24ef0",
+                "reference": "9e96dea0605775d71d2c8f521176c08d83f24ef0",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": "*",
+                "php": "^8.4",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/mixin": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\VPX\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "A PHP wrapper around the libvpx codec using FFI, providing tools for encoding and decoding VP8/VP9 video streams for WebRTC applications.",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "libvpx",
+                "vpx"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/vpx/issues",
+                "source": "https://github.com/PHP-WebRTC/vpx/tree/v1.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/php-webrtc",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-05-12T20:57:11+00:00"
+        },
+        {
+            "name": "quasarstream/webrtc",
+            "version": "v1.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PHP-WebRTC/webrtc.git",
+                "reference": "77765beb2d5ba5fefcc9e327984bb1018a99f8f9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PHP-WebRTC/webrtc/zipball/77765beb2d5ba5fefcc9e327984bb1018a99f8f9",
+                "reference": "77765beb2d5ba5fefcc9e327984bb1018a99f8f9",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0",
+                "php": "^8.4",
+                "quasarstream/dtls": "^1.0",
+                "quasarstream/exception": "^1.0",
+                "quasarstream/ice": "^1.0",
+                "quasarstream/ntp": "^1.0",
+                "quasarstream/rtp": "^1.0",
+                "quasarstream/sctp": "^1.0",
+                "quasarstream/sdp": "^1.0",
+                "quasarstream/stats": "^1.0"
+            },
+            "require-dev": {
+                "phpunit/php-code-coverage": "11.0.x-dev",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Webrtc\\Webrtc\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Amin Yazdanpanah",
+                    "email": "github@aminyazdanpanah.com"
+                },
+                {
+                    "name": "Sana Moniri",
+                    "email": "s.mo@quasarstream.com"
+                },
+                {
+                    "name": "Quasar Stream Community",
+                    "homepage": "https://quasarstream.com/teams"
+                }
+            ],
+            "description": "This package provides a complete WebRTC implementation written entirely in PHP",
+            "homepage": "https://www.quasarstream.com/webrtc",
+            "keywords": [
+                "WebRTC",
+                "rtp"
+            ],
+            "support": {
+                "issues": "https://github.com/PHP-WebRTC/webrtc/issues",
+                "source": "https://github.com/PHP-WebRTC/webrtc/tree/v1.0.3"
+            },
+            "time": "2025-10-08T21:50:18+00:00"
         },
         {
             "name": "ramsey/collection",
@@ -857,17 +2394,624 @@
             "time": "2026-06-18T03:57:49+00:00"
         },
         {
-            "name": "symfony/filesystem",
-            "version": "v6.4.39",
+            "name": "react/async",
+            "version": "v4.3.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony/filesystem.git",
-                "reference": "c507b077756b4e3e09adbbe7975fac81cd3722ca"
+                "url": "https://github.com/reactphp/async.git",
+                "reference": "635d50e30844a484495713e8cb8d9e079c0008a5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/c507b077756b4e3e09adbbe7975fac81cd3722ca",
-                "reference": "c507b077756b4e3e09adbbe7975fac81cd3722ca",
+                "url": "https://api.github.com/repos/reactphp/async/zipball/635d50e30844a484495713e8cb8d9e079c0008a5",
+                "reference": "635d50e30844a484495713e8cb8d9e079c0008a5",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "react/event-loop": "^1.2",
+                "react/promise": "^3.2 || ^2.8 || ^1.2.1"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "1.10.39",
+                "phpunit/phpunit": "^9.6"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions_include.php"
+                ],
+                "psr-4": {
+                    "React\\Async\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Async utilities and fibers for ReactPHP",
+            "keywords": [
+                "async",
+                "reactphp"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/async/issues",
+                "source": "https://github.com/reactphp/async/tree/v4.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2024-06-04T14:40:02+00:00"
+        },
+        {
+            "name": "react/cache",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/cache.git",
+                "reference": "d47c472b64aa5608225f47965a484b75c7817d5b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/cache/zipball/d47c472b64aa5608225f47965a484b75c7817d5b",
+                "reference": "d47c472b64aa5608225f47965a484b75c7817d5b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0",
+                "react/promise": "^3.0 || ^2.0 || ^1.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.5 || ^5.7 || ^4.8.35"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "React\\Cache\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Async, Promise-based cache interface for ReactPHP",
+            "keywords": [
+                "cache",
+                "caching",
+                "promise",
+                "reactphp"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/cache/issues",
+                "source": "https://github.com/reactphp/cache/tree/v1.2.0"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2022-11-30T15:59:55+00:00"
+        },
+        {
+            "name": "react/datagram",
+            "version": "v1.10.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/datagram.git",
+                "reference": "9236e1f5a67a6029be17d551e9858c487836c301"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/datagram/zipball/9236e1f5a67a6029be17d551e9858c487836c301",
+                "reference": "9236e1f5a67a6029be17d551e9858c487836c301",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
+                "php": ">=5.3",
+                "react/dns": "^1.13",
+                "react/event-loop": "^1.2",
+                "react/promise": "^3.2 || ^2.1 || ^1.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36",
+                "react/async": "^4.3 || ^3 || ^2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "React\\Datagram\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Event-driven UDP datagram socket client and server for ReactPHP",
+            "homepage": "https://github.com/reactphp/datagram",
+            "keywords": [
+                "Socket",
+                "async",
+                "client",
+                "datagram",
+                "dgram",
+                "reactphp",
+                "server",
+                "udp"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/datagram/issues",
+                "source": "https://github.com/reactphp/datagram/tree/v1.10.0"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2024-09-06T11:22:35+00:00"
+        },
+        {
+            "name": "react/dns",
+            "version": "v1.14.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/dns.git",
+                "reference": "7562c05391f42701c1fccf189c8225fece1cd7c3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/dns/zipball/7562c05391f42701c1fccf189c8225fece1cd7c3",
+                "reference": "7562c05391f42701c1fccf189c8225fece1cd7c3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0",
+                "react/cache": "^1.0 || ^0.6 || ^0.5",
+                "react/event-loop": "^1.2",
+                "react/promise": "^3.2 || ^2.7 || ^1.2.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36",
+                "react/async": "^4.3 || ^3 || ^2",
+                "react/promise-timer": "^1.11"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "React\\Dns\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Async DNS resolver for ReactPHP",
+            "keywords": [
+                "async",
+                "dns",
+                "dns-resolver",
+                "reactphp"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/dns/issues",
+                "source": "https://github.com/reactphp/dns/tree/v1.14.0"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2025-11-18T19:34:28+00:00"
+        },
+        {
+            "name": "react/event-loop",
+            "version": "v1.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/event-loop.git",
+                "reference": "ba276bda6083df7e0050fd9b33f66ad7a4ac747a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/event-loop/zipball/ba276bda6083df7e0050fd9b33f66ad7a4ac747a",
+                "reference": "ba276bda6083df7e0050fd9b33f66ad7a4ac747a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36"
+            },
+            "suggest": {
+                "ext-pcntl": "For signal handling support when using the StreamSelectLoop"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "React\\EventLoop\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "ReactPHP's core reactor event loop that libraries can use for evented I/O.",
+            "keywords": [
+                "asynchronous",
+                "event-loop"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/event-loop/issues",
+                "source": "https://github.com/reactphp/event-loop/tree/v1.6.0"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2025-11-17T20:46:25+00:00"
+        },
+        {
+            "name": "react/promise",
+            "version": "v3.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/promise.git",
+                "reference": "23444f53a813a3296c1368bb104793ce8d88f04a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/promise/zipball/23444f53a813a3296c1368bb104793ce8d88f04a",
+                "reference": "23444f53a813a3296c1368bb104793ce8d88f04a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.1.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "1.12.28 || 1.4.10",
+                "phpunit/phpunit": "^9.6 || ^7.5"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions_include.php"
+                ],
+                "psr-4": {
+                    "React\\Promise\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "A lightweight implementation of CommonJS Promises/A for PHP",
+            "keywords": [
+                "promise",
+                "promises"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/promise/issues",
+                "source": "https://github.com/reactphp/promise/tree/v3.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2025-08-19T18:57:03+00:00"
+        },
+        {
+            "name": "react/socket",
+            "version": "v1.17.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/socket.git",
+                "reference": "ef5b17b81f6f60504c539313f94f2d826c5faa08"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/socket/zipball/ef5b17b81f6f60504c539313f94f2d826c5faa08",
+                "reference": "ef5b17b81f6f60504c539313f94f2d826c5faa08",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
+                "php": ">=5.3.0",
+                "react/dns": "^1.13",
+                "react/event-loop": "^1.2",
+                "react/promise": "^3.2 || ^2.6 || ^1.2.1",
+                "react/stream": "^1.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36",
+                "react/async": "^4.3 || ^3.3 || ^2",
+                "react/promise-stream": "^1.4",
+                "react/promise-timer": "^1.11"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "React\\Socket\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Async, streaming plaintext TCP/IP and secure TLS socket server and client connections for ReactPHP",
+            "keywords": [
+                "Connection",
+                "Socket",
+                "async",
+                "reactphp",
+                "stream"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/socket/issues",
+                "source": "https://github.com/reactphp/socket/tree/v1.17.0"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2025-11-19T20:47:34+00:00"
+        },
+        {
+            "name": "react/stream",
+            "version": "v1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/stream.git",
+                "reference": "1e5b0acb8fe55143b5b426817155190eb6f5b18d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/stream/zipball/1e5b0acb8fe55143b5b426817155190eb6f5b18d",
+                "reference": "1e5b0acb8fe55143b5b426817155190eb6f5b18d",
+                "shasum": ""
+            },
+            "require": {
+                "evenement/evenement": "^3.0 || ^2.0 || ^1.0",
+                "php": ">=5.3.8",
+                "react/event-loop": "^1.2"
+            },
+            "require-dev": {
+                "clue/stream-filter": "~1.2",
+                "phpunit/phpunit": "^9.6 || ^5.7 || ^4.8.36"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "React\\Stream\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Event-driven readable and writable streams for non-blocking I/O in ReactPHP",
+            "keywords": [
+                "event-driven",
+                "io",
+                "non-blocking",
+                "pipe",
+                "reactphp",
+                "readable",
+                "stream",
+                "writable"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/stream/issues",
+                "source": "https://github.com/reactphp/stream/tree/v1.4.0"
+            },
+            "funding": [
+                {
+                    "url": "https://opencollective.com/reactphp",
+                    "type": "open_collective"
+                }
+            ],
+            "time": "2024-06-11T12:45:25+00:00"
+        },
+        {
+            "name": "symfony/filesystem",
+            "version": "v6.4.43",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/filesystem.git",
+                "reference": "9ff03da12d67649fbd1f34ca95951554624d0a16"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/9ff03da12d67649fbd1f34ca95951554624d0a16",
+                "reference": "9ff03da12d67649fbd1f34ca95951554624d0a16",
                 "shasum": ""
             },
             "require": {
@@ -904,7 +3048,7 @@
             "description": "Provides basic utilities for the filesystem",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/filesystem/tree/v6.4.39"
+                "source": "https://github.com/symfony/filesystem/tree/v6.4.43"
             },
             "funding": [
                 {
@@ -924,7 +3068,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-07T13:11:42+00:00"
+            "time": "2026-06-27T10:13:35+00:00"
         }
     ],
     "packages-dev": [
@@ -2746,6 +4890,7 @@
     "stability-flags": {
         "altayofficial/bedrock-data": 20,
         "altayofficial/bedrock-protocol": 20,
+        "altayofficial/network": 20,
         "altayofficial/worldupgraderschemas": 20
     },
     "prefer-stable": false,
@@ -2781,7 +4926,7 @@
     },
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.1.0"
+        "php": "8.4.16"
     },
     "plugin-api-version": "2.9.0"
 }

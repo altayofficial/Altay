@@ -35,6 +35,7 @@
       "netresearch/jsonmapper": "~v5.0.0",
       "altayofficial/bedrock-data": "dev-master",
       "altayofficial/bedrock-protocol": "dev-master",
+      "altayofficial/network": "dev-main",
       "altayofficial/worldupgraderschemas": "dev-master",
       "pocketmine/binaryutils": "^0.2.1",
       "pocketmine/callback-validator": "~1.0.4",
@@ -43,9 +44,8 @@
       "pocketmine/log": "^0.4.0",
       "pocketmine/math": "~1.0.0",
       "pocketmine/nbt": "~1.2.0",
-      "pocketmine/raklib": "~1.2.0",
-      "pocketmine/raklib-ipc": "~1.0.0",
       "pocketmine/snooze": "^0.5.0",
+      "quasarstream/webrtc": "^1.0",
       "ramsey/uuid": "~4.9.0",
       "symfony/filesystem": "~6.4.0"
    },
@@ -78,22 +78,27 @@
    },
    "config": {
       "platform": {
-         "php": "8.1.0"
+         "php": "8.4.16"
       },
-      "sort-packages": true
+      "sort-packages": true,
+      "platform-check": true
    },
    "repositories": [
       {
          "type": "vcs",
-         "url":  "git@github.com:altayofficial/BedrockProtocol.git"
+         "url": "git@github.com:altayofficial/BedrockProtocol.git"
       },
       {
          "type": "vcs",
-         "url":  "git@github.com:altayofficial/BedrockData.git"
+         "url": "git@github.com:altayofficial/BedrockData.git"
       },
       {
          "type": "vcs",
-         "url":  "git@github.com:altayofficial/WorldUpgraderSchemas.git"
+         "url": "git@github.com:altayofficial/WorldUpgraderSchemas.git"
+      },
+      {
+         "type": "vcs",
+         "url": "git@github.com:altayofficial/Network.git"
       }
    ],
    "scripts": {

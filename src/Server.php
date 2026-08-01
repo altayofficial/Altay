@@ -62,7 +62,11 @@ use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\PacketBroadcaster;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\CompressionAlgorithm;
-use pocketmine\network\mcpe\raklib\RakLibInterface;
+use altay\network\nethernet\NetherNetTransport;
+use pocketmine\network\mcpe\transport\NetherNetTransportFactory;
+use pocketmine\network\mcpe\transport\RakNetTransportFactory;
+use pocketmine\network\mcpe\transport\ThreadedTransport;
+use pocketmine\network\mcpe\transport\TransportNetworkInterface;
 use pocketmine\network\mcpe\StandardEntityEventBroadcaster;
 use pocketmine\network\mcpe\StandardPacketBroadcaster;
 use pocketmine\network\Network;
@@ -101,6 +105,7 @@ use pocketmine\thread\ThreadSafeClassLoader;
 use pocketmine\timings\Timings;
 use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\AssumptionFailedError;
+use pocketmine\utils\Binary;
 use pocketmine\utils\BroadcastLoggerForwarder;
 use pocketmine\utils\Config;
 use pocketmine\utils\Filesystem;
@@ -151,6 +156,7 @@ use function is_string;
 use function json_decode;
 use function max;
 use function microtime;
+use function mt_rand;
 use function min;
 use function mkdir;
 use function ob_end_flush;
@@ -1254,8 +1260,42 @@ class Server {
 		TypeConverter $typeConverter
 	) : bool{
 		$prettyIp = $ipV6 ? "[$ip]" : $ip;
+		$transportMode = strtolower($this->configGroup->getPropertyString(Yml::NETWORK_TRANSPORT, "nethernet"));
+		if($transportMode !== "raknet" && $transportMode !== "nethernet" && $transportMode !== "both"){
+			$this->logger->warning("Unknown network transport \"$transportMode\", defaulting to \"nethernet\"");
+			$transportMode = "nethernet";
+		}
+		$useRakNet = $transportMode === "raknet" || $transportMode === "both";
+		$useNetherNet = ($transportMode === "nethernet" || $transportMode === "both") && !$ipV6; //nethernet discovery uses a single broadcast socket, a separate IPv6 bind is not needed
+		if($useRakNet && !$ipV6){ //only warn once, on the primary IPv4 pass
+			$this->logger->warning("----------------------------------------");
+			$this->logger->warning("The RakNet transport is deprecated and may be removed in a future release.");
+			$this->logger->warning("Consider switching \"network.transport\" to \"nethernet\" in pocketmine.yml.");
+			$this->logger->warning("----------------------------------------");
+		}
+		$rakNetRegistered = false;
 		try{
-			$rakLibRegistered = $this->network->registerInterface(new RakLibInterface($this, $ip, $port, $ipV6, $packetBroadcaster, $entityEventBroadcaster, $typeConverter));
+			if($useRakNet){
+				$transport = new ThreadedTransport(
+					$this->logger,
+					new RakNetTransportFactory($ip, $port, $ipV6, $this->configGroup->getPropertyInt(Yml::NETWORK_MAX_MTU_SIZE, 1492), mt_rand(0, PHP_INT_MAX)),
+					$this->tickSleeper
+				);
+				$rakNetRegistered = $this->network->registerInterface(new TransportNetworkInterface($this, $transport, $packetBroadcaster, $entityEventBroadcaster, $typeConverter));
+				if($rakNetRegistered){
+					$this->logger->info($this->language->translate(KnownTranslationFactory::pocketmine_server_networkStart($prettyIp, (string) $port)));
+				}
+			}
+			if($useNetherNet){
+				$transport = new ThreadedTransport(
+					$this->logger,
+					new NetherNetTransportFactory(Binary::readLLong(substr(hash("sha256", $this->getServerUniqueId()->getBytes(), true), 0, 8)), $this->getMotd(), $this->getName(), $this->getMaxPlayers(), $ip, NetherNetTransport::DISCOVERY_PORT, $this->getOnlineMode()),
+					$this->tickSleeper
+				);
+				if($this->network->registerInterface(new TransportNetworkInterface($this, $transport, $packetBroadcaster, $entityEventBroadcaster, $typeConverter))){
+					$this->logger->info("NetherNet network interface running on $ip:" . NetherNetTransport::DISCOVERY_PORT);
+				}
+			}
 		}catch(NetworkInterfaceStartException $e){
 			$this->logger->emergency($this->language->translate(KnownTranslationFactory::pocketmine_server_networkStartFailed(
 				$ip,
@@ -1264,12 +1304,9 @@ class Server {
 			)));
 			return false;
 		}
-		if($rakLibRegistered){
-			$this->logger->info($this->language->translate(KnownTranslationFactory::pocketmine_server_networkStart($prettyIp, (string) $port)));
-		}
 		if($useQuery){
-			if(!$rakLibRegistered){
-				//RakLib would normally handle the transport for Query packets
+			if(!$rakNetRegistered){
+				//RakNet would normally handle the transport for Query packets on the server port
 				//if it's not registered we need to make sure Query still works
 				$this->network->registerInterface(new DedicatedQueryNetworkInterface($ip, $port, $ipV6, new \PrefixedLogger($this->logger, "Dedicated Query Interface")));
 			}

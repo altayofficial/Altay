@@ -21,18 +21,13 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\raklib;
+namespace pocketmine\network\mcpe\transport;
 
-use pmmp\thread\ThreadSafeArray;
-use raklib\server\ipc\InterThreadChannelReader;
+use altay\network\transport\Transport;
 
-final class PthreadsChannelReader implements InterThreadChannelReader{
-	/**
-	 * @phpstan-param ThreadSafeArray<int, string> $buffer
-	 */
-	public function __construct(private ThreadSafeArray $buffer){}
+interface TransportFactory{
 
-	public function read() : ?string{
-		return $this->buffer->shift();
-	}
+	public function getName() : string;
+
+	public function make(\Logger $logger) : Transport;
 }

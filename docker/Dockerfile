@@ -31,7 +31,7 @@ RUN composer install --classmap-authoritative --no-dev --prefer-dist
 RUN php vendor/altayofficial/bedrock-data/.minify_json.php
 RUN php -dphar.readonly=0 ./build/server-phar.php --git ${GIT_HASH}
 # Just to make sure the build script didn't false-positive-exit
-RUN test -f /opt/pocketmine/repo/PocketMine-MP.phar
+RUN test -f /opt/pocketmine/repo/Altay.phar
 
 FROM ubuntu:22.04
 LABEL maintainer="PMMP Team <team@pmmp.io>"
@@ -44,7 +44,7 @@ RUN useradd -r --no-create-home -u 1000 -g pocketmine pocketmine
 WORKDIR /opt/pocketmine
 COPY --from=build-php /opt/pocketmine/bin /opt/pocketmine/bin
 RUN ln -s /opt/pocketmine/bin/php7/bin/php /usr/bin/php
-COPY --from=build-pocketmine /opt/pocketmine/repo/PocketMine-MP.phar PocketMine-MP.phar
+COPY --from=build-pocketmine /opt/pocketmine/repo/Altay.phar Altay.phar
 ADD ./docker/start.sh /usr/bin/start-pocketmine
 
 RUN mkdir /plugins /data

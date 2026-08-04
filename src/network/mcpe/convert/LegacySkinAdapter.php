@@ -34,25 +34,37 @@ use function is_string;
 use function json_decode;
 use function json_encode;
 use function random_bytes;
+use function str_ends_with;
 use function str_repeat;
 use const JSON_THROW_ON_ERROR;
 
 class LegacySkinAdapter implements SkinAdapter{
+
+	private const DEFAULT_GEOMETRY_NAME = "geometry.humanoid.custom";
+	private const SLIM_GEOMETRY_NAME_SUFFIX = "Slim";
+
+	/**
+	 * Since 1.26.40 the client refuses a skin whose geometry payload is an empty string. An empty JSON object is the
+	 * way to say "this skin doesn't ship its own geometry".
+	 */
+	private const EMPTY_GEOMETRY_DATA = "{}";
 
 	public function toSkinData(Skin $skin) : SkinData{
 		$capeData = $skin->getCapeData();
 		$capeImage = $capeData === "" ? new SkinImage(0, 0, "") : new SkinImage(32, 64, $capeData);
 		$geometryName = $skin->getGeometryName();
 		if($geometryName === ""){
-			$geometryName = "geometry.humanoid.custom";
+			$geometryName = self::DEFAULT_GEOMETRY_NAME;
 		}
+		$geometryData = $skin->getGeometryData();
 		return new SkinData(
 			$skin->getSkinId(),
 			"", //TODO: playfab ID
 			json_encode(["geometry" => ["default" => $geometryName]], JSON_THROW_ON_ERROR),
 			SkinImage::fromLegacy($skin->getSkinData()), [],
 			$capeImage,
-			$skin->getGeometryData()
+			$geometryData === "" ? self::EMPTY_GEOMETRY_DATA : $geometryData,
+			armSize: str_ends_with($geometryName, self::SLIM_GEOMETRY_NAME_SUFFIX) ? SkinData::ARM_SIZE_SLIM : SkinData::ARM_SIZE_WIDE
 		);
 	}
 

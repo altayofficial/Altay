@@ -95,12 +95,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "b5b2f459c64a865eb4f6c609299bb61d12be5b90"
+                "reference": "14dc7097c2db4f1b1b40db7047d9b5e3f5b254c2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/b5b2f459c64a865eb4f6c609299bb61d12be5b90",
-                "reference": "b5b2f459c64a865eb4f6c609299bb61d12be5b90",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/14dc7097c2db4f1b1b40db7047d9b5e3f5b254c2",
+                "reference": "14dc7097c2db4f1b1b40db7047d9b5e3f5b254c2",
                 "shasum": ""
             },
             "require": {
@@ -145,7 +145,7 @@
                 "source": "https://github.com/altayofficial/BedrockProtocol/tree/master",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-08-04T17:45:56+00:00"
+            "time": "2026-08-04T18:06:49+00:00"
         },
         {
             "name": "altayofficial/nbt",

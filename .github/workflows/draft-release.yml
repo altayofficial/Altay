@@ -55,12 +55,16 @@ jobs:
           '
 
       - name: Commit and push version bump
+        id: version-bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/VersionInfo.php
           git commit -m "release: bump version to ${{ github.event.inputs.version }} [ci skip]"
           git push origin HEAD:${{ github.ref_name }}
+          #everything below runs against this commit, not the one the workflow was dispatched at - Composer records it
+          #as the root package reference, so the phar has to be stamped with it too
+          echo SHA=$(git rev-parse HEAD) >> $GITHUB_OUTPUT
 
       - name: Restore Composer package cache
         uses: actions/cache@v4
@@ -97,7 +101,7 @@ jobs:
           '
 
       - name: Build Altay.phar
-        run: php -dphar.readonly=0 build/server-phar.php --git ${{ github.sha }} --build ${{ steps.build-number.outputs.BUILD_NUMBER }}
+        run: php -dphar.readonly=0 build/server-phar.php --git ${{ steps.version-bump.outputs.SHA }} --build ${{ steps.build-number.outputs.BUILD_NUMBER }}
 
       - name: Get Altay release version
         id: get-version
@@ -120,7 +124,7 @@ jobs:
       - name: Generate build info
         run: |
           php build/generate-build-info-json.php \
-            ${{ github.sha }} \
+            ${{ steps.version-bump.outputs.SHA }} \
             ${{ steps.get-version.outputs.TAG_NAME }} \
             ${{ github.repository }} \
             ${{ steps.build-number.outputs.BUILD_NUMBER }} \

@@ -29,6 +29,7 @@ use pocketmine\entity\InvalidSkinException;
 use pocketmine\entity\Skin;
 use pocketmine\network\mcpe\protocol\types\skin\SkinData;
 use pocketmine\network\mcpe\protocol\types\skin\SkinImage;
+use Ramsey\Uuid\Uuid;
 use function is_array;
 use function is_string;
 use function json_decode;
@@ -63,15 +64,21 @@ class LegacySkinAdapter implements SkinAdapter{
 			$geometryName = self::DEFAULT_GEOMETRY_NAME;
 		}
 		$geometryData = $skin->getGeometryData();
+		$slim = str_ends_with($geometryName, self::SLIM_GEOMETRY_NAME_SUFFIX);
+
+		//the client builds these two together and won't accept a skin whose IDs disagree - keeping the incoming skin
+		//ID while the full skin ID is regenerated leaves the two pointing at different skins
+		$fullSkinId = Uuid::uuid4()->toString();
 		return new SkinData(
-			$skin->getSkinId(),
+			"Custom" . ($slim ? self::SLIM_GEOMETRY_NAME_SUFFIX : "") . $fullSkinId,
 			"", //TODO: playfab ID
 			json_encode(["geometry" => ["default" => $geometryName]], JSON_THROW_ON_ERROR),
 			SkinImage::fromLegacy($skin->getSkinData()), [],
 			$capeImage,
 			$geometryData === "" ? self::EMPTY_GEOMETRY_DATA : $geometryData,
 			self::GEOMETRY_ENGINE_VERSION,
-			armSize: str_ends_with($geometryName, self::SLIM_GEOMETRY_NAME_SUFFIX) ? SkinData::ARM_SIZE_SLIM : SkinData::ARM_SIZE_WIDE,
+			fullSkinId: $fullSkinId,
+			armSize: $slim ? SkinData::ARM_SIZE_SLIM : SkinData::ARM_SIZE_WIDE,
 			trustedSkinFlag: SkinData::TRUSTED_SKIN_FLAG_TRUE
 		);
 	}

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "db0bfeac265f6dd81f065366f8852390",
+    "content-hash": "77672f4e195f964c1e700cb67afbe997",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -91,16 +91,16 @@
         },
         {
             "name": "altayofficial/bedrock-protocol",
-            "version": "dev-bedrock-1.26.40",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "c7ff27e40b70efda730fdc938115982a32d3dec3"
+                "reference": "09a5d91fbd1cb3292ce2a8c5c897c67f328acef3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/c7ff27e40b70efda730fdc938115982a32d3dec3",
-                "reference": "c7ff27e40b70efda730fdc938115982a32d3dec3",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/09a5d91fbd1cb3292ce2a8c5c897c67f328acef3",
+                "reference": "09a5d91fbd1cb3292ce2a8c5c897c67f328acef3",
                 "shasum": ""
             },
             "require": {
@@ -120,6 +120,7 @@
                 "phpstan/phpstan-strict-rules": "^2.0.0",
                 "phpunit/phpunit": "^9.5 || ^10.0 || ^11.0"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -141,10 +142,10 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.40",
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/master",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-07-23T09:36:38+00:00"
+            "time": "2026-08-04T17:16:08+00:00"
         },
         {
             "name": "altayofficial/nbt",

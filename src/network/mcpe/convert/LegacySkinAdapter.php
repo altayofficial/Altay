@@ -43,7 +43,6 @@ class LegacySkinAdapter implements SkinAdapter{
 		$capeData = $skin->getCapeData();
 		$capeImage = $capeData === "" ? new SkinImage(0, 0, "") : new SkinImage(32, 64, $capeData);
 		$geometryName = $skin->getGeometryName();
-		$geometryData = $skin->getGeometryData();
 		if($geometryName === ""){
 			$geometryName = "geometry.humanoid.custom";
 		}
@@ -53,7 +52,7 @@ class LegacySkinAdapter implements SkinAdapter{
 			json_encode(["geometry" => ["default" => $geometryName]], JSON_THROW_ON_ERROR),
 			SkinImage::fromLegacy($skin->getSkinData()), [],
 			$capeImage,
-			$geometryData
+			$skin->getGeometryData()
 		);
 	}
 

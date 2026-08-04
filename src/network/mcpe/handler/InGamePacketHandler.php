@@ -27,8 +27,10 @@ namespace pocketmine\network\mcpe\handler;
 
 use pocketmine\block\Anvil;
 use pocketmine\block\BaseSign;
+use pocketmine\block\inventory\AnvilInventory;
 use pocketmine\block\Lectern;
 use pocketmine\block\tile\Sign;
+use pocketmine\block\utils\BlockEventHelper;
 use pocketmine\block\utils\SignText;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Attribute;
@@ -99,6 +101,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionD
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\types\PlayerAction;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
+use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
 use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
@@ -302,7 +305,9 @@ class InGamePacketHandler extends PacketHandler{
 			}
 			foreach(Utils::promoteKeys($blockActions) as $k => $blockAction){
 				$actionHandled = false;
-				if($blockAction instanceof PlayerBlockActionWithBlockInfo){
+				if($blockAction instanceof PlayerBlockActionStopBreak){
+					$actionHandled = $this->handlePlayerActionFromData($blockAction->getActionType(), new BlockPosition(0, 0, 0), Facing::DOWN);
+				}elseif($blockAction instanceof PlayerBlockActionWithBlockInfo){
 					$actionHandled = $this->handlePlayerActionFromData($blockAction->getActionType(), $blockAction->getBlockPosition(), $blockAction->getFace());
 				}
 
@@ -985,12 +990,20 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	public function handleAnvilDamage(AnvilDamagePacket $packet) : bool{
-		$pos = new Vector3($packet->getBlockPosition()->getX(), $packet->getBlockPosition()->getY(), $packet->getBlockPosition()->getZ());
-		if($pos->distanceSquared($this->player->getLocation()) > 10000){
+		//the client only tells us that it used an anvil - it can't be trusted to tell us which one, so we only accept
+		//this for the anvil the player currently has open
+		$window = $this->player->getCurrentWindow();
+		if(!($window instanceof AnvilInventory)){
 			return false;
 		}
 
-		$world = $this->player->getLocation()->getWorld();
+		$pos = $window->getHolder();
+		$blockPosition = $packet->getBlockPosition();
+		if($pos->getFloorX() !== $blockPosition->getX() || $pos->getFloorY() !== $blockPosition->getY() || $pos->getFloorZ() !== $blockPosition->getZ()){
+			return false;
+		}
+
+		$world = $pos->getWorld();
 		$block = $world->getBlock($pos);
 		if(!($block instanceof Anvil)){
 			return false;
@@ -1001,8 +1014,9 @@ class InGamePacketHandler extends PacketHandler{
 		}
 
 		if($block->getDamage() >= Anvil::VERY_DAMAGED){
-			$world->setBlock($pos, VanillaBlocks::AIR());
-			$world->addSound($pos, new AnvilBreakSound());
+			if(BlockEventHelper::die($block, VanillaBlocks::AIR())){
+				$world->addSound($pos, new AnvilBreakSound());
+			}
 		}else{
 			$world->setBlock($pos, $block->setDamage($block->getDamage() + 1));
 			$world->addSound($pos, new AnvilUseSound());

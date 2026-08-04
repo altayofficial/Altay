@@ -22,7 +22,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@2.32.0
         with:
-          php-version: "8.1"
+          php-version: "8.4"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -33,8 +33,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: "~/.cache/composer"
-          key: "php-8.1-composer-nightly-${{ hashFiles('**/composer.json') }}"
-          restore-keys: "php-8.1-composer-nightly-"
+          key: "php-8.4-composer-nightly-${{ hashFiles('**/composer.json') }}"
+          restore-keys: "php-8.4-composer-nightly-"
 
       - name: Install dependencies (no-dev)
         run: composer install --no-dev --classmap-authoritative --ignore-platform-reqs --prefer-dist --no-interaction

@@ -31,6 +31,7 @@ use function file_exists;
 use function getenv;
 use function putenv;
 use const PHP_BINARY;
+use const PHP_OS_FAMILY;
 
 final class NetherNetTransportFactory implements TransportFactory{
 
@@ -74,14 +75,23 @@ final class NetherNetTransportFactory implements TransportFactory{
 
 	private static function exportNativeLibraryPaths() : void{
 		$libDir = dirname(PHP_BINARY, 2) . "/lib";
+		//MacOS builds ship .dylib instead of .so
+		$extensions = PHP_OS_FAMILY === "Darwin" ? ["dylib", "so"] : ["so"];
 		foreach([
-			"LIBSSL_PATH" => "libssl.so",
-			"LIB_SRTP_PATH" => "libsrtp2.so",
-			"LIB_OPUS_PATH" => "libopus.so",
-			"LIBVPX_PATH" => "libvpx.so"
-		] as $env => $file){
-			if(getenv($env) === false && file_exists("$libDir/$file")){
-				putenv("$env=$libDir/$file");
+			"LIBSSL_PATH" => "libssl",
+			"LIB_SRTP_PATH" => "libsrtp2",
+			"LIB_OPUS_PATH" => "libopus",
+			"LIBVPX_PATH" => "libvpx"
+		] as $env => $name){
+			if(getenv($env) !== false){
+				continue;
+			}
+			foreach($extensions as $extension){
+				$path = "$libDir/$name.$extension";
+				if(file_exists($path)){
+					putenv("$env=$path");
+					break;
+				}
 			}
 		}
 	}

@@ -152,6 +152,20 @@ final class BlockStateDictionary{
 	}
 
 	/**
+	 * Returns any known state ID for the given block ID (preferring meta 0 when present).
+	 * Useful for recipe/creative deserialization where blockitems omit states but the network
+	 * metamap does not include meta 0 (e.g. directional blocks like chest/furnace).
+	 */
+	public function lookupDefaultStateIdFromId(string $id) : ?int{
+		$metas = $this->getIdMetaToStateIdLookup()[$id] ?? null;
+		return match(true){
+			$metas === null => null,
+			is_int($metas) => $metas,
+			is_array($metas) => $metas[0] ?? $metas[array_key_first($metas)] ?? null
+		};
+	}
+
+	/**
 	 * Returns an array mapping runtime ID => blockstate data.
 	 * @return BlockStateDictionaryEntry[]
 	 * @phpstan-return array<int, BlockStateDictionaryEntry>

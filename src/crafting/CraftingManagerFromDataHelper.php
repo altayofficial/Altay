@@ -105,7 +105,9 @@ final class CraftingManagerFromDataHelper{
 			}else{
 				//no explicit blockstates - look up the default (or meta-mapped) state from the network block palette
 				$dictionary = TypeConverter::getInstance()->getBlockTranslator()->getBlockStateDictionary();
-				$stateId = $dictionary->lookupStateIdFromIdMeta($blockName, $meta ?? 0) ?? $dictionary->lookupStateIdFromIdMeta($blockName, 0);
+				$stateId = $dictionary->lookupStateIdFromIdMeta($blockName, $meta ?? 0)
+					?? $dictionary->lookupStateIdFromIdMeta($blockName, 0)
+					?? $dictionary->lookupDefaultStateIdFromId($blockName);
 				if($stateId === null){
 					//unknown block
 					return null;

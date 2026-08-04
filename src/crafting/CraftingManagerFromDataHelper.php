@@ -2,21 +2,23 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
  *
- *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
  */
 
 declare(strict_types=1);
@@ -49,14 +51,16 @@ use function json_decode;
 
 final class CraftingManagerFromDataHelper{
 
-	private const NETWORK_RECIPE_TYPE_SHAPELESS = 0;
-	private const NETWORK_RECIPE_TYPE_SHAPED = 1;
-	private const NETWORK_RECIPE_TYPE_MULTI = 4;
-	private const NETWORK_RECIPE_TYPE_USER_DATA_SHAPELESS = 5;
-	private const NETWORK_RECIPE_TYPE_SMITHING_TRANSFORM = 8;
-	private const NETWORK_RECIPE_TYPE_SMITHING_TRIM = 9;
+	private const NETWORK_RECIPE_TYPE_SHAPED = 0;
+	private const NETWORK_RECIPE_TYPE_SHAPELESS = 1;
+	private const NETWORK_RECIPE_TYPE_MULTI = 2;
+	private const NETWORK_RECIPE_TYPE_USER_DATA_SHAPELESS = 3;
+	private const NETWORK_RECIPE_TYPE_SMITHING_TRANSFORM = 6;
+	private const NETWORK_RECIPE_TYPE_SMITHING_TRIM = 7;
 
 	private const NETWORK_INGREDIENT_WILDCARD_META = 0x7fff;
+	//name-based ingredients use -1 instead of 0x7fff to accept any meta
+	private const NETWORK_INGREDIENT_ANY_META = -1;
 
 	private const LEGACY_ALIAS_MAX_META = 15;
 
@@ -189,7 +193,7 @@ final class CraftingManagerFromDataHelper{
 			return self::deserializeComplexAliasIngredient($data["name"]);
 		}
 
-		if($type !== "default"){
+		if($type !== "default" && $type !== "name"){
 			throw new SavedDataLoadingException("Unsupported recipe ingredient type \"$type\"");
 		}
 
@@ -201,7 +205,7 @@ final class CraftingManagerFromDataHelper{
 			throw new SavedDataLoadingException("default ingredient auxValue should be an int");
 		}
 
-		if($meta === self::NETWORK_INGREDIENT_WILDCARD_META){
+		if($meta === self::NETWORK_INGREDIENT_WILDCARD_META || $meta === self::NETWORK_INGREDIENT_ANY_META){
 			//this could be an unimplemented item, but it doesn't really matter, since the item shouldn't be able to
 			//be obtained anyway - filtering unknown items is only really important for outputs, to prevent players
 			//obtaining them

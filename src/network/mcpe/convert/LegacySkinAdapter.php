@@ -49,6 +49,12 @@ class LegacySkinAdapter implements SkinAdapter{
 	 */
 	private const EMPTY_GEOMETRY_DATA = "{}";
 
+	/**
+	 * The client sends this for its own skins and expects to get it back. SkinData defaults to the current game
+	 * version, which makes the client parse the geometry with the wrong engine and silently drop the skin.
+	 */
+	private const GEOMETRY_ENGINE_VERSION = "0.0.0";
+
 	public function toSkinData(Skin $skin) : SkinData{
 		$capeData = $skin->getCapeData();
 		$capeImage = $capeData === "" ? new SkinImage(0, 0, "") : new SkinImage(32, 64, $capeData);
@@ -64,7 +70,9 @@ class LegacySkinAdapter implements SkinAdapter{
 			SkinImage::fromLegacy($skin->getSkinData()), [],
 			$capeImage,
 			$geometryData === "" ? self::EMPTY_GEOMETRY_DATA : $geometryData,
-			armSize: str_ends_with($geometryName, self::SLIM_GEOMETRY_NAME_SUFFIX) ? SkinData::ARM_SIZE_SLIM : SkinData::ARM_SIZE_WIDE
+			self::GEOMETRY_ENGINE_VERSION,
+			armSize: str_ends_with($geometryName, self::SLIM_GEOMETRY_NAME_SUFFIX) ? SkinData::ARM_SIZE_SLIM : SkinData::ARM_SIZE_WIDE,
+			trustedSkinFlag: SkinData::TRUSTED_SKIN_FLAG_TRUE
 		);
 	}
 

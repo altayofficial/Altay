@@ -17,7 +17,7 @@ jobs:
       - name: Setup PHP
         uses: pmmp/setup-php-action@3.2.0
         with:
-          php-version: "8.1"
+          php-version: "8.4"
           install-path: "./bin"
           pm-version-major: "5"
 
@@ -30,12 +30,12 @@ jobs:
           path: |
             ~/.cache/composer/files
             ~/.cache/composer/vcs
-          key: "composer-v2-cache-8.1-${{ hashFiles('./composer.lock') }}"
+          key: "composer-v2-cache-8.4-${{ hashFiles('./composer.lock') }}"
           restore-keys: |
             composer-v2-cache-
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction
+        run: composer install --prefer-dist --no-interaction --ignore-platform-req=ext-ffi
 
       - name: Run PHPStan
         run: ./vendor/bin/phpstan analyze --no-progress --memory-limit=2G
@@ -51,7 +51,7 @@ jobs:
       - name: Setup PHP
         uses: pmmp/setup-php-action@3.2.0
         with:
-          php-version: "8.1"
+          php-version: "8.4"
           install-path: "./bin"
           pm-version-major: "5"
 
@@ -64,12 +64,12 @@ jobs:
           path: |
             ~/.cache/composer/files
             ~/.cache/composer/vcs
-          key: "composer-v2-cache-8.1-${{ hashFiles('./composer.lock') }}"
+          key: "composer-v2-cache-8.4-${{ hashFiles('./composer.lock') }}"
           restore-keys: |
             composer-v2-cache-
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction
+        run: composer install --prefer-dist --no-interaction --ignore-platform-req=ext-ffi
 
       - name: Run PHPUnit tests
         run: ./vendor/bin/phpunit --bootstrap vendor/autoload.php --fail-on-warning tests/phpunit

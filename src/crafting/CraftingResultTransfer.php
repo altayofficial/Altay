@@ -40,8 +40,8 @@ final class CraftingResultTransfer{
 	 *
 	 * @param Item[] $inputs
 	 * @param Item[] $results
-	 * @phpstan-param list<Item> $inputs
-	 * @phpstan-param list<Item> $results
+	 * @phpstan-param array<int, Item> $inputs
+	 * @phpstan-param array<int, Item> $results
 	 */
 	public static function transferContainerNamedTag(array $inputs, array $results) : void{
 		foreach($inputs as $input){

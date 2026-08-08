@@ -133,7 +133,21 @@ class ShapedRecipe implements CraftingRecipe{
 	 * @phpstan-return list<Item>
 	 */
 	public function getResultsFor(CraftingGrid $grid) : array{
-		return $this->getResults();
+		$results = $this->getResults();
+
+		for($y = 0, $height = $grid->getRecipeHeight(); $y < $height; ++$y){
+			for($x = 0, $width = $grid->getRecipeWidth(); $x < $width; ++$x){
+				$inputItem = $grid->getIngredient($x, $y);
+				if($inputItem->hasCustomBlockData()){
+					foreach($results as $result){
+						$result->setCustomBlockData($inputItem->getCustomBlockData());
+					}
+					return $results;
+				}
+			}
+		}
+
+		return $results;
 	}
 
 	/**

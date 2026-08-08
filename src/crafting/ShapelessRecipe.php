@@ -70,7 +70,18 @@ class ShapelessRecipe implements CraftingRecipe{
 	}
 
 	public function getResultsFor(CraftingGrid $grid) : array{
-		return $this->getResults();
+		$results = $this->getResults();
+
+		foreach($grid->getContents() as $inputItem){
+			if($inputItem->hasCustomBlockData()){
+				foreach($results as $result){
+					$result->setCustomBlockData($inputItem->getCustomBlockData());
+				}
+				break;
+			}
+		}
+
+		return $results;
 	}
 
 	public function getType() : ShapelessRecipeType{

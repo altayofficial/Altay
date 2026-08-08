@@ -36,10 +36,12 @@ use pocketmine\block\inventory\HopperInventory;
 use pocketmine\block\inventory\LoomInventory;
 use pocketmine\block\inventory\SmithingTableInventory;
 use pocketmine\block\inventory\StonecutterInventory;
+use pocketmine\block\tile\Container;
 use pocketmine\crafting\FurnaceType;
 use pocketmine\data\bedrock\EnchantmentIdMap;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
+use pocketmine\inventory\transaction\CraftingTransaction;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\item\enchantment\EnchantingOption;
 use pocketmine\item\enchantment\EnchantmentInstance;
@@ -252,6 +254,14 @@ class InventoryManager{
 	public function addTransactionPredictedSlotChanges(InventoryTransaction $tx) : void{
 		foreach($tx->getActions() as $action){
 			if($action instanceof SlotChangeAction){
+				//Don't predict crafting outputs that carry container NBT (e.g. dyed shulkers).
+				//The client predicts the plain recipe result; ItemStackResponse doesn't send full NBT
+				if(
+					$tx instanceof CraftingTransaction &&
+					$action->getTargetItem()->getNamedTag()->getTag(Container::TAG_ITEMS) !== null
+				){
+					continue;
+				}
 				//TODO: ItemStackRequestExecutor can probably build these predictions with much lower overhead
 				$this->addPredictedSlotChange(
 					$action->getInventory(),

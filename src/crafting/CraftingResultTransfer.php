@@ -27,16 +27,18 @@ namespace pocketmine\crafting;
 
 use pocketmine\block\tile\Container;
 use pocketmine\item\Item;
+use pocketmine\nbt\tag\CompoundTag;
+use function count;
 
 /**
- * Copies NBT from container crafting inputs onto recipe results.
- * This is needed for things like dyeing shulker boxes, which store their inventory
- * in the item's root named tag (Items), not in BlockEntityTag.
+ * Helper for recipes whose outputs must inherit container NBT from inputs (e.g. dyeing shulkers).
+ * Shulker contents live under the root Items tag; we also mirror them into BlockEntityTag.
  */
 final class CraftingResultTransfer{
 
 	/**
-	 * If an input has an Items tag, copies that input's named tag onto all results.
+	 * Merges Items/Lock (and custom name/lore) from the first matching input onto all results.
+	 * Only the container tags are touched — existing result NBT is otherwise preserved.
 	 *
 	 * @param Item[] $inputs
 	 * @param Item[] $results
@@ -45,12 +47,36 @@ final class CraftingResultTransfer{
 	 */
 	public static function transferContainerNamedTag(array $inputs, array $results) : void{
 		foreach($inputs as $input){
-			if($input->getNamedTag()->getTag(Container::TAG_ITEMS) === null){
+			$inputTag = $input->getNamedTag();
+			$itemsTag = $inputTag->getTag(Container::TAG_ITEMS);
+			if($itemsTag === null){
 				continue;
 			}
-			$tag = clone $input->getNamedTag();
+
+			$lockTag = $inputTag->getTag(Container::TAG_LOCK);
 			foreach($results as $result){
-				$result->setNamedTag(clone $tag);
+				$resultTag = $result->getNamedTag();
+				$resultTag->setTag(Container::TAG_ITEMS, clone $itemsTag);
+
+				$blockEntityTag = $result->getCustomBlockData() ?? new CompoundTag();
+				$blockEntityTag->setTag(Container::TAG_ITEMS, clone $itemsTag);
+
+				if($lockTag !== null){
+					$resultTag->setTag(Container::TAG_LOCK, clone $lockTag);
+					$blockEntityTag->setTag(Container::TAG_LOCK, clone $lockTag);
+				}else{
+					$resultTag->removeTag(Container::TAG_LOCK);
+					$blockEntityTag->removeTag(Container::TAG_LOCK);
+				}
+				$result->setCustomBlockData($blockEntityTag);
+
+				if($input->hasCustomName()){
+					$result->setCustomName($input->getCustomName());
+				}
+				$lore = $input->getLore();
+				if(count($lore) > 0){
+					$result->setLore($lore);
+				}
 			}
 			return;
 		}

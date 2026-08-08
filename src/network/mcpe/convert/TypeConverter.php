@@ -58,7 +58,6 @@ use pocketmine\network\mcpe\protocol\types\recipe\NameItemDescriptor;
 use pocketmine\network\mcpe\protocol\types\recipe\RecipeIngredient as ProtocolRecipeIngredient;
 use pocketmine\network\mcpe\protocol\types\recipe\TagItemDescriptor;
 use pocketmine\player\GameMode;
-
 use pocketmine\utils\Filesystem;
 use pocketmine\utils\SingletonTrait;
 use pocketmine\world\format\io\GlobalBlockStateHandlers;
@@ -156,7 +155,9 @@ class TypeConverter{
 			$descriptor = new NameItemDescriptor($ingredient->getItemId(), self::RECIPE_INPUT_WILDCARD_META);
 		}elseif($ingredient instanceof ExactRecipeIngredient){
 			$item = $ingredient->getItem();
-			[$id, $meta, $blockRuntimeId] = $this->itemTranslator->toNetworkId($item);
+			[$id, $meta] = $this->itemTranslator->toNetworkId($item);
+			//Intentionally use item meta (0 for blockitems). Substituting network blockstate meta via
+			//getMetaFromStateId() makes the 1.26.40+ client drop the recipes from the recipe book.
 			$descriptor = new NameItemDescriptor($this->itemTypeDictionary->fromIntId($id), $meta);
 		}elseif($ingredient instanceof TagWildcardRecipeIngredient){
 			$descriptor = new TagItemDescriptor($ingredient->getTagName());

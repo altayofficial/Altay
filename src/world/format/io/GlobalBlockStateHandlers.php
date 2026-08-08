@@ -2,21 +2,23 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
  *
- *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
  */
 
 declare(strict_types=1);
@@ -32,10 +34,12 @@ use pocketmine\data\bedrock\block\convert\VanillaBlockMappings;
 use pocketmine\data\bedrock\block\upgrade\BlockDataUpgrader;
 use pocketmine\data\bedrock\block\upgrade\BlockIdMetaUpgrader;
 use pocketmine\data\bedrock\block\upgrade\BlockStateUpgrader;
+use pocketmine\data\bedrock\block\upgrade\BlockStateUpgradeSchemaUtils;
 use pocketmine\data\bedrock\block\upgrade\LegacyBlockIdToStringIdMap;
 use pocketmine\utils\Filesystem;
 use Symfony\Component\Filesystem\Path;
-use const pocketmine\BEDROCK_DATA_PATH;
+use const PHP_INT_MAX;
+use const pocketmine\BEDROCK_BLOCK_UPGRADE_SCHEMA_PATH;
 
 /**
  * Provides global access to blockstate serializers for all world providers.
@@ -70,12 +74,15 @@ final class GlobalBlockStateHandlers{
 
 	public static function getUpgrader() : BlockDataUpgrader{
 		if(self::$blockDataUpgrader === null){
-			$blockStateUpgrader = new BlockStateUpgrader();
+			$blockStateUpgrader = new BlockStateUpgrader(BlockStateUpgradeSchemaUtils::loadSchemas(
+				Path::join(BEDROCK_BLOCK_UPGRADE_SCHEMA_PATH, 'nbt_upgrade_schema'),
+				PHP_INT_MAX
+			));
 			self::$blockDataUpgrader = new BlockDataUpgrader(
-				BlockIdMetaUpgrader::loadFromJsonString(
+				BlockIdMetaUpgrader::loadFromString(
 					Filesystem::fileGetContents(Path::join(
-						BEDROCK_DATA_PATH,
-						'upgrade/legacy_block_data_map.json'
+						BEDROCK_BLOCK_UPGRADE_SCHEMA_PATH,
+						'id_meta_to_nbt/1.12.0.bin'
 					)),
 					LegacyBlockIdToStringIdMap::getInstance(),
 					$blockStateUpgrader

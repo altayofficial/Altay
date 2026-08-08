@@ -2,27 +2,30 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
  *
- *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
  */
 
 declare(strict_types=1);
 
 namespace pocketmine\world\generator;
 
+use pocketmine\math\Vector3;
 use pocketmine\utils\SingletonTrait;
 use pocketmine\utils\Utils;
 use pocketmine\world\generator\hell\Nether;
@@ -55,22 +58,25 @@ final class GeneratorManager{
 		$this->addAlias("normal", "default");
 		$this->addGenerator(Nether::class, "nether", fn() => null);
 		$this->addAlias("nether", "hell");
+		$this->addGenerator(VoidGenerator::class, "void", fn() => null, fast: true, spawnPositionProvider: fn(int $seed) => new Vector3(0, -63, 0));
 	}
 
 	/**
-	 * @param string   $class           Fully qualified name of class that extends \pocketmine\world\generator\Generator
-	 * @param string   $name            Alias for this generator type that can be written in configs
-	 * @param \Closure $presetValidator Callback to validate generator options for new worlds
-	 * @param bool     $overwrite       Whether to force overwriting any existing registered generator with the same name
-	 * @param bool     $fast            Whether this generator is fast enough to run without async tasks
+	 * @param string        $class                 Fully qualified name of class that extends \pocketmine\world\generator\Generator
+	 * @param string        $name                  Alias for this generator type that can be written in configs
+	 * @param \Closure      $presetValidator       Callback to validate generator options for new worlds
+	 * @param bool          $overwrite             Whether to force overwriting any existing registered generator with the same name
+	 * @param bool          $fast                  Whether this generator is fast enough to run without async tasks
+	 * @param \Closure|null $spawnPositionProvider Callback to retrieve a custom spawn position
 	 *
 	 * @phpstan-param \Closure(string) : ?InvalidGeneratorOptionsException $presetValidator
+	 * @phpstan-param (\Closure(int) : ?Vector3)|null $spawnPositionProvider
 	 *
 	 * @phpstan-param class-string<Generator> $class
 	 *
 	 * @throws \InvalidArgumentException
 	 */
-	public function addGenerator(string $class, string $name, \Closure $presetValidator, bool $overwrite = false, bool $fast = false) : void{
+	public function addGenerator(string $class, string $name, \Closure $presetValidator, bool $overwrite = false, bool $fast = false, ?\Closure $spawnPositionProvider = null) : void{
 		Utils::testValidInstance($class, Generator::class);
 
 		$name = strtolower($name);
@@ -78,7 +84,7 @@ final class GeneratorManager{
 			throw new \InvalidArgumentException("Alias \"$name\" is already assigned");
 		}
 
-		$this->list[$name] = new GeneratorManagerEntry($class, $presetValidator, $fast);
+		$this->list[$name] = new GeneratorManagerEntry($class, $presetValidator, $fast, $spawnPositionProvider);
 	}
 
 	/**

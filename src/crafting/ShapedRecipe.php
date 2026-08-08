@@ -134,19 +134,7 @@ class ShapedRecipe implements CraftingRecipe{
 	 */
 	public function getResultsFor(CraftingGrid $grid) : array{
 		$results = $this->getResults();
-
-		for($y = 0, $height = $grid->getRecipeHeight(); $y < $height; ++$y){
-			for($x = 0, $width = $grid->getRecipeWidth(); $x < $width; ++$x){
-				$inputItem = $grid->getIngredient($x, $y);
-				if($inputItem->hasCustomBlockData()){
-					foreach($results as $result){
-						$result->setCustomBlockData($inputItem->getCustomBlockData());
-					}
-					return $results;
-				}
-			}
-		}
-
+		CraftingResultTransfer::transferContainerNamedTag($grid->getContents(), $results);
 		return $results;
 	}
 

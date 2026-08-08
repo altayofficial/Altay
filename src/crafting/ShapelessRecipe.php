@@ -71,16 +71,7 @@ class ShapelessRecipe implements CraftingRecipe{
 
 	public function getResultsFor(CraftingGrid $grid) : array{
 		$results = $this->getResults();
-
-		foreach($grid->getContents() as $inputItem){
-			if($inputItem->hasCustomBlockData()){
-				foreach($results as $result){
-					$result->setCustomBlockData($inputItem->getCustomBlockData());
-				}
-				break;
-			}
-		}
-
+		CraftingResultTransfer::transferContainerNamedTag($grid->getContents(), $results);
 		return $results;
 	}
 

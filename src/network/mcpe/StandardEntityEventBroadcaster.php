@@ -2,21 +2,23 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
  *
- *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
  */
 
 declare(strict_types=1);
@@ -42,7 +44,6 @@ use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use pocketmine\network\mcpe\protocol\types\entity\UpdateAttribute;
 use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
-use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 use function array_map;
 use function count;
@@ -107,7 +108,7 @@ final class StandardEntityEventBroadcaster implements EntityEventBroadcaster{
 		$inv = $mob->getInventory();
 		$this->sendDataPacket($recipients, MobEquipmentPacket::create(
 			$mob->getId(),
-			ItemStackWrapper::legacy($this->typeConverter->coreItemStackToNet($inv->getItemInHand())),
+			TypeConverter::legacyItemStackWrapper($this->typeConverter->coreItemStackToNet($inv->getItemInHand())),
 			$inv->getHeldItemIndex(),
 			$inv->getHeldItemIndex(),
 			ContainerIds::INVENTORY
@@ -118,7 +119,7 @@ final class StandardEntityEventBroadcaster implements EntityEventBroadcaster{
 		$inv = $mob->getOffHandInventory();
 		$this->sendDataPacket($recipients, MobEquipmentPacket::create(
 			$mob->getId(),
-			ItemStackWrapper::legacy($this->typeConverter->coreItemStackToNet($inv->getItem(0))),
+			TypeConverter::legacyItemStackWrapper($this->typeConverter->coreItemStackToNet($inv->getItem(0))),
 			0,
 			0,
 			ContainerIds::OFFHAND
@@ -130,11 +131,11 @@ final class StandardEntityEventBroadcaster implements EntityEventBroadcaster{
 		$converter = $this->typeConverter;
 		$this->sendDataPacket($recipients, MobArmorEquipmentPacket::create(
 			$mob->getId(),
-			ItemStackWrapper::legacy($converter->coreItemStackToNet($inv->getHelmet())),
-			ItemStackWrapper::legacy($converter->coreItemStackToNet($inv->getChestplate())),
-			ItemStackWrapper::legacy($converter->coreItemStackToNet($inv->getLeggings())),
-			ItemStackWrapper::legacy($converter->coreItemStackToNet($inv->getBoots())),
-			new ItemStackWrapper(0, ItemStack::null())
+			TypeConverter::legacyItemStackWrapper($converter->coreItemStackToNet($inv->getHelmet())),
+			TypeConverter::legacyItemStackWrapper($converter->coreItemStackToNet($inv->getChestplate())),
+			TypeConverter::legacyItemStackWrapper($converter->coreItemStackToNet($inv->getLeggings())),
+			TypeConverter::legacyItemStackWrapper($converter->coreItemStackToNet($inv->getBoots())),
+			TypeConverter::legacyItemStackWrapper(ItemStack::null())
 		));
 	}
 

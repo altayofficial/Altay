@@ -2,21 +2,23 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
  *
- *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
  */
 
 declare(strict_types=1);
@@ -33,7 +35,7 @@ use function is_string;
 use function json_decode;
 use function mb_strtolower;
 use const JSON_THROW_ON_ERROR;
-use const pocketmine\BEDROCK_DATA_PATH;
+use const pocketmine\BEDROCK_ITEM_UPGRADE_SCHEMA_PATH;
 
 /**
  * Maps all known 1.12 and lower item IDs to their respective block IDs, where appropriate.
@@ -47,7 +49,7 @@ final class R12ItemIdToBlockIdMap{
 
 	private static function make() : self{
 		$map = json_decode(
-			Filesystem::fileGetContents(Path::join(BEDROCK_DATA_PATH, 'upgrade/1.12.0_item_id_to_block_id_map.json')),
+			Filesystem::fileGetContents(Path::join(BEDROCK_ITEM_UPGRADE_SCHEMA_PATH, '1.12.0_item_id_to_block_id_map.json')),
 			associative: true,
 			flags: JSON_THROW_ON_ERROR
 		);

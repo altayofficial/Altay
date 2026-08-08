@@ -45,17 +45,6 @@ Altay accepts community contributions! The following resources will be useful if
 
 New here? Check out [issues with the "Easy task" label](https://github.com/altayofficial/Altay/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Easy%20task%22) for things you could work to familiarise yourself with the codebase.
 
-## Donate
-Altay is free, but it requires a lot of time and effort from unpaid volunteers to develop. Donations enable us to keep delivering support for new versions and adding features your players love.
-
-You can support development using the following methods:
-
-- [Patreon](https://www.patreon.com/Altay) (Altay)
-- Bitcoin (BTC): `bc1q2v5ngyf8ugyd55kqa9ep35g2rv342ueqm6ks33` (PocketMine-MP)
-- Stellar Lumens (XLM): `GAAC5WZ33HCTE3BFJFZJXONMEIBNHFLBXM2HJVAZHXXPYA3HP5XPPS7T` (PocketMine-MP)
-
-Thanks for your support!
-
 ## Licensing information
 This project is licensed under LGPL-3.0. Please see the [LICENSE](/LICENSE) file for details.
 

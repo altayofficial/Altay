@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3f709b73f08e296bbb3933438ac0a7ad",
+    "content-hash": "77672f4e195f964c1e700cb67afbe997",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -67,28 +67,27 @@
         },
         {
             "name": "altayofficial/bedrock-data",
-            "version": "dev-master",
+            "version": "dev-bedrock-1.26.40",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "37f627683dbe3f6977b2c373e46e55a90a0a3375"
+                "reference": "a57f724d4dd303d361e8c5a804ea678d1bb2be5c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/37f627683dbe3f6977b2c373e46e55a90a0a3375",
-                "reference": "37f627683dbe3f6977b2c373e46e55a90a0a3375",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/a57f724d4dd303d361e8c5a804ea678d1bb2be5c",
+                "reference": "a57f724d4dd303d361e8c5a804ea678d1bb2be5c",
                 "shasum": ""
             },
-            "default-branch": true,
             "type": "library",
             "license": [
                 "CC0-1.0"
             ],
             "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by Altayz",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockData/tree/master"
+                "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.40"
             },
-            "time": "2026-07-09T15:19:45+00:00"
+            "time": "2026-07-23T08:05:33+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
@@ -96,22 +95,22 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "15ccda1f71727f77f5ae7726253457e9394919b6"
+                "reference": "368a56c5855056f43a827f4c2e71cffe8c287e58"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/15ccda1f71727f77f5ae7726253457e9394919b6",
-                "reference": "15ccda1f71727f77f5ae7726253457e9394919b6",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/368a56c5855056f43a827f4c2e71cffe8c287e58",
+                "reference": "368a56c5855056f43a827f4c2e71cffe8c287e58",
                 "shasum": ""
             },
             "require": {
+                "altayofficial/nbt": "dev-stable",
                 "ext-encoding": "~1.0.0",
                 "ext-json": "*",
                 "php": "^8.1",
                 "pocketmine/binaryutils": "^0.2.0",
                 "pocketmine/color": "^0.2.0 || ^0.3.0",
                 "pocketmine/math": "^0.3.0 || ^0.4.0 || ^1.0.0",
-                "pocketmine/nbt": "^1.0.0",
                 "ramsey/uuid": "^4.1"
             },
             "require-dev": {
@@ -143,9 +142,83 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/master"
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/master",
+                "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-07-09T18:32:36+00:00"
+            "time": "2026-08-04T18:15:46+00:00"
+        },
+        {
+            "name": "altayofficial/nbt",
+            "version": "dev-stable",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/altayofficial/NBT.git",
+                "reference": "2b1399b905db2937478435d596417c47e4120437"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/altayofficial/NBT/zipball/2b1399b905db2937478435d596417c47e4120437",
+                "reference": "2b1399b905db2937478435d596417c47e4120437",
+                "shasum": ""
+            },
+            "require": {
+                "ext-encoding": "^1.0.0",
+                "php": "^8.1",
+                "php-64bit": "*"
+            },
+            "require-dev": {
+                "phpstan/extension-installer": "^1.0",
+                "phpstan/phpstan": "2.1.33",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "pocketmine\\nbt\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "pocketmine\\nbt\\": "tests/phpunit/"
+                }
+            },
+            "license": [
+                "LGPL-3.0"
+            ],
+            "description": "PHP library for working with Named Binary Tags",
+            "support": {
+                "source": "https://github.com/altayofficial/NBT/tree/stable"
+            },
+            "time": "2026-07-22T13:04:40+00:00"
+        },
+        {
+            "name": "altayofficial/worldupgraderschemas",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/altayofficial/WorldUpgraderSchemas.git",
+                "reference": "bc7c8ed1eef45a12c04fe7f8c115bafb3e133ff8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/altayofficial/WorldUpgraderSchemas/zipball/bc7c8ed1eef45a12c04fe7f8c115bafb3e133ff8",
+                "reference": "bc7c8ed1eef45a12c04fe7f8c115bafb3e133ff8",
+                "shasum": ""
+            },
+            "default-branch": true,
+            "type": "library",
+            "license": [
+                "CC0-1.0"
+            ],
+            "description": "JSON schemas for upgrading worlds",
+            "support": {
+                "source": "https://github.com/altayofficial/WorldUpgraderSchemas/tree/master",
+                "issues": "https://github.com/altayofficial/WorldUpgraderSchemas/issues"
+            },
+            "time": "2026-07-10T19:21:13+00:00"
         },
         {
             "name": "brick/math",
@@ -510,49 +583,6 @@
             "time": "2023-08-03T12:56:33+00:00"
         },
         {
-            "name": "pocketmine/nbt",
-            "version": "1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pmmp/NBT.git",
-                "reference": "51b8d6a97065fb93e0b4f660b65164b6e1ed2fff"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pmmp/NBT/zipball/51b8d6a97065fb93e0b4f660b65164b6e1ed2fff",
-                "reference": "51b8d6a97065fb93e0b4f660b65164b6e1ed2fff",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.4 || ^8.0",
-                "php-64bit": "*",
-                "pocketmine/binaryutils": "^0.2.0"
-            },
-            "require-dev": {
-                "phpstan/extension-installer": "^1.0",
-                "phpstan/phpstan": "2.1.27",
-                "phpstan/phpstan-phpunit": "^2.0",
-                "phpstan/phpstan-strict-rules": "^2.0",
-                "phpunit/phpunit": "^9.5"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "pocketmine\\nbt\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "LGPL-3.0"
-            ],
-            "description": "PHP library for working with Named Binary Tags",
-            "support": {
-                "issues": "https://github.com/pmmp/NBT/issues",
-                "source": "https://github.com/pmmp/NBT/tree/1.2.0"
-            },
-            "time": "2025-09-19T18:09:30+00:00"
-        },
-        {
             "name": "pocketmine/raklib",
             "version": "1.2.1",
             "source": {
@@ -832,16 +862,16 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v6.4.39",
+            "version": "v6.4.43",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "c507b077756b4e3e09adbbe7975fac81cd3722ca"
+                "reference": "9ff03da12d67649fbd1f34ca95951554624d0a16"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/c507b077756b4e3e09adbbe7975fac81cd3722ca",
-                "reference": "c507b077756b4e3e09adbbe7975fac81cd3722ca",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/9ff03da12d67649fbd1f34ca95951554624d0a16",
+                "reference": "9ff03da12d67649fbd1f34ca95951554624d0a16",
                 "shasum": ""
             },
             "require": {
@@ -878,7 +908,7 @@
             "description": "Provides basic utilities for the filesystem",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/filesystem/tree/v6.4.39"
+                "source": "https://github.com/symfony/filesystem/tree/v6.4.43"
             },
             "funding": [
                 {
@@ -898,7 +928,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-07T13:11:42+00:00"
+            "time": "2026-06-27T10:13:35+00:00"
         }
     ],
     "packages-dev": [
@@ -2719,7 +2749,9 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "altayofficial/bedrock-data": 20,
-        "altayofficial/bedrock-protocol": 20
+        "altayofficial/bedrock-protocol": 20,
+        "altayofficial/nbt": 20,
+        "altayofficial/worldupgraderschemas": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
@@ -2752,9 +2784,9 @@
         "ext-zlib": ">=1.2.11",
         "composer-runtime-api": "^2.0"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "platform-overrides": {
         "php": "8.1.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }

@@ -2,21 +2,23 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
  *
- *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
  */
 
 declare(strict_types=1);
@@ -28,6 +30,7 @@ use pocketmine\data\bedrock\block\BlockTypeNames;
 use pocketmine\nbt\BigEndianNbtSerializer;
 use pocketmine\nbt\NbtDataException;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\TreeRoot;
 use pocketmine\network\mcpe\protocol\serializer\NetworkNbtSerializer;
 use pocketmine\utils\Utils;
@@ -149,6 +152,20 @@ final class BlockStateDictionary{
 	}
 
 	/**
+	 * Returns any known state ID for the given block ID (preferring meta 0 when present).
+	 * Useful for recipe/creative deserialization where blockitems omit states but the network
+	 * metamap does not include meta 0 (e.g. directional blocks like chest/furnace).
+	 */
+	public function lookupDefaultStateIdFromId(string $id) : ?int{
+		$metas = $this->getIdMetaToStateIdLookup()[$id] ?? null;
+		return match(true){
+			$metas === null => null,
+			is_int($metas) => $metas,
+			is_array($metas) => $metas[0] ?? $metas[array_key_first($metas)] ?? null
+		};
+	}
+
+	/**
 	 * Returns an array mapping runtime ID => blockstate data.
 	 * @return BlockStateDictionaryEntry[]
 	 * @phpstan-return array<int, BlockStateDictionaryEntry>
@@ -169,6 +186,39 @@ final class BlockStateDictionary{
 	}
 
 	/**
+	 * Decompresses the gzipped big-endian NBT block palette (bedrock-network-data block_palette.nbt) and returns its
+	 * raw "blocks" list. Each entry carries its hashed network runtime ID (network_id), name and states.
+	 */
+	private static function loadBlocksFromString(string $blockPaletteContents) : ListTag{
+		$paletteRaw = zlib_decode($blockPaletteContents);
+		if($paletteRaw === false){
+			throw new \InvalidArgumentException("Failed to decompress block palette");
+		}
+		return (new BigEndianNbtSerializer())->read($paletteRaw)->mustGetCompoundTag()->getListTag("blocks") ??
+			throw new \InvalidArgumentException("Missing \"blocks\" list in block palette");
+	}
+
+	/**
+	 * Parses the gzipped big-endian NBT block palette into a list of block states, discarding network IDs and meta.
+	 * Used by codegen and tooling that only cares about the block type/state shapes.
+	 *
+	 * @return BlockStateData[]
+	 * @phpstan-return list<BlockStateData>
+	 */
+	public static function loadStatesFromPalette(string $blockPaletteContents) : array{
+		$states = [];
+		foreach(self::loadBlocksFromString($blockPaletteContents) as $i => $blockTag){
+			if(!($blockTag instanceof CompoundTag)){
+				throw new \InvalidArgumentException("Invalid block palette entry at offset $i, expected TAG_Compound, got " . get_debug_type($blockTag));
+			}
+			$stateTag = $blockTag->getCompoundTag(BlockStateData::TAG_STATES) ??
+				throw new \InvalidArgumentException("Missing states for palette entry $i");
+			$states[] = BlockStateData::current($blockTag->getString(BlockStateData::TAG_NAME), $stateTag->getValue());
+		}
+		return $states;
+	}
+
+	/**
 	 * Loads the dictionary from a gzipped big-endian NBT block palette (bedrock-network-data block_palette.nbt).
 	 * Each palette entry provides its hashed network runtime ID (network_id), which is used as the state ID.
 	 */
@@ -178,12 +228,7 @@ final class BlockStateDictionary{
 			throw new \InvalidArgumentException("Invalid metaMap, expected array for root type, got " . get_debug_type($metaMap));
 		}
 
-		$paletteRaw = zlib_decode($blockPaletteContents);
-		if($paletteRaw === false){
-			throw new \InvalidArgumentException("Failed to decompress block palette");
-		}
-		$blocks = (new BigEndianNbtSerializer())->read($paletteRaw)->mustGetCompoundTag()->getListTag("blocks") ??
-			throw new \InvalidArgumentException("Missing \"blocks\" list in block palette");
+		$blocks = self::loadBlocksFromString($blockPaletteContents);
 
 		$entries = [];
 

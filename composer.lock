@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1e7f3993d094618b09d93351a742ad81",
+    "content-hash": "d638c45e5c1e35e2b3ec9b4bb2d52d49",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -67,16 +67,16 @@
         },
         {
             "name": "altayofficial/bedrock-data",
-            "version": "dev-bedrock-1.26.40",
+            "version": "dev-bedrock-1.26.50",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "a57f724d4dd303d361e8c5a804ea678d1bb2be5c"
+                "reference": "a764fd5e51fbfcd7074d3ea802df87a92c01d160"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/a57f724d4dd303d361e8c5a804ea678d1bb2be5c",
-                "reference": "a57f724d4dd303d361e8c5a804ea678d1bb2be5c",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/a764fd5e51fbfcd7074d3ea802df87a92c01d160",
+                "reference": "a764fd5e51fbfcd7074d3ea802df87a92c01d160",
                 "shasum": ""
             },
             "type": "library",
@@ -85,22 +85,22 @@
             ],
             "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by Altayz",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.40"
+                "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.50"
             },
-            "time": "2026-07-23T08:05:33+00:00"
+            "time": "2026-08-09T19:14:17+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
-            "version": "dev-bedrock-1.26.40",
+            "version": "dev-bedrock-1.26.50",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "c5249acf05a27d0596ccd759b57aed5d201f3307"
+                "reference": "9f3b558380c9daceeacae760f56e4ddaaefee1a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/c5249acf05a27d0596ccd759b57aed5d201f3307",
-                "reference": "c5249acf05a27d0596ccd759b57aed5d201f3307",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/9f3b558380c9daceeacae760f56e4ddaaefee1a7",
+                "reference": "9f3b558380c9daceeacae760f56e4ddaaefee1a7",
                 "shasum": ""
             },
             "require": {
@@ -141,10 +141,10 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.40",
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.50",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-08-09T19:23:28+00:00"
+            "time": "2026-08-09T19:13:24+00:00"
         },
         {
             "name": "altayofficial/nbt",

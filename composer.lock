@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "77672f4e195f964c1e700cb67afbe997",
+    "content-hash": "1e7f3993d094618b09d93351a742ad81",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -91,16 +91,16 @@
         },
         {
             "name": "altayofficial/bedrock-protocol",
-            "version": "dev-master",
+            "version": "dev-bedrock-1.26.40",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "368a56c5855056f43a827f4c2e71cffe8c287e58"
+                "reference": "c5249acf05a27d0596ccd759b57aed5d201f3307"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/368a56c5855056f43a827f4c2e71cffe8c287e58",
-                "reference": "368a56c5855056f43a827f4c2e71cffe8c287e58",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/c5249acf05a27d0596ccd759b57aed5d201f3307",
+                "reference": "c5249acf05a27d0596ccd759b57aed5d201f3307",
                 "shasum": ""
             },
             "require": {
@@ -120,7 +120,6 @@
                 "phpstan/phpstan-strict-rules": "^2.0.0",
                 "phpunit/phpunit": "^9.5 || ^10.0 || ^11.0"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -142,10 +141,10 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/master",
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.40",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-08-04T18:15:46+00:00"
+            "time": "2026-08-09T19:23:28+00:00"
         },
         {
             "name": "altayofficial/nbt",
@@ -196,7 +195,7 @@
         },
         {
             "name": "altayofficial/worldupgraderschemas",
-            "version": "dev-master",
+            "version": "dev-bedrock-1.26.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/WorldUpgraderSchemas.git",
@@ -208,14 +207,13 @@
                 "reference": "bc7c8ed1eef45a12c04fe7f8c115bafb3e133ff8",
                 "shasum": ""
             },
-            "default-branch": true,
             "type": "library",
             "license": [
                 "CC0-1.0"
             ],
             "description": "JSON schemas for upgrading worlds",
             "support": {
-                "source": "https://github.com/altayofficial/WorldUpgraderSchemas/tree/master",
+                "source": "https://github.com/altayofficial/WorldUpgraderSchemas/tree/bedrock-1.26.20",
                 "issues": "https://github.com/altayofficial/WorldUpgraderSchemas/issues"
             },
             "time": "2026-07-10T19:21:13+00:00"

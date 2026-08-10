@@ -100,7 +100,7 @@ jobs:
             file_put_contents($path, $updated);
           '
 
-      - name: Build Altay.phar
+      - name: Build PocketMine-MP.phar
         run: php -dphar.readonly=0 build/server-phar.php --git ${{ steps.version-bump.outputs.SHA }} --build ${{ steps.build-number.outputs.BUILD_NUMBER }}
 
       - name: Get Altay release version
@@ -137,14 +137,14 @@ jobs:
         with:
           name: release_artifacts
           path: |
-            ${{ github.workspace }}/Altay.phar
+            ${{ github.workspace }}/PocketMine-MP.phar
             ${{ github.workspace }}/build_info.json
 
       - name: Create draft release
         uses: ncipollo/release-action@v1.15.0
         id: create-draft
         with:
-          artifacts: ${{ github.workspace }}/Altay.phar,${{ github.workspace }}/build_info.json
+          artifacts: ${{ github.workspace }}/PocketMine-MP.phar,${{ github.workspace }}/build_info.json
           commit: ${{ github.ref_name }}
           draft: true
           prerelease: ${{ steps.get-version.outputs.PRERELEASE }}

@@ -71,6 +71,8 @@ final class StringToItemParser extends StringToTParser{
 			$register("candle", fn() => Blocks::DYED_CANDLE()->setColor($color));
 			$register("carpet", fn() => Blocks::CARPET()->setColor($color));
 			$register("concrete", fn() => Blocks::CONCRETE()->setColor($color));
+			$register("concrete_slab", fn() => Blocks::CONCRETE_SLAB()->setColor($color));
+			$register("concrete_stairs", fn() => Blocks::CONCRETE_STAIRS()->setColor($color));
 			$register("concrete_powder", fn() => Blocks::CONCRETE_POWDER()->setColor($color));
 			$register("glazed_terracotta", fn() => Blocks::GLAZED_TERRACOTTA()->setColor($color));
 			$register("stained_clay", fn() => Blocks::STAINED_CLAY()->setColor($color));
@@ -79,6 +81,8 @@ final class StringToItemParser extends StringToTParser{
 			$register("stained_hardened_glass", fn() => Blocks::STAINED_HARDENED_GLASS()->setColor($color));
 			$register("stained_hardened_glass_pane", fn() => Blocks::STAINED_HARDENED_GLASS_PANE()->setColor($color));
 			$register("wool", fn() => Blocks::WOOL()->setColor($color));
+			$register("wool_slab", fn() => Blocks::WOOL_SLAB()->setColor($color));
+			$register("wool_stairs", fn() => Blocks::WOOL_STAIRS()->setColor($color));
 			$register("shulker_box", fn() => Blocks::DYED_SHULKER_BOX()->setColor($color));
 		}
 
@@ -309,6 +313,8 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("comparator_block", fn() => Blocks::REDSTONE_COMPARATOR());
 		$result->registerBlock("compound_creator", fn() => Blocks::COMPOUND_CREATOR());
 		$result->registerBlock("concrete", fn() => Blocks::CONCRETE());
+		$result->registerBlock("concrete_slab", fn() => Blocks::CONCRETE_SLAB());
+		$result->registerBlock("concrete_stairs", fn() => Blocks::CONCRETE_STAIRS());
 		$result->registerBlock("concrete_powder", fn() => Blocks::CONCRETE_POWDER());
 		$result->registerBlock("concretepowder", fn() => Blocks::CONCRETE_POWDER());
 		$result->registerBlock("copper_ore", fn() => Blocks::COPPER_ORE());
@@ -1255,6 +1261,8 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("wooden_stairs", fn() => Blocks::OAK_STAIRS());
 		$result->registerBlock("wooden_trapdoor", fn() => Blocks::OAK_TRAPDOOR());
 		$result->registerBlock("wool", fn() => Blocks::WOOL());
+		$result->registerBlock("wool_slab", fn() => Blocks::WOOL_SLAB());
+		$result->registerBlock("wool_stairs", fn() => Blocks::WOOL_STAIRS());
 		$result->registerBlock("workbench", fn() => Blocks::CRAFTING_TABLE());
 		$result->registerBlock("yellow_flower", fn() => Blocks::DANDELION());
 		$result->registerBlock("zombie_head", fn() => Blocks::MOB_HEAD()->setMobHeadType(MobHeadType::ZOMBIE));

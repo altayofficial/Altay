@@ -25,12 +25,15 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
+use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\network\mcpe\cache\CraftingDataCache;
 use pocketmine\network\mcpe\cache\StaticPacketCache;
 use pocketmine\network\mcpe\InventoryManager;
 use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\ItemRegistryPacket;
+use pocketmine\network\mcpe\protocol\JigsawStructureDataPacket;
 use pocketmine\network\mcpe\protocol\PlayerAuthInputPacket;
 use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
 use pocketmine\network\mcpe\protocol\ServerboundLoadingScreenPacket;
@@ -38,8 +41,8 @@ use pocketmine\network\mcpe\protocol\StartGamePacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\types\BoolGameRule;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
-use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\Experiments;
+use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\LevelSettings;
 use pocketmine\network\mcpe\protocol\types\NetworkPermissions;
 use pocketmine\network\mcpe\protocol\types\PlayerMovementSettings;
@@ -73,6 +76,14 @@ class PreSpawnPacketHandler extends PacketHandler{
 			$world = $location->getWorld();
 
 			$typeConverter = $this->session->getTypeConverter();
+
+			$this->session->getLogger()->debug("Preparing JigsawStructureDataPacket");
+			$this->session->sendDataPacket(JigsawStructureDataPacket::create(new CacheableNbt(CompoundTag::create()
+				->setTag("processors", new ListTag([], NBT::TAG_Compound))
+				->setTag("template_pools", new ListTag([], NBT::TAG_Compound))
+				->setTag("jigsaws", new ListTag([], NBT::TAG_Compound))
+				->setTag("structure_sets", new ListTag([], NBT::TAG_Compound))
+			)), true); // TODO: custom jigsaw structure support
 
 			$this->session->getLogger()->debug("Preparing VoxelShapesPacket");
 			$this->session->sendDataPacket(VoxelShapesPacket::create([], [], 0), true); // TODO: Voxel shapes support

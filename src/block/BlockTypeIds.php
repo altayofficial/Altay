@@ -883,8 +883,12 @@ final class BlockTypeIds{
 	public const CINNABAR_SLAB = 10850;
 	public const CINNABAR_STAIRS = 10851;
 	public const CINNABAR_WALL = 10852;
+	public const WOOL_SLAB = 10853;
+	public const WOOL_STAIRS = 10854;
+	public const CONCRETE_SLAB = 10855;
+	public const CONCRETE_STAIRS = 10856;
 
-	public const FIRST_UNUSED_BLOCK_ID = 10853;
+	public const FIRST_UNUSED_BLOCK_ID = 10857;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_BLOCK_ID;
 

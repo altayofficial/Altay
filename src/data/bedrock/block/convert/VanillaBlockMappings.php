@@ -351,7 +351,6 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::FLOWERING_AZALEA(), Ids::FLOWERING_AZALEA);
 		$reg->mapSimple(Blocks::GILDED_BLACKSTONE(), Ids::GILDED_BLACKSTONE);
 		$reg->mapSimple(Blocks::GLASS(), Ids::GLASS);
-		$reg->mapSimple(Blocks::GLASS_PANE(), Ids::GLASS_PANE);
 		$reg->mapSimple(Blocks::GLOWING_OBSIDIAN(), Ids::GLOWINGOBSIDIAN);
 		$reg->mapSimple(Blocks::GLOWSTONE(), Ids::GLOWSTONE);
 		$reg->mapSimple(Blocks::GOLD(), Ids::GOLD_BLOCK);
@@ -363,7 +362,6 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::HANGING_ROOTS(), Ids::HANGING_ROOTS);
 		$reg->mapSimple(Blocks::HARDENED_CLAY(), Ids::HARDENED_CLAY);
 		$reg->mapSimple(Blocks::HARDENED_GLASS(), Ids::HARD_GLASS);
-		$reg->mapSimple(Blocks::HARDENED_GLASS_PANE(), Ids::HARD_GLASS_PANE);
 		$reg->mapSimple(Blocks::HONEYCOMB(), Ids::HONEYCOMB_BLOCK);
 		$reg->mapSimple(Blocks::ICE(), Ids::ICE);
 		$reg->mapSimple(Blocks::INFESTED_CHISELED_STONE_BRICK(), Ids::INFESTED_CHISELED_STONE_BRICKS);
@@ -376,7 +374,6 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::INFO_UPDATE2(), Ids::INFO_UPDATE2);
 		$reg->mapSimple(Blocks::INVISIBLE_BEDROCK(), Ids::INVISIBLE_BEDROCK);
 		$reg->mapSimple(Blocks::IRON(), Ids::IRON_BLOCK);
-		$reg->mapSimple(Blocks::IRON_BARS(), Ids::IRON_BARS);
 		$reg->mapSimple(Blocks::IRON_ORE(), Ids::IRON_ORE);
 		$reg->mapSimple(Blocks::JUKEBOX(), Ids::JUKEBOX);
 		$reg->mapSimple(Blocks::LAPIS_LAZULI(), Ids::LAPIS_BLOCK);
@@ -395,7 +392,6 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::NETHERITE(), Ids::NETHERITE_BLOCK);
 		$reg->mapSimple(Blocks::NETHERRACK(), Ids::NETHERRACK);
 		$reg->mapSimple(Blocks::NETHER_BRICKS(), Ids::NETHER_BRICK);
-		$reg->mapSimple(Blocks::NETHER_BRICK_FENCE(), Ids::NETHER_BRICK_FENCE);
 		$reg->mapSimple(Blocks::NETHER_GOLD_ORE(), Ids::NETHER_GOLD_ORE);
 		$reg->mapSimple(Blocks::NETHER_QUARTZ_ORE(), Ids::QUARTZ_ORE);
 		$reg->mapSimple(Blocks::NETHER_REACTOR_CORE(), Ids::NETHERREACTOR);
@@ -483,7 +479,7 @@ final class VanillaBlockMappings{
 
 	private static function registerColoredMappings(BlockSerializerDeserializerRegistrar $reg, CommonProperties $commonProperties) : void{
 		$reg->mapColored(Blocks::STAINED_HARDENED_GLASS(), "minecraft:hard_", "_stained_glass");
-		$reg->mapColored(Blocks::STAINED_HARDENED_GLASS_PANE(), "minecraft:hard_", "_stained_glass_pane");
+		$reg->mapColored(Blocks::STAINED_HARDENED_GLASS_PANE(), "minecraft:hard_", "_stained_glass_pane", $commonProperties->horizontalConnectionProperties);
 
 		$reg->mapColored(Blocks::CARPET(), "minecraft:", "_carpet");
 		$reg->mapColored(Blocks::CONCRETE(), "minecraft:", "_concrete");
@@ -491,8 +487,25 @@ final class VanillaBlockMappings{
 		$reg->mapColored(Blocks::DYED_SHULKER_BOX(), "minecraft:", "_shulker_box");
 		$reg->mapColored(Blocks::STAINED_CLAY(), "minecraft:", "_terracotta");
 		$reg->mapColored(Blocks::STAINED_GLASS(), "minecraft:", "_stained_glass");
-		$reg->mapColored(Blocks::STAINED_GLASS_PANE(), "minecraft:", "_stained_glass_pane");
+		$reg->mapColored(Blocks::STAINED_GLASS_PANE(), "minecraft:", "_stained_glass_pane", $commonProperties->horizontalConnectionProperties);
 		$reg->mapColored(Blocks::WOOL(), "minecraft:", "_wool");
+
+		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::CONCRETE_SLAB())
+			->idComponents(["minecraft:", $commonProperties->dyeColorIdInfix, "_concrete_", $commonProperties->slabIdInfix, "slab"])
+			->properties([$commonProperties->slabPositionProperty])
+		);
+		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::CONCRETE_STAIRS())
+			->idComponents(["minecraft:", $commonProperties->dyeColorIdInfix, "_concrete_stairs"])
+			->properties($commonProperties->stairProperties)
+		);
+		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::WOOL_SLAB())
+			->idComponents(["minecraft:", $commonProperties->dyeColorIdInfix, "_wool_", $commonProperties->slabIdInfix, "slab"])
+			->properties([$commonProperties->slabPositionProperty])
+		);
+		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::WOOL_STAIRS())
+			->idComponents(["minecraft:", $commonProperties->dyeColorIdInfix, "_wool_stairs"])
+			->properties($commonProperties->stairProperties)
+		);
 
 		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::GLAZED_TERRACOTTA())
 			->idComponents([
@@ -683,7 +696,10 @@ final class VanillaBlockMappings{
 			->properties([$commonProperties->slabPositionProperty])
 		);
 
-		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::COPPER_BARS())->idComponents([...$commonProperties->copperIdPrefixes, "copper_bars"]));
+		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::COPPER_BARS())
+			->idComponents([...$commonProperties->copperIdPrefixes, "copper_bars"])
+			->properties($commonProperties->horizontalConnectionProperties)
+		);
 		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::COPPER_CHAIN())
 			->idComponents([...$commonProperties->copperIdPrefixes, "copper_chain"])
 			->properties([$commonProperties->pillarAxis])
@@ -1071,7 +1087,7 @@ final class VanillaBlockMappings{
 			[Blocks::CRIMSON_FENCE(), Ids::CRIMSON_FENCE],
 			[Blocks::WARPED_FENCE(), Ids::WARPED_FENCE]
 		] as [$block, $id]){
-			$reg->mapSimple($block, $id);
+			$reg->mapModel(Model::create($block, $id)->properties($commonProperties->horizontalConnectionProperties));
 		}
 
 		foreach([
@@ -1284,6 +1300,13 @@ final class VanillaBlockMappings{
 
 	private static function register1to1CustomMappings(BlockSerializerDeserializerRegistrar $reg, CommonProperties $commonProperties) : void{
 		//TODO: some of these have repeated accessor refs, we might be able to deduplicate them
+
+		//blocks which connect to their horizontal neighbours
+		$reg->mapModel(Model::create(Blocks::NETHER_BRICK_FENCE(), Ids::NETHER_BRICK_FENCE)->properties($commonProperties->horizontalConnectionProperties));
+		$reg->mapModel(Model::create(Blocks::GLASS_PANE(), Ids::GLASS_PANE)->properties($commonProperties->horizontalConnectionProperties));
+		$reg->mapModel(Model::create(Blocks::HARDENED_GLASS_PANE(), Ids::HARD_GLASS_PANE)->properties($commonProperties->horizontalConnectionProperties));
+		$reg->mapModel(Model::create(Blocks::IRON_BARS(), Ids::IRON_BARS)->properties($commonProperties->horizontalConnectionProperties));
+
 		//A
 		$reg->mapModel(Model::create(Blocks::ACTIVATOR_RAIL(), Ids::ACTIVATOR_RAIL)->properties([
 			new BoolProperty(StateNames::RAIL_DATA_BIT, fn(ActivatorRail $b) => $b->isPowered(), fn(ActivatorRail $b, bool $v) => $b->setPowered($v)),
@@ -1525,6 +1548,11 @@ final class VanillaBlockMappings{
 			new BoolProperty(StateNames::DISARMED_BIT, fn(Tripwire $b) => $b->isDisarmed(), fn(Tripwire $b, bool $v) => $b->setDisarmed($v)),
 			new BoolProperty(StateNames::SUSPENDED_BIT, fn(Tripwire $b) => $b->isSuspended(), fn(Tripwire $b, bool $v) => $b->setSuspended($v)),
 			new BoolProperty(StateNames::POWERED_BIT, fn(Tripwire $b) => $b->isTriggered(), fn(Tripwire $b, bool $v) => $b->setTriggered($v)),
+			//PM doesn't implement tripwire connection logic, so these are left at their default
+			new DummyProperty(StateNames::MC_CONNECTION_NORTH, false),
+			new DummyProperty(StateNames::MC_CONNECTION_SOUTH, false),
+			new DummyProperty(StateNames::MC_CONNECTION_WEST, false),
+			new DummyProperty(StateNames::MC_CONNECTION_EAST, false),
 		]));
 		$reg->mapModel(Model::create(Blocks::TRIPWIRE_HOOK(), Ids::TRIPWIRE_HOOK)->properties([
 			new BoolProperty(StateNames::ATTACHED_BIT, fn(TripwireHook $b) => $b->isConnected(), fn(TripwireHook $b, bool $v) => $b->setConnected($v)),

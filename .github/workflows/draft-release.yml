@@ -43,6 +43,8 @@ jobs:
         uses: shivammathur/setup-php@2.32.0
         with:
           php-version: ${{ env.PHP_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Validate version input
         run: |

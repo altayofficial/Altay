@@ -1153,6 +1153,29 @@ abstract class Entity{
 		return $block->isSolid() && !$block->isTransparent() && $block->collidesWithBB($this->getBoundingBox());
 	}
 
+	/**
+	 * @return AxisAlignedBB[]
+	 * @phpstan-return list<AxisAlignedBB>
+	 */
+	protected function getEntitySpecificCollisionBoxes(AxisAlignedBB $bb) : array{
+		return [];
+	}
+
+	/**
+	 * @return AxisAlignedBB[]
+	 * @phpstan-return list<AxisAlignedBB>
+	 */
+	private function getMovementCollisionBoxes(AxisAlignedBB $bb) : array{
+		$boxes = $this->getWorld()->getBlockCollisionBoxes($bb);
+		foreach($this->getEntitySpecificCollisionBoxes($bb) as $extraBox){
+			if($extraBox->intersectsWith($bb)){
+				$boxes[] = $extraBox;
+			}
+		}
+
+		return $boxes;
+	}
+
 	protected function move(float $dx, float $dy, float $dz) : void{
 		$this->blocksAround = null;
 
@@ -1172,7 +1195,7 @@ abstract class Entity{
 
 			assert(abs($dx) <= 20 && abs($dy) <= 20 && abs($dz) <= 20, "Movement distance is excessive: dx=$dx, dy=$dy, dz=$dz");
 
-			$list = $this->getWorld()->getBlockCollisionBoxes($moveBB->addCoord($dx, $dy, $dz));
+			$list = $this->getMovementCollisionBoxes($moveBB->addCoord($dx, $dy, $dz));
 
 			foreach($list as $bb){
 				$dy = $bb->calculateYOffset($moveBB, $dy);
@@ -1206,7 +1229,7 @@ abstract class Entity{
 
 				$stepBB = clone $this->boundingBox;
 
-				$list = $this->getWorld()->getBlockCollisionBoxes($stepBB->addCoord($dx, $dy, $dz));
+				$list = $this->getMovementCollisionBoxes($stepBB->addCoord($dx, $dy, $dz));
 				foreach($list as $bb){
 					$dy = $bb->calculateYOffset($stepBB, $dy);
 				}

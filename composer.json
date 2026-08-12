@@ -33,16 +33,16 @@
       "composer-runtime-api": "^2.0",
       "adhocore/json-comment": "~1.2.0",
       "netresearch/jsonmapper": "~v5.0.0",
-      "altayofficial/bedrock-data": "dev-master",
-      "altayofficial/bedrock-protocol": "dev-master",
-      "altayofficial/worldupgraderschemas": "dev-master",
+      "altayofficial/bedrock-data": "dev-bedrock-1.26.40",
+      "altayofficial/bedrock-protocol": "dev-bedrock-1.26.40",
+      "altayofficial/worldupgraderschemas": "dev-bedrock-1.26.20",
       "pocketmine/binaryutils": "^0.2.1",
       "pocketmine/callback-validator": "~1.0.4",
       "pocketmine/color": "^0.3.0",
       "pocketmine/errorhandler": "^0.7.0",
       "pocketmine/log": "^0.4.0",
       "pocketmine/math": "~1.0.0",
-      "pocketmine/nbt": "~1.2.0",
+      "altayofficial/nbt": "dev-stable",
       "pocketmine/raklib": "~1.2.0",
       "pocketmine/raklib-ipc": "~1.0.0",
       "pocketmine/snooze": "^0.5.0",
@@ -94,6 +94,10 @@
       {
          "type": "vcs",
          "url":  "git@github.com:altayofficial/WorldUpgraderSchemas.git"
+      },
+      {
+         "type": "vcs",
+         "url":  "git@github.com:altayofficial/NBT.git"
       }
    ],
    "scripts": {
@@ -105,8 +109,8 @@
       "update-codegen": [
          "@php build/codegen/bedrockdata-path-consts.php",
          "@php build/codegen/biome-ids.php",
-         "@php build/codegen/block-serializer-consts.php vendor/pocketmine/bedrock-data/canonical_block_states.nbt",
-         "@php build/codegen/item-type-names.php vendor/pocketmine/bedrock-data/required_item_list.json",
+         "@php build/codegen/block-serializer-consts.php vendor/altayofficial/bedrock-data/block_palette.nbt",
+         "@php build/codegen/item-type-names.php vendor/altayofficial/bedrock-data/item_palette.json",
          "@php build/codegen/known-translation-apis.php",
          "@php build/codegen/pocketmine-yml-property-consts.php",
          "@php build/codegen/registry-interface.php src generated"

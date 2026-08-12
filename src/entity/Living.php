@@ -27,6 +27,7 @@ namespace pocketmine\entity;
 
 use pocketmine\block\Block;
 use pocketmine\block\BlockTypeIds;
+use pocketmine\block\PowderSnow;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\block\Water;
 use pocketmine\data\bedrock\EffectIdMap;
@@ -500,6 +501,37 @@ abstract class Living extends Entity{
 			}
 		}
 		return true;
+	}
+
+	public function canWalkOnPowderSnow() : bool{
+		$boots = $this->armorInventory->getBoots();
+		return $boots instanceof Armor && $boots->getMaterial() === VanillaArmorMaterials::LEATHER();
+	}
+
+	protected function getEntitySpecificCollisionBoxes(AxisAlignedBB $bb) : array{
+		if($this->sneaking || !$this->canWalkOnPowderSnow()){
+			return [];
+		}
+
+		$maxY = min((int) floor($bb->maxY), (int) floor($this->boundingBox->minY - 1));
+		$minY = (int) floor($bb->minY);
+		if($maxY < $minY){
+			return [];
+		}
+
+		$world = $this->getWorld();
+		$boxes = [];
+		for($y = $minY; $y <= $maxY; ++$y){
+			for($z = (int) floor($bb->minZ), $maxZ = (int) floor($bb->maxZ); $z <= $maxZ; ++$z){
+				for($x = (int) floor($bb->minX), $maxX = (int) floor($bb->maxX); $x <= $maxX; ++$x){
+					if($world->getBlockAt($x, $y, $z) instanceof PowderSnow){
+						$boxes[] = AxisAlignedBB::one()->offset($x, $y, $z);
+					}
+				}
+			}
+		}
+
+		return $boxes;
 	}
 
 	protected function updateFreezeState(int $tickDiff) : bool{

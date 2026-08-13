@@ -414,6 +414,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::POLISHED_TUFF(), Ids::POLISHED_TUFF);
 		$reg->mapSimple(Blocks::POLISHED_SULFUR(), Ids::POLISHED_SULFUR);
 		$reg->mapSimple(Blocks::POLISHED_CINNABAR(), Ids::POLISHED_CINNABAR);
+		$reg->mapSimple(Blocks::POWDER_SNOW(), Ids::POWDER_SNOW);
 		$reg->mapSimple(Blocks::PRISMARINE(), Ids::PRISMARINE);
 		$reg->mapSimple(Blocks::PRISMARINE_BRICKS(), Ids::PRISMARINE_BRICKS);
 		$reg->mapSimple(Blocks::QUARTZ_BRICKS(), Ids::QUARTZ_BRICKS);

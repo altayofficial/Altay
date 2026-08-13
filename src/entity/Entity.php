@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace pocketmine\entity;
 
 use pocketmine\block\Block;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\block\Water;
 use pocketmine\entity\animation\Animation;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -89,6 +90,9 @@ abstract class Entity{
 
 	public const MOTION_THRESHOLD = 0.00001;
 	protected const STEP_CLIP_MULTIPLIER = 0.4;
+
+	private const POWDER_SNOW_FALL_DISTANCE_THRESHOLD = 2.5;
+	protected const POWDER_SNOW_FALL_COLLISION_HEIGHT = 0.9;
 
 	private const TAG_FIRE = "Fire"; //TAG_Short
 	private const TAG_ON_GROUND = "OnGround"; //TAG_Byte
@@ -1152,6 +1156,64 @@ abstract class Entity{
 		return $block->isSolid() && !$block->isTransparent() && $block->collidesWithBB($this->getBoundingBox());
 	}
 
+	/**
+	 * @return AxisAlignedBB[]
+	 * @phpstan-return list<AxisAlignedBB>
+	 */
+	protected function getEntitySpecificCollisionBoxes(AxisAlignedBB $bb) : array{
+		if($this->fallDistance <= self::POWDER_SNOW_FALL_DISTANCE_THRESHOLD){
+			return [];
+		}
+
+		return $this->getPowderSnowCollisionBoxes($bb, (int) floor($bb->maxY), self::POWDER_SNOW_FALL_COLLISION_HEIGHT);
+	}
+
+	/**
+	 * @return AxisAlignedBB[]
+	 * @phpstan-return list<AxisAlignedBB>
+	 */
+	protected function getPowderSnowCollisionBoxes(AxisAlignedBB $bb, int $maxY, float $height) : array{
+		$minY = (int) floor($bb->minY);
+		if($maxY < $minY){
+			return [];
+		}
+
+		$world = $this->getWorld();
+		$powderSnowStateId = VanillaBlocks::POWDER_SNOW()->getStateId();
+		$minX = (int) floor($bb->minX);
+		$maxX = (int) floor($bb->maxX);
+		$minZ = (int) floor($bb->minZ);
+		$maxZ = (int) floor($bb->maxZ);
+
+		$boxes = [];
+		for($y = $minY; $y <= $maxY; ++$y){
+			for($z = $minZ; $z <= $maxZ; ++$z){
+				for($x = $minX; $x <= $maxX; ++$x){
+					if($world->getBlockStateIdAt($x, $y, $z) === $powderSnowStateId){
+						$boxes[] = new AxisAlignedBB($x, $y, $z, $x + 1, $y + $height, $z + 1);
+					}
+				}
+			}
+		}
+
+		return $boxes;
+	}
+
+	/**
+	 * @return AxisAlignedBB[]
+	 * @phpstan-return list<AxisAlignedBB>
+	 */
+	private function getMovementCollisionBoxes(AxisAlignedBB $bb) : array{
+		$boxes = $this->getWorld()->getBlockCollisionBoxes($bb);
+		foreach($this->getEntitySpecificCollisionBoxes($bb) as $extraBox){
+			if($extraBox->intersectsWith($bb)){
+				$boxes[] = $extraBox;
+			}
+		}
+
+		return $boxes;
+	}
+
 	protected function move(float $dx, float $dy, float $dz) : void{
 		$this->blocksAround = null;
 
@@ -1171,7 +1233,7 @@ abstract class Entity{
 
 			assert(abs($dx) <= 20 && abs($dy) <= 20 && abs($dz) <= 20, "Movement distance is excessive: dx=$dx, dy=$dy, dz=$dz");
 
-			$list = $this->getWorld()->getBlockCollisionBoxes($moveBB->addCoord($dx, $dy, $dz));
+			$list = $this->getMovementCollisionBoxes($moveBB->addCoord($dx, $dy, $dz));
 
 			foreach($list as $bb){
 				$dy = $bb->calculateYOffset($moveBB, $dy);
@@ -1205,7 +1267,7 @@ abstract class Entity{
 
 				$stepBB = clone $this->boundingBox;
 
-				$list = $this->getWorld()->getBlockCollisionBoxes($stepBB->addCoord($dx, $dy, $dz));
+				$list = $this->getMovementCollisionBoxes($stepBB->addCoord($dx, $dy, $dz));
 				foreach($list as $bb){
 					$dy = $bb->calculateYOffset($stepBB, $dy);
 				}

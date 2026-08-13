@@ -228,13 +228,9 @@ class InGamePacketHandler extends PacketHandler{
 			$this->forceMoveSync = false;
 		}
 
-		//A single PlayerAuthInputPacket can carry both the START_USING_ITEM flag AND item interaction data
-		//(e.g. ACTION_CLICK_AIR) representing the SAME physical right-click. If both are handled independently,
-		//handleRightClickItemUse() ends up being called twice for one click. Detect this ahead of time so the
-		//flag-driven call below can be skipped when the transaction below will already handle it.
-		$useItemTransactionForDedup = $packet->getItemInteractionData();
-		$willHandleClickAirViaTransaction = $useItemTransactionForDedup !== null
-			&& $useItemTransactionForDedup->getTransactionData()->getActionType() === UseItemTransactionData::ACTION_CLICK_AIR;
+		$useItemTransaction = $packet->getItemInteractionData();
+		$rightClickItemUseHandledByTransaction = $useItemTransaction !== null
+			&& self::transactionTriggersRightClickItemUse($useItemTransaction->getTransactionData());
 
 		$inputFlags = $packet->getInputFlags();
 		if($this->lastPlayerAuthInputFlags === null || !$inputFlags->equals($this->lastPlayerAuthInputFlags)){
@@ -261,9 +257,11 @@ class InGamePacketHandler extends PacketHandler{
 				$this->player->jump();
 			}
 			if($inputFlags->get(PlayerAuthInputFlags::START_USING_ITEM)){
-				if(!$this->player->shouldIgnoreChargeableClickAir() && !$willHandleClickAirViaTransaction){
+				if(!$this->player->shouldIgnoreChargeableClickAir()){
 					$this->player->clearAwaitingConsumableRelease();
-					$this->handleRightClickItemUse();
+					if(!$rightClickItemUseHandledByTransaction){
+						$this->handleRightClickItemUse();
+					}
 				}
 			}
 			if($inputFlags->get(PlayerAuthInputFlags::MISSED_SWING)){
@@ -279,7 +277,6 @@ class InGamePacketHandler extends PacketHandler{
 
 		$packetHandled = true;
 
-		$useItemTransaction = $packet->getItemInteractionData();
 		if($useItemTransaction !== null){
 			if(count($useItemTransaction->getTransactionData()->getActions()) > 100){
 				throw new PacketHandlingException("Too many actions in item use transaction");
@@ -579,6 +576,14 @@ class InGamePacketHandler extends PacketHandler{
 		}
 
 		return false;
+	}
+
+	private static function transactionTriggersRightClickItemUse(UseItemTransactionData $data) : bool{
+		return match($data->getActionType()){
+			UseItemTransactionData::ACTION_CLICK_AIR => true,
+			UseItemTransactionData::ACTION_BREAK_BLOCK => $data->getFace() === 255,
+			default => false,
+		};
 	}
 
 	/**

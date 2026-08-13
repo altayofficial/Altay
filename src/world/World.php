@@ -1957,6 +1957,20 @@ class World implements ChunkManager{
 	}
 
 	/**
+	 * Returns the raw block state ID at the specified coordinates, without creating a Block object.
+	 * This is much cheaper than {@link World::getBlockAt()} when only the block type is of interest, but it doesn't
+	 * account for dynamic state properties.
+	 */
+	public function getBlockStateIdAt(int $x, int $y, int $z) : int{
+		if(!$this->isInWorld($x, $y, $z)){
+			return Block::EMPTY_STATE_ID;
+		}
+
+		$chunk = $this->chunks[World::chunkHash($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE)] ?? null;
+		return $chunk?->getBlockStateId($x & Chunk::COORD_MASK, $y, $z & Chunk::COORD_MASK) ?? Block::EMPTY_STATE_ID;
+	}
+
+	/**
 	 * Gets the Block object at the specified coordinates.
 	 *
 	 * Note for plugin developers: If you are using this method a lot (thousands of times for many positions for

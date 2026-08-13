@@ -285,6 +285,7 @@ final class VanillaBlocks{
 	private static Stair $_mDARK_PRISMARINE_STAIRS;
 	private static DaylightSensor $_mDAYLIGHT_SENSOR;
 	private static DeadBush $_mDEAD_BUSH;
+	private static DecoratedPot $_mDECORATED_POT;
 	private static SimplePillar $_mDEEPSLATE;
 	private static Opaque $_mDEEPSLATE_BRICKS;
 	private static Slab $_mDEEPSLATE_BRICK_SLAB;
@@ -1144,6 +1145,7 @@ final class VanillaBlocks{
 			"dark_prismarine_stairs" => fn(Stair $v) => self::$_mDARK_PRISMARINE_STAIRS = $v,
 			"daylight_sensor" => fn(DaylightSensor $v) => self::$_mDAYLIGHT_SENSOR = $v,
 			"dead_bush" => fn(DeadBush $v) => self::$_mDEAD_BUSH = $v,
+			"decorated_pot" => fn(DecoratedPot $v) => self::$_mDECORATED_POT = $v,
 			"deepslate" => fn(SimplePillar $v) => self::$_mDEEPSLATE = $v,
 			"deepslate_bricks" => fn(Opaque $v) => self::$_mDEEPSLATE_BRICKS = $v,
 			"deepslate_brick_slab" => fn(Slab $v) => self::$_mDEEPSLATE_BRICK_SLAB = $v,
@@ -2985,6 +2987,11 @@ final class VanillaBlocks{
 	public static function DEAD_BUSH() : DeadBush{
 		if(!isset(self::$_mDEAD_BUSH)){ self::init(); }
 		return clone self::$_mDEAD_BUSH;
+	}
+
+	public static function DECORATED_POT() : DecoratedPot{
+		if(!isset(self::$_mDECORATED_POT)){ self::init(); }
+		return clone self::$_mDECORATED_POT;
 	}
 
 	public static function DEEPSLATE() : SimplePillar{

@@ -43,6 +43,7 @@ use pocketmine\block\tile\Chest as TileChest;
 use pocketmine\block\tile\ChiseledBookshelf as TileChiseledBookshelf;
 use pocketmine\block\tile\Comparator as TileComparator;
 use pocketmine\block\tile\DaylightSensor as TileDaylightSensor;
+use pocketmine\block\tile\DecoratedPot as TileDecoratedPot;
 use pocketmine\block\tile\EnchantTable as TileEnchantingTable;
 use pocketmine\block\tile\EnderChest as TileEnderChest;
 use pocketmine\block\tile\FlowerPot as TileFlowerPot;
@@ -196,6 +197,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("cocoa_pod", fn(BID $id) => new CocoaBlock($id, "Cocoa Block", new Info(BreakInfo::axe(0.2, null, 15.0))));
 		self::register("coral_block", fn(BID $id) => new CoralBlock($id, "Coral Block", new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 30.0))));
 		self::register("daylight_sensor", fn(BID $id) => new DaylightSensor($id, "Daylight Sensor", new Info(BreakInfo::axe(0.2))), TileDaylightSensor::class);
+		self::register("decorated_pot", fn(BID $id) => new DecoratedPot($id, "Decorated Pot", new Info(BreakInfo::instant())), TileDecoratedPot::class);
 		self::register("dead_bush", fn(BID $id) => new DeadBush($id, "Dead Bush", new Info(BreakInfo::instant(ToolType::SHEARS, 1), [Tags::POTTABLE_PLANTS])));
 		self::register("detector_rail", fn(BID $id) => new DetectorRail($id, "Detector Rail", $railBreakInfo));
 

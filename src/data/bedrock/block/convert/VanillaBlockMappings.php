@@ -1369,6 +1369,9 @@ final class VanillaBlockMappings{
 		]));
 
 		//D
+		$reg->mapModel(Model::create(Blocks::DECORATED_POT(), Ids::DECORATED_POT)->properties([
+			$commonProperties->horizontalFacingSWNE
+		]));
 		$reg->mapModel(Model::create(Blocks::DEEPSLATE(), Ids::DEEPSLATE)->properties([$commonProperties->pillarAxis]));
 		$reg->mapModel(Model::create(Blocks::DETECTOR_RAIL(), Ids::DETECTOR_RAIL)->properties([
 			new BoolProperty(StateNames::RAIL_DATA_BIT, fn(DetectorRail $b) => $b->isActivated(), fn(DetectorRail $b, bool $v) => $b->setActivated($v)),

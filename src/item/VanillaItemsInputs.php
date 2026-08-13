@@ -266,6 +266,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("poisonous_potato", fn(IID $id) => new PoisonousPotato($id, "Poisonous Potato"));
 		self::register("popped_chorus_fruit", fn(IID $id) => new Item($id, "Popped Chorus Fruit"));
 		self::register("potato", fn(IID $id) => new Potato($id, "Potato"));
+		self::register("pottery_sherd", fn(IID $id) => new PotterySherd($id, "Pottery Sherd"));
 		self::register("potion", fn(IID $id) => new Potion($id, "Potion"));
 		self::register("prismarine_crystals", fn(IID $id) => new Item($id, "Prismarine Crystals"));
 		self::register("prismarine_shard", fn(IID $id) => new Item($id, "Prismarine Shard"));

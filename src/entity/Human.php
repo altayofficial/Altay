@@ -31,6 +31,8 @@ use pocketmine\entity\animation\TotemUseAnimation;
 use pocketmine\entity\effect\EffectInstance;
 use pocketmine\entity\effect\VanillaEffects;
 use pocketmine\entity\projectile\ProjectileSource;
+use pocketmine\event\entity\EntityDamageByChildEntityEvent;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\player\PlayerExhaustEvent;
 use pocketmine\inventory\CallbackInventoryListener;
@@ -42,6 +44,7 @@ use pocketmine\inventory\PlayerOffHandInventory;
 use pocketmine\item\enchantment\EnchantingHelper;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\item\Item;
+use pocketmine\item\Shield;
 use pocketmine\item\Totem;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\NBT;
@@ -60,6 +63,8 @@ use pocketmine\network\mcpe\protocol\types\AbilitiesLayer;
 use pocketmine\network\mcpe\protocol\types\command\CommandPermissions;
 use pocketmine\network\mcpe\protocol\types\DeviceOS;
 use pocketmine\network\mcpe\protocol\types\entity\EntityIds;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
+use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\network\mcpe\protocol\types\entity\PropertySyncData;
 use pocketmine\network\mcpe\protocol\types\entity\StringMetadataProperty;
@@ -68,6 +73,8 @@ use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\player\Player;
+use pocketmine\world\sound\ItemBreakSound;
+use pocketmine\world\sound\ShieldBlockSound;
 use pocketmine\world\sound\TotemUseSound;
 use pocketmine\world\World;
 use Ramsey\Uuid\Uuid;
@@ -77,6 +84,7 @@ use function array_filter;
 use function array_key_exists;
 use function array_merge;
 use function array_values;
+use function floor;
 use function min;
 
 class Human extends Living implements ProjectileSource, InventoryHolder{
@@ -100,6 +108,10 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 	private const TAG_SKIN_GEOMETRY_NAME = "GeometryName"; //TAG_String
 	private const TAG_SKIN_GEOMETRY_DATA = "GeometryData"; //TAG_ByteArray
 
+	private const SHIELD_TRANSITION_TICKS = 2;
+	private const SHIELD_ATTACK_REENABLE_DELAY_TICKS = 6;
+	private const SHIELD_DURABILITY_DAMAGE_THRESHOLD = 3;
+
 	public static function getNetworkTypeId() : string{ return EntityIds::PLAYER; }
 
 	protected PlayerInventory $inventory;
@@ -114,6 +126,12 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 	protected ExperienceManager $xpManager;
 
 	protected int $xpSeed;
+
+	private bool $blocking = false;
+	private bool $transitionBlocking = false;
+	private int $shieldTransitionTicks = 0;
+	private int $shieldAttackInterruptTicks = 0;
+	private bool $shieldReblockAfterAttack = false;
 
 	public function __construct(Location $location, Skin $skin, ?CompoundTag $nbt = null){
 		$this->skin = $skin;
@@ -369,8 +387,173 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 
 		$this->hungerManager->tick($tickDiff);
 		$this->xpManager->tick($tickDiff);
+		$this->tickShieldBlockingState($tickDiff);
 
 		return $hasUpdate;
+	}
+
+	public function getShieldInHand() : ?Shield{
+		$hand = $this->inventory->getItemInHand();
+		if($hand instanceof Shield){
+			return $hand;
+		}
+
+		$offHand = $this->offHandInventory->getItem(0);
+		return $offHand instanceof Shield ? $offHand : null;
+	}
+
+	/**
+	 * Returns whether the human is currently guarding with a raised shield.
+	 */
+	public function isBlocking() : bool{
+		return $this->blocking && $this->getShieldInHand() !== null;
+	}
+
+	public function setBlocking(bool $blocking = true) : void{
+		$this->shieldTransitionTicks = self::SHIELD_TRANSITION_TICKS;
+		$this->setBlockingFlags($blocking, true);
+	}
+
+	private function setBlockingFlags(bool $blocking, bool $transitionBlocking) : void{
+		if($this->blocking === $blocking && $this->transitionBlocking === $transitionBlocking){
+			return;
+		}
+
+		$this->blocking = $blocking;
+		$this->transitionBlocking = $transitionBlocking;
+		$this->networkPropertiesDirty = true;
+	}
+
+	protected function shouldBlockWithShield() : bool{
+		return $this->shieldAttackInterruptTicks <= 0 && $this->isSneaking() && $this->getShieldInHand() !== null;
+	}
+
+	public function updateShieldBlockingState() : void{
+		$shouldBlock = $this->shouldBlockWithShield();
+		if($shouldBlock !== $this->blocking){
+			$this->setBlocking($shouldBlock);
+		}
+	}
+
+	public function interruptShieldBlockingForAttack() : void{
+		if(!$this->shouldBlockWithShield()){
+			return;
+		}
+
+		$this->shieldReblockAfterAttack = true;
+		$this->shieldAttackInterruptTicks = self::SHIELD_ATTACK_REENABLE_DELAY_TICKS;
+		$this->setBlocking(false);
+	}
+
+	private function tickShieldBlockingState(int $tickDiff) : void{
+		if($this->shieldTransitionTicks > 0){
+			$this->shieldTransitionTicks -= $tickDiff;
+			if($this->shieldTransitionTicks <= 0){
+				$this->shieldTransitionTicks = 0;
+				$this->setBlockingFlags($this->blocking, false);
+			}
+		}
+
+		if($this->shieldAttackInterruptTicks > 0){
+			$this->shieldAttackInterruptTicks -= $tickDiff;
+			if($this->shieldAttackInterruptTicks > 0){
+				return;
+			}
+
+			$this->shieldAttackInterruptTicks = 0;
+			if($this->shieldReblockAfterAttack){
+				$this->shieldReblockAfterAttack = false;
+				if($this->shouldBlockWithShield()){
+					$this->setBlocking(true);
+				}
+
+				return;
+			}
+		}
+
+		$this->updateShieldBlockingState();
+	}
+
+	protected function blockedByShield(EntityDamageEvent $source) : bool{
+		if(!$source->canBeReducedByArmor() || !$this->isBlocking()){
+			return false;
+		}
+
+		if($source instanceof EntityDamageByChildEntityEvent){
+			$damager = $source->getChild();
+		}elseif($source instanceof EntityDamageByEntityEvent){
+			$damager = $source->getDamager();
+		}else{
+			return false;
+		}
+
+		if($damager === null){
+			return false;
+		}
+
+		$delta = $this->location->subtractVector($damager->getPosition());
+		if($delta->lengthSquared() <= 0){
+			return false;
+		}
+
+		$normal = $delta->normalize();
+		$direction = $this->getDirectionVector();
+
+		return ($normal->x * $direction->x) + ($normal->z * $direction->z) < 0;
+	}
+
+	/**
+	 * Called after an attack was stopped by the shield, to wear the shield out and push the attacker away.
+	 */
+	protected function onShieldBlock(EntityDamageEvent $source) : void{
+		$this->broadcastSound(new ShieldBlockSound());
+
+		$baseDamage = $source->getBaseDamage();
+		if($baseDamage >= self::SHIELD_DURABILITY_DAMAGE_THRESHOLD){
+			$this->damageShield(1 + (int) floor($baseDamage));
+		}
+
+		if($source instanceof EntityDamageByChildEntityEvent){
+			return; //projectiles just bounce off
+		}
+
+		if($source instanceof EntityDamageByEntityEvent && ($damager = $source->getDamager()) instanceof Living){
+			$damager->knockBack($damager->location->x - $this->location->x, $damager->location->z - $this->location->z);
+		}
+	}
+
+	private function damageShield(int $durabilityRemoved) : void{
+		$hand = $this->inventory->getItemInHand();
+		if($hand instanceof Shield){
+			$hand->applyDamage($durabilityRemoved);
+			$this->inventory->setItemInHand($hand);
+		}else{
+			$offHand = $this->offHandInventory->getItem(0);
+			if(!$offHand instanceof Shield){
+				return;
+			}
+
+			$offHand->applyDamage($durabilityRemoved);
+			$this->offHandInventory->setItem(0, $offHand);
+			$hand = $offHand;
+		}
+
+		if($hand->isBroken()){
+			$this->broadcastSound(new ItemBreakSound());
+		}
+	}
+
+	public function attack(EntityDamageEvent $source) : void{
+		$blocked = $this->blockedByShield($source);
+		if($blocked){
+			$source->cancel();
+		}
+
+		parent::attack($source);
+
+		if($blocked && $source->isCancelled()){
+			$this->onShieldBlock($source);
+		}
 	}
 
 	public function getName() : string{
@@ -491,6 +674,13 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 		if($player !== $this){
 			parent::spawnTo($player);
 		}
+	}
+
+	protected function syncNetworkData(EntityMetadataCollection $properties) : void{
+		parent::syncNetworkData($properties);
+
+		$properties->setGenericFlag(EntityMetadataFlags::BLOCKING, $this->blocking);
+		$properties->setGenericFlag(EntityMetadataFlags::TRANSITION_BLOCKING, $this->transitionBlocking);
 	}
 
 	protected function sendSpawnPacket(Player $player) : void{

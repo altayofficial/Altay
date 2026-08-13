@@ -2052,6 +2052,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$ev->setModifier($ev->getFinalDamage() / 2, EntityDamageEvent::MODIFIER_CRITICAL);
 		}
 
+		$this->interruptShieldBlockingForAttack();
+
 		$entity->attack($ev);
 		$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
 

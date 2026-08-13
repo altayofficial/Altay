@@ -165,6 +165,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("bone_block", fn(BID $id) => new BoneBlock($id, "Bone Block", new Info(BreakInfo::pickaxe(2.0, ToolTier::WOOD))));
 		self::register("bookshelf", fn(BID $id) => new Bookshelf($id, "Bookshelf", new Info(BreakInfo::axe(1.5))));
 		self::register("chiseled_bookshelf", fn(BID $id) => new ChiseledBookshelf($id, "Chiseled Bookshelf", new Info(BreakInfo::axe(1.5))), TileChiseledBookshelf::class);
+		self::register("border_block", fn(BID $id) => new BorderBlock($id, "Border Block", new Info(BreakInfo::indestructible(18000000.0))));
 		self::register("brewing_stand", fn(BID $id) => new BrewingStand($id, "Brewing Stand", new Info(BreakInfo::pickaxe(0.5))), TileBrewingStand::class);
 
 		$bricksBreakInfo = new Info(BreakInfo::pickaxe(2.0, ToolTier::WOOD, 30.0));
@@ -738,7 +739,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("element_zero", fn(BID $id) => new Opaque($id, "???", $instaBreak));
 
 		$register = fn(string $name, string $displayName, string $symbol, int $atomicWeight, int $group) =>
-			self::register("element_$name", fn(BID $id) => new Element($id, $displayName, $instaBreak, $symbol, $atomicWeight, $group));
+		self::register("element_$name", fn(BID $id) => new Element($id, $displayName, $instaBreak, $symbol, $atomicWeight, $group));
 
 		$register("hydrogen", "Hydrogen", "h", 1, 5);
 		$register("helium", "Helium", "he", 2, 7);

@@ -132,6 +132,7 @@ final class VanillaBlocks{
 	private static Torch $_mBLUE_TORCH;
 	private static BoneBlock $_mBONE_BLOCK;
 	private static Bookshelf $_mBOOKSHELF;
+	private static BorderBlock $_mBORDER_BLOCK;
 	private static BrewingStand $_mBREWING_STAND;
 	private static Opaque $_mBRICKS;
 	private static Slab $_mBRICK_SLAB;
@@ -991,6 +992,7 @@ final class VanillaBlocks{
 			"blue_torch" => fn(Torch $v) => self::$_mBLUE_TORCH = $v,
 			"bone_block" => fn(BoneBlock $v) => self::$_mBONE_BLOCK = $v,
 			"bookshelf" => fn(Bookshelf $v) => self::$_mBOOKSHELF = $v,
+			"border_block" => fn(BorderBlock $v) => self::$_mBORDER_BLOCK = $v,
 			"brewing_stand" => fn(BrewingStand $v) => self::$_mBREWING_STAND = $v,
 			"bricks" => fn(Opaque $v) => self::$_mBRICKS = $v,
 			"brick_slab" => fn(Slab $v) => self::$_mBRICK_SLAB = $v,
@@ -2220,6 +2222,11 @@ final class VanillaBlocks{
 	public static function BOOKSHELF() : Bookshelf{
 		if(!isset(self::$_mBOOKSHELF)){ self::init(); }
 		return clone self::$_mBOOKSHELF;
+	}
+
+	public static function BORDER_BLOCK() : BorderBlock{
+		if(!isset(self::$_mBORDER_BLOCK)){ self::init(); }
+		return clone self::$_mBORDER_BLOCK;
 	}
 
 	public static function BREWING_STAND() : BrewingStand{

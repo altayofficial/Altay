@@ -1323,6 +1323,8 @@ final class VanillaBlockMappings{
 			$commonProperties->pillarAxis
 		]));
 
+		$reg->mapModel(Model::create(Blocks::BORDER_BLOCK(), Ids::BORDER_BLOCK)->properties($commonProperties->wallProperties));
+
 		$reg->mapModel(Model::create(Blocks::BREWING_STAND(), Ids::BREWING_STAND)->properties(array_map(fn(BrewingStandSlot $slot) => new BoolProperty(match ($slot) {
 			BrewingStandSlot::EAST => StateNames::BREWING_STAND_SLOT_A_BIT,
 			BrewingStandSlot::SOUTHWEST => StateNames::BREWING_STAND_SLOT_B_BIT,

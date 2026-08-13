@@ -61,6 +61,7 @@ final class VanillaBlocks{
 	private static ActivatorRail $_mACTIVATOR_RAIL;
 	private static Air $_mAIR;
 	private static Flower $_mALLIUM;
+	private static Allow $_mALLOW;
 	private static MushroomStem $_mALL_SIDED_MUSHROOM_STEM;
 	private static Opaque $_mAMETHYST;
 	private static AmethystCluster $_mAMETHYST_CLUSTER;
@@ -920,6 +921,7 @@ final class VanillaBlocks{
 			"activator_rail" => fn(ActivatorRail $v) => self::$_mACTIVATOR_RAIL = $v,
 			"air" => fn(Air $v) => self::$_mAIR = $v,
 			"allium" => fn(Flower $v) => self::$_mALLIUM = $v,
+			"allow" => fn(Allow $v) => self::$_mALLOW = $v,
 			"all_sided_mushroom_stem" => fn(MushroomStem $v) => self::$_mALL_SIDED_MUSHROOM_STEM = $v,
 			"amethyst" => fn(Opaque $v) => self::$_mAMETHYST = $v,
 			"amethyst_cluster" => fn(AmethystCluster $v) => self::$_mAMETHYST_CLUSTER = $v,
@@ -1865,6 +1867,11 @@ final class VanillaBlocks{
 	public static function ALLIUM() : Flower{
 		if(!isset(self::$_mALLIUM)){ self::init(); }
 		return clone self::$_mALLIUM;
+	}
+
+	public static function ALLOW() : Allow{
+		if(!isset(self::$_mALLOW)){ self::init(); }
+		return clone self::$_mALLOW;
 	}
 
 	public static function ALL_SIDED_MUSHROOM_STEM() : MushroomStem{

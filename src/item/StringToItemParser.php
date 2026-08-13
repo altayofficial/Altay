@@ -146,6 +146,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("air", fn() => Blocks::AIR());
 		$result->registerBlock("all_sided_mushroom_stem", fn() => Blocks::ALL_SIDED_MUSHROOM_STEM());
 		$result->registerBlock("allium", fn() => Blocks::ALLIUM());
+		$result->registerBlock("allow", fn() => Blocks::ALLOW());
 		$result->registerBlock("amethyst_block", fn() => Blocks::AMETHYST());
 		$result->registerBlock("amethyst_cluster", fn() => Blocks::AMETHYST_CLUSTER());
 		$result->registerBlock("ancient_debris", fn() => Blocks::ANCIENT_DEBRIS());

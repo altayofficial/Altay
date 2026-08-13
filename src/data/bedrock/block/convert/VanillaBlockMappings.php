@@ -161,6 +161,7 @@ final class VanillaBlockMappings{
 
 	private static function registerSimpleIdOnlyMappings(BlockSerializerDeserializerRegistrar $reg) : void{
 		$reg->mapSimple(Blocks::AIR(), Ids::AIR);
+		$reg->mapSimple(Blocks::ALLOW(), Ids::ALLOW);
 		$reg->mapSimple(Blocks::AMETHYST(), Ids::AMETHYST_BLOCK);
 		$reg->mapSimple(Blocks::ANCIENT_DEBRIS(), Ids::ANCIENT_DEBRIS);
 		$reg->mapSimple(Blocks::ANDESITE(), Ids::ANDESITE);

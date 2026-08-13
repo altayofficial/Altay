@@ -148,10 +148,14 @@ class InGamePacketHandler extends PacketHandler{
 	//prevent rejected edits while still mitigating book-bomb attacks
 	private const PAGE_LENGTH_SOFT_LIMIT_CHARS = 512;
 
+	private const RIGHT_CLICK_ITEM_USE_DEDUP_TICKS = 2;
+
 	protected float $lastRightClickTime = 0.0;
 	protected ?UseItemTransactionData $lastRightClickData = null;
 
 	private int $lastEarlyConsumableReleaseTick = -1000;
+
+	private int $lastTransactionRightClickItemUseTick = -1000;
 
 	protected ?Vector3 $lastPlayerAuthInputPosition = null;
 	protected ?float $lastPlayerAuthInputYaw = null;
@@ -228,10 +232,6 @@ class InGamePacketHandler extends PacketHandler{
 			$this->forceMoveSync = false;
 		}
 
-		$useItemTransaction = $packet->getItemInteractionData();
-		$rightClickItemUseHandledByTransaction = $useItemTransaction !== null
-			&& self::transactionTriggersRightClickItemUse($useItemTransaction->getTransactionData());
-
 		$inputFlags = $packet->getInputFlags();
 		if($this->lastPlayerAuthInputFlags === null || !$inputFlags->equals($this->lastPlayerAuthInputFlags)){
 			$this->lastPlayerAuthInputFlags = $inputFlags;
@@ -259,7 +259,7 @@ class InGamePacketHandler extends PacketHandler{
 			if($inputFlags->get(PlayerAuthInputFlags::START_USING_ITEM)){
 				if(!$this->player->shouldIgnoreChargeableClickAir()){
 					$this->player->clearAwaitingConsumableRelease();
-					if(!$rightClickItemUseHandledByTransaction){
+					if(!$this->recentlyUsedItemViaTransaction()){
 						$this->handleRightClickItemUse();
 					}
 				}
@@ -277,6 +277,7 @@ class InGamePacketHandler extends PacketHandler{
 
 		$packetHandled = true;
 
+		$useItemTransaction = $packet->getItemInteractionData();
 		if($useItemTransaction !== null){
 			if(count($useItemTransaction->getTransactionData()->getActions()) > 100){
 				throw new PacketHandlingException("Too many actions in item use transaction");
@@ -500,6 +501,10 @@ class InGamePacketHandler extends PacketHandler{
 	private function handleUseItemTransaction(UseItemTransactionData $data) : bool{
 		$this->player->selectHotbarSlot($data->getHotbarSlot());
 
+		if(self::transactionTriggersRightClickItemUse($data)){
+			$this->lastTransactionRightClickItemUseTick = $this->player->getServer()->getTick();
+		}
+
 		switch($data->getActionType()){
 			case UseItemTransactionData::ACTION_CLICK_BLOCK:
 				//TODO: start hack for client spam bug
@@ -576,6 +581,10 @@ class InGamePacketHandler extends PacketHandler{
 		}
 
 		return false;
+	}
+
+	private function recentlyUsedItemViaTransaction() : bool{
+		return $this->player->getServer()->getTick() - $this->lastTransactionRightClickItemUseTick <= self::RIGHT_CLICK_ITEM_USE_DEDUP_TICKS;
 	}
 
 	private static function transactionTriggersRightClickItemUse(UseItemTransactionData $data) : bool{

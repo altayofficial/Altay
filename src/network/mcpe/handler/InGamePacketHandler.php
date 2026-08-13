@@ -228,6 +228,14 @@ class InGamePacketHandler extends PacketHandler{
 			$this->forceMoveSync = false;
 		}
 
+		//A single PlayerAuthInputPacket can carry both the START_USING_ITEM flag AND item interaction data
+		//(e.g. ACTION_CLICK_AIR) representing the SAME physical right-click. If both are handled independently,
+		//handleRightClickItemUse() ends up being called twice for one click. Detect this ahead of time so the
+		//flag-driven call below can be skipped when the transaction below will already handle it.
+		$useItemTransactionForDedup = $packet->getItemInteractionData();
+		$willHandleClickAirViaTransaction = $useItemTransactionForDedup !== null
+			&& $useItemTransactionForDedup->getTransactionData()->getActionType() === UseItemTransactionData::ACTION_CLICK_AIR;
+
 		$inputFlags = $packet->getInputFlags();
 		if($this->lastPlayerAuthInputFlags === null || !$inputFlags->equals($this->lastPlayerAuthInputFlags)){
 			$this->lastPlayerAuthInputFlags = $inputFlags;
@@ -253,7 +261,7 @@ class InGamePacketHandler extends PacketHandler{
 				$this->player->jump();
 			}
 			if($inputFlags->get(PlayerAuthInputFlags::START_USING_ITEM)){
-				if(!$this->player->shouldIgnoreChargeableClickAir()){
+				if(!$this->player->shouldIgnoreChargeableClickAir() && !$willHandleClickAirViaTransaction){
 					$this->player->clearAwaitingConsumableRelease();
 					$this->handleRightClickItemUse();
 				}

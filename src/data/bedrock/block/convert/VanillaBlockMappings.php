@@ -218,6 +218,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::DEEPSLATE_IRON_ORE(), Ids::DEEPSLATE_IRON_ORE);
 		$reg->mapSimple(Blocks::DEEPSLATE_LAPIS_LAZULI_ORE(), Ids::DEEPSLATE_LAPIS_ORE);
 		$reg->mapSimple(Blocks::DEEPSLATE_TILES(), Ids::DEEPSLATE_TILES);
+		$reg->mapSimple(Blocks::DENY(), Ids::DENY);
 		$reg->mapSimple(Blocks::DIAMOND(), Ids::DIAMOND_BLOCK);
 		$reg->mapSimple(Blocks::DIAMOND_ORE(), Ids::DIAMOND_ORE);
 		$reg->mapSimple(Blocks::DIORITE(), Ids::DIORITE);

@@ -263,6 +263,7 @@
         "DEEPSLATE_TILE_SLAB": 3,
         "DEEPSLATE_TILE_STAIRS": 8,
         "DEEPSLATE_TILE_WALL": 162,
+        "DENY": 1,
         "DETECTOR_RAIL": 12,
         "DIAMOND": 1,
         "DIAMOND_ORE": 1,

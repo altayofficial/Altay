@@ -61,7 +61,7 @@ final class VanillaBlocks{
 	private static ActivatorRail $_mACTIVATOR_RAIL;
 	private static Air $_mAIR;
 	private static Flower $_mALLIUM;
-	private static Allow $_mALLOW;
+	private static BuildPermission $_mALLOW;
 	private static MushroomStem $_mALL_SIDED_MUSHROOM_STEM;
 	private static Opaque $_mAMETHYST;
 	private static AmethystCluster $_mAMETHYST_CLUSTER;
@@ -303,6 +303,7 @@ final class VanillaBlocks{
 	private static Slab $_mDEEPSLATE_TILE_SLAB;
 	private static Stair $_mDEEPSLATE_TILE_STAIRS;
 	private static Wall $_mDEEPSLATE_TILE_WALL;
+	private static BuildPermission $_mDENY;
 	private static DetectorRail $_mDETECTOR_RAIL;
 	private static Opaque $_mDIAMOND;
 	private static DiamondOre $_mDIAMOND_ORE;
@@ -921,7 +922,7 @@ final class VanillaBlocks{
 			"activator_rail" => fn(ActivatorRail $v) => self::$_mACTIVATOR_RAIL = $v,
 			"air" => fn(Air $v) => self::$_mAIR = $v,
 			"allium" => fn(Flower $v) => self::$_mALLIUM = $v,
-			"allow" => fn(Allow $v) => self::$_mALLOW = $v,
+			"allow" => fn(BuildPermission $v) => self::$_mALLOW = $v,
 			"all_sided_mushroom_stem" => fn(MushroomStem $v) => self::$_mALL_SIDED_MUSHROOM_STEM = $v,
 			"amethyst" => fn(Opaque $v) => self::$_mAMETHYST = $v,
 			"amethyst_cluster" => fn(AmethystCluster $v) => self::$_mAMETHYST_CLUSTER = $v,
@@ -1163,6 +1164,7 @@ final class VanillaBlocks{
 			"deepslate_tile_slab" => fn(Slab $v) => self::$_mDEEPSLATE_TILE_SLAB = $v,
 			"deepslate_tile_stairs" => fn(Stair $v) => self::$_mDEEPSLATE_TILE_STAIRS = $v,
 			"deepslate_tile_wall" => fn(Wall $v) => self::$_mDEEPSLATE_TILE_WALL = $v,
+			"deny" => fn(BuildPermission $v) => self::$_mDENY = $v,
 			"detector_rail" => fn(DetectorRail $v) => self::$_mDETECTOR_RAIL = $v,
 			"diamond" => fn(Opaque $v) => self::$_mDIAMOND = $v,
 			"diamond_ore" => fn(DiamondOre $v) => self::$_mDIAMOND_ORE = $v,
@@ -1869,7 +1871,7 @@ final class VanillaBlocks{
 		return clone self::$_mALLIUM;
 	}
 
-	public static function ALLOW() : Allow{
+	public static function ALLOW() : BuildPermission{
 		if(!isset(self::$_mALLOW)){ self::init(); }
 		return clone self::$_mALLOW;
 	}
@@ -3077,6 +3079,11 @@ final class VanillaBlocks{
 	public static function DEEPSLATE_TILE_WALL() : Wall{
 		if(!isset(self::$_mDEEPSLATE_TILE_WALL)){ self::init(); }
 		return clone self::$_mDEEPSLATE_TILE_WALL;
+	}
+
+	public static function DENY() : BuildPermission{
+		if(!isset(self::$_mDENY)){ self::init(); }
+		return clone self::$_mDENY;
 	}
 
 	public static function DETECTOR_RAIL() : DetectorRail{

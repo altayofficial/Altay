@@ -2,21 +2,23 @@
 
 /*
  *
- *  ____            _        _   __  __ _                  __  __ ____
- * |  _ \ ___   ___| | _____| |_|  \/  (_)_ __   ___      |  \/  |  _ \
- * | |_) / _ \ / __| |/ / _ \ __| |\/| | | '_ \ / _ \_____| |\/| | |_) |
- * |  __/ (_) | (__|   <  __/ |_| |  | | | | | |  __/_____| |  | |  __/
- * |_|   \___/ \___|_|\_\___|\__|_|  |_|_|_| |_|\___|     |_|  |_|_|
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * @author PocketMine Team
- * @link http://www.pocketmine.net/
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
  *
- *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
  */
 
 declare(strict_types=1);
@@ -24,6 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\network\mcpe\handler;
 
 use pocketmine\block\inventory\EnchantInventory;
+use pocketmine\crafting\CraftingResultTransfer;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\CreateItemAction;
 use pocketmine\inventory\transaction\action\DestroyItemAction;
@@ -247,10 +250,8 @@ class ItemStackRequestExecutor{
 
 		$this->specialTransaction = new CraftingTransaction($this->player, $craftingManager, [], $recipe, $repetitions);
 
-		//TODO: Since the system assumes that crafting can only be done in the crafting grid, we have to give it a
-		//crafting grid to make the API happy. No implementation of getResultsFor() actually uses the crafting grid
-		//right now, so this will work, but this will become a problem in the future for things like shulker boxes and
-		//custom crafting recipes.
+		//CraftRecipeAuto may leave the crafting grid empty; container NBT is copied when
+		//CraftingConsumeInput is handled below (needed for shulker box dyeing etc.)
 		$craftingResults = $recipe->getResultsFor($this->player->getCraftingGrid());
 		foreach($craftingResults as $k => $craftingResult){
 			$craftingResult->setCount($craftingResult->getCount() * $repetitions);
@@ -355,8 +356,9 @@ class ItemStackRequestExecutor{
 			$this->beginCrafting($action->getRecipeId(), $action->getRepetitions());
 		}elseif($action instanceof CraftingConsumeInputStackRequestAction){
 			$this->assertDoingCrafting();
-			$this->removeItemFromSlot($action->getSource(), $action->getCount()); //output discarded - we allow CraftingTransaction to verify the balance
-
+			$consumed = $this->removeItemFromSlot($action->getSource(), $action->getCount());
+			//e.g. keep shulker box contents when dyeing
+			CraftingResultTransfer::transferContainerNamedTag([$consumed], $this->craftingResults);
 		}elseif($action instanceof CraftingCreateSpecificResultStackRequestAction){
 			$this->assertDoingCrafting();
 

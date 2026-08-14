@@ -148,10 +148,14 @@ class InGamePacketHandler extends PacketHandler{
 	//prevent rejected edits while still mitigating book-bomb attacks
 	private const PAGE_LENGTH_SOFT_LIMIT_CHARS = 512;
 
+	private const RIGHT_CLICK_ITEM_USE_DEDUP_TICKS = 2;
+
 	protected float $lastRightClickTime = 0.0;
 	protected ?UseItemTransactionData $lastRightClickData = null;
 
 	private int $lastEarlyConsumableReleaseTick = -1000;
+
+	private int $lastTransactionRightClickItemUseTick = -1000;
 
 	protected ?Vector3 $lastPlayerAuthInputPosition = null;
 	protected ?float $lastPlayerAuthInputYaw = null;
@@ -255,7 +259,9 @@ class InGamePacketHandler extends PacketHandler{
 			if($inputFlags->get(PlayerAuthInputFlags::START_USING_ITEM)){
 				if(!$this->player->shouldIgnoreChargeableClickAir()){
 					$this->player->clearAwaitingConsumableRelease();
-					$this->handleRightClickItemUse();
+					if(!$this->recentlyUsedItemViaTransaction()){
+						$this->handleRightClickItemUse();
+					}
 				}
 			}
 			if($inputFlags->get(PlayerAuthInputFlags::MISSED_SWING)){
@@ -495,6 +501,10 @@ class InGamePacketHandler extends PacketHandler{
 	private function handleUseItemTransaction(UseItemTransactionData $data) : bool{
 		$this->player->selectHotbarSlot($data->getHotbarSlot());
 
+		if(self::transactionTriggersRightClickItemUse($data)){
+			$this->lastTransactionRightClickItemUseTick = $this->player->getServer()->getTick();
+		}
+
 		switch($data->getActionType()){
 			case UseItemTransactionData::ACTION_CLICK_BLOCK:
 				//TODO: start hack for client spam bug
@@ -571,6 +581,18 @@ class InGamePacketHandler extends PacketHandler{
 		}
 
 		return false;
+	}
+
+	private function recentlyUsedItemViaTransaction() : bool{
+		return $this->player->getServer()->getTick() - $this->lastTransactionRightClickItemUseTick <= self::RIGHT_CLICK_ITEM_USE_DEDUP_TICKS;
+	}
+
+	private static function transactionTriggersRightClickItemUse(UseItemTransactionData $data) : bool{
+		return match($data->getActionType()){
+			UseItemTransactionData::ACTION_CLICK_AIR => true,
+			UseItemTransactionData::ACTION_BREAK_BLOCK => $data->getFace() === 255,
+			default => false,
+		};
 	}
 
 	/**

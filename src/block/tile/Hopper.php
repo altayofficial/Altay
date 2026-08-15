@@ -29,6 +29,7 @@ use pocketmine\block\inventory\HopperInventory;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\world\World;
+use function max;
 
 class Hopper extends Spawnable implements Container, Nameable{
 
@@ -51,7 +52,7 @@ class Hopper extends Spawnable implements Container, Nameable{
 		$this->loadItems($nbt);
 		$this->loadName($nbt);
 
-		$this->transferCooldown = $nbt->getInt(self::TAG_TRANSFER_COOLDOWN, 0);
+		$this->transferCooldown = max(0, $nbt->getInt(self::TAG_TRANSFER_COOLDOWN, 0));
 	}
 
 	protected function writeSaveData(CompoundTag $nbt) : void{
@@ -86,6 +87,9 @@ class Hopper extends Spawnable implements Container, Nameable{
 	}
 
 	public function setTransferCooldown(int $transferCooldown) : void{
+		if($transferCooldown < 0){
+			throw new \InvalidArgumentException("Transfer cooldown must not be negative");
+		}
 		$this->transferCooldown = $transferCooldown;
 	}
 }

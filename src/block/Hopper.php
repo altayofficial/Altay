@@ -135,7 +135,8 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		// Hoppers that have a container above them, won't try to pick up items.
 		$origin = $this->position->getWorld()->getTile($this->position->getSide(Facing::UP));
 		if($origin instanceof Container){
-			$success = $this->pull($inventory, $origin->getInventory()) || $success;
+			// Hoppers only pull from the container part directly above them, not from the other half of a double chest.
+			$success = $this->pull($inventory, $origin->getRealInventory()) || $success;
 		}elseif($origin instanceof TileJukebox){
 			$success = $this->pullFromJukebox($inventory, $origin) || $success;
 		}else{
@@ -183,23 +184,15 @@ class Hopper extends Transparent implements PoweredByRedstone{
 					$slotInFurnace = FurnaceInventory::SLOT_FUEL;
 					$itemInFurnace = $destination->getInventory()->getFuel();
 				}
-				if(!$itemInFurnace->isNull()){
-					if($itemInFurnace->getCount() >= $itemInFurnace->getMaxStackSize()){
-						return false;
-					}
-					if(!$itemInFurnace->canStackWith($item)){
-						continue;
-					}
+				if(!$itemInFurnace->isNull() && (!$itemInFurnace->canStackWith($item) || $itemInFurnace->getCount() >= $itemInFurnace->getMaxStackSize())){
+					continue;
 				}
 
 				$itemToPush = $this->callMoveItemEvent($inventory, $destination->getInventory(), $item->pop());
-				if($itemToPush === null){
+				if($itemToPush === null || !$this->canMergeInto($itemInFurnace, $itemToPush)){
 					continue;
 				}
 				if(!$itemInFurnace->isNull()){
-					if(!$itemInFurnace->canStackWith($itemToPush)){
-						continue;
-					}
 					$itemInFurnace->setCount($itemInFurnace->getCount() + $itemToPush->getCount());
 				}else{
 					$itemInFurnace = $itemToPush;
@@ -221,13 +214,10 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				}
 
 				$itemToPush = $this->callMoveItemEvent($inventory, $brewingInventory, $item->pop());
-				if($itemToPush === null){
+				if($itemToPush === null || !$this->canMergeInto($itemInStand, $itemToPush)){
 					continue;
 				}
 				if(!$itemInStand->isNull()){
-					if(!$itemInStand->canStackWith($itemToPush)){
-						continue;
-					}
 					$itemInStand->setCount($itemInStand->getCount() + $itemToPush->getCount());
 				}else{
 					$itemInStand = $itemToPush;
@@ -282,7 +272,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			}
 
 			$itemToPush = $this->callMoveItemEvent($inventory, $destination->getInventory(), $itemToPush);
-			if($itemToPush === null){
+			if($itemToPush === null || !$destination->getInventory()->canAddItem($itemToPush)){
 				continue;
 			}
 			if($resetDestinationCooldown && $destination instanceof TileHopper){
@@ -321,7 +311,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				return false;
 			}
 			$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
-			if($itemToPull === null){
+			if($itemToPull === null || !$inventory->canAddItem($itemToPull)){
 				return false;
 			}
 
@@ -341,7 +331,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 					continue;
 				}
 				$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
-				if($itemToPull === null){
+				if($itemToPull === null || !$inventory->canAddItem($itemToPull)){
 					continue;
 				}
 
@@ -361,7 +351,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 					continue;
 				}
 				$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
-				if($itemToPull === null){
+				if($itemToPull === null || !$inventory->canAddItem($itemToPull)){
 					continue;
 				}
 
@@ -387,10 +377,14 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		if($record === null || !$inventory->canAddItem($record)){
 			return false;
 		}
+		$recordToPull = $this->callMoveItemEvent(null, $inventory, $record);
+		if($recordToPull === null || !$inventory->canAddItem($recordToPull)){
+			return false;
+		}
 
 		$jukeboxBlock->extractRecord();
 		$this->position->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
-		$inventory->addItem($record);
+		$inventory->addItem($recordToPull);
 		return true;
 	}
 
@@ -418,7 +412,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			// Because of how entities are saved by PocketMine-MP the first entities of this loop are also the first ones who were saved.
 			// That's why we don't need to implement any sorting mechanism.
 			$item = $entity->getItem();
-			if(!$inventory->canAddItem($item)){
+			if($inventory->getAddableItemQuantity($item) <= 0){
 				continue;
 			}
 
@@ -432,21 +426,38 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				continue;
 			}
 			$pickedUpItem = $ev->getItem();
-			if(!$destination->canAddItem($pickedUpItem)){
+			// Hoppers pick up as much of the item entity's stack as they can hold and leave the rest on the ground.
+			$addableQuantity = $destination->getAddableItemQuantity($pickedUpItem);
+			if($addableQuantity <= 0){
 				continue;
 			}
 
-			$destination->addItem($pickedUpItem);
-			$entity->flagForDespawn();
+			$destination->addItem((clone $pickedUpItem)->setCount($addableQuantity));
+			$remainingCount = $entity->getItem()->getCount() - $addableQuantity;
+			if($remainingCount > 0){
+				$entity->setStackSize($remainingCount);
+			}else{
+				$entity->flagForDespawn();
+			}
 			return true;
 		}
 		return false;
 	}
 
 	/**
+	 * Returns whether the given item can be merged into the item currently occupying a slot.
+	 */
+	private function canMergeInto(Item $existing, Item $incoming) : bool{
+		if($existing->isNull()){
+			return $incoming->getCount() <= $incoming->getMaxStackSize();
+		}
+		return $existing->canStackWith($incoming) && $existing->getCount() + $incoming->getCount() <= $existing->getMaxStackSize();
+	}
+
+	/**
 	 * Returns the item to move after the event has been called, or null if the move was cancelled.
 	 */
-	private function callMoveItemEvent(Inventory $source, Inventory $destination, Item $item) : ?Item{
+	private function callMoveItemEvent(?Inventory $source, Inventory $destination, Item $item) : ?Item{
 		$ev = new InventoryMoveItemEvent($source, $destination, $item);
 		$ev->call();
 		return $ev->isCancelled() ? null : $ev->getItem();

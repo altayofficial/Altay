@@ -31,25 +31,31 @@ use pocketmine\inventory\Inventory;
 use pocketmine\item\Item;
 
 /**
- * Called when an item is moved from one inventory to another by a block, such as a hopper.
+ * Called when an item is moved into an inventory by a block, such as a hopper.
+ *
+ * The inventory of this event is the one receiving the item. Some sources, such as jukeboxes, don't have an inventory
+ * at all, in which case the source is null.
  */
 class InventoryMoveItemEvent extends InventoryEvent implements Cancellable{
 	use CancellableTrait;
 
 	public function __construct(
-		Inventory $source,
-		private Inventory $destination,
+		private ?Inventory $source,
+		Inventory $destination,
 		private Item $item
 	){
-		parent::__construct($source);
+		parent::__construct($destination);
 	}
 
-	public function getSource() : Inventory{
-		return $this->inventory;
+	/**
+	 * Returns the inventory the item is taken from, or null if the item doesn't come from an inventory.
+	 */
+	public function getSource() : ?Inventory{
+		return $this->source;
 	}
 
 	public function getDestination() : Inventory{
-		return $this->destination;
+		return $this->inventory;
 	}
 
 	/**

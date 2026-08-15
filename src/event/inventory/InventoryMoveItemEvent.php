@@ -27,25 +27,24 @@ namespace pocketmine\event\inventory;
 
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
+use pocketmine\event\Event;
 use pocketmine\inventory\Inventory;
 use pocketmine\item\Item;
 
 /**
- * Called when an item is moved into an inventory by a block, such as a hopper.
+ * Called when an item is moved from one inventory to another by a block, such as a hopper.
  *
- * The inventory of this event is the one receiving the item. Some sources, such as jukeboxes, don't have an inventory
- * at all, in which case the source is null.
+ * Some sources and destinations, such as jukeboxes, don't have an inventory at all, in which case the respective side
+ * of the move is null.
  */
-class InventoryMoveItemEvent extends InventoryEvent implements Cancellable{
+class InventoryMoveItemEvent extends Event implements Cancellable{
 	use CancellableTrait;
 
 	public function __construct(
 		private ?Inventory $source,
-		Inventory $destination,
+		private ?Inventory $destination,
 		private Item $item
-	){
-		parent::__construct($destination);
-	}
+	){}
 
 	/**
 	 * Returns the inventory the item is taken from, or null if the item doesn't come from an inventory.
@@ -54,8 +53,11 @@ class InventoryMoveItemEvent extends InventoryEvent implements Cancellable{
 		return $this->source;
 	}
 
-	public function getDestination() : Inventory{
-		return $this->inventory;
+	/**
+	 * Returns the inventory the item is moved into, or null if the item isn't moved into an inventory.
+	 */
+	public function getDestination() : ?Inventory{
+		return $this->destination;
 	}
 
 	/**

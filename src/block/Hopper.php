@@ -53,7 +53,7 @@ use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
-use function count;
+use function min;
 
 class Hopper extends Transparent implements PoweredByRedstone{
 	use PoweredByRedstoneTrait;
@@ -153,7 +153,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * Returns true if an item was successfully pushed or false on failure.
 	 */
 	private function push(HopperInventory $inventory) : bool{
-		if(count($inventory->getContents()) === 0){
+		if($this->isInventoryEmpty($inventory)){
 			return false;
 		}
 		$destination = $this->position->getWorld()->getTile($this->position->getSide($this->facing));
@@ -189,7 +189,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				}
 
 				$itemToPush = $this->callMoveItemEvent($inventory, $destination->getInventory(), $item->pop());
-				if($itemToPush === null || !$this->canMergeInto($itemInFurnace, $itemToPush)){
+				if($itemToPush === null || !$this->canMergeInto($destination->getInventory(), $itemInFurnace, $itemToPush)){
 					continue;
 				}
 				if(!$itemInFurnace->isNull()){
@@ -214,7 +214,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				}
 
 				$itemToPush = $this->callMoveItemEvent($inventory, $brewingInventory, $item->pop());
-				if($itemToPush === null || !$this->canMergeInto($itemInStand, $itemToPush)){
+				if($itemToPush === null || !$this->canMergeInto($brewingInventory, $itemInStand, $itemToPush)){
 					continue;
 				}
 				if(!$itemInStand->isNull()){
@@ -233,7 +233,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 					continue;
 				}
 				// Hoppers pushing into empty hoppers set the empty hoppers transfer cooldown back to the default amount of ticks.
-				$resetDestinationCooldown = count($destination->getInventory()->getContents()) === 0;
+				$resetDestinationCooldown = $this->isInventoryEmpty($destination->getInventory());
 
 			}elseif($destination instanceof TileJukebox){
 				if(!($item instanceof Record)){
@@ -251,9 +251,9 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				// The Jukebox block is handling the playing of records, so we need to get it here and can't use TileJukebox::setRecord().
 				$jukeboxBlock = $destination->getBlock();
 				if($jukeboxBlock instanceof Jukebox){
-					$record = $item->pop();
-					if($record instanceof Record){
-						$jukeboxBlock->insertRecord($record);
+					$recordToPush = $this->callMoveItemEvent($inventory, null, $item->pop());
+					if($recordToPush instanceof Record){
+						$jukeboxBlock->insertRecord($recordToPush);
 						$jukeboxBlock->getPosition()->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
 						$inventory->setItem($slot, $item);
 						return true;
@@ -427,13 +427,14 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			}
 			$pickedUpItem = $ev->getItem();
 			// Hoppers pick up as much of the item entity's stack as they can hold and leave the rest on the ground.
-			$addableQuantity = $destination->getAddableItemQuantity($pickedUpItem);
+			$entityCount = $entity->getItem()->getCount();
+			$addableQuantity = min($destination->getAddableItemQuantity($pickedUpItem), $entityCount);
 			if($addableQuantity <= 0){
 				continue;
 			}
 
 			$destination->addItem((clone $pickedUpItem)->setCount($addableQuantity));
-			$remainingCount = $entity->getItem()->getCount() - $addableQuantity;
+			$remainingCount = $entityCount - $addableQuantity;
 			if($remainingCount > 0){
 				$entity->setStackSize($remainingCount);
 			}else{
@@ -447,17 +448,30 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	/**
 	 * Returns whether the given item can be merged into the item currently occupying a slot.
 	 */
-	private function canMergeInto(Item $existing, Item $incoming) : bool{
+	private function canMergeInto(Inventory $inventory, Item $existing, Item $incoming) : bool{
+		$maxStackSize = min($inventory->getMaxStackSize(), $incoming->getMaxStackSize());
 		if($existing->isNull()){
-			return $incoming->getCount() <= $incoming->getMaxStackSize();
+			return $incoming->getCount() <= $maxStackSize;
 		}
-		return $existing->canStackWith($incoming) && $existing->getCount() + $incoming->getCount() <= $existing->getMaxStackSize();
+		return $existing->canStackWith($incoming) && $existing->getCount() + $incoming->getCount() <= $maxStackSize;
+	}
+
+	/**
+	 * Returns whether the given inventory holds no items.
+	 */
+	private function isInventoryEmpty(Inventory $inventory) : bool{
+		for($slot = 0, $size = $inventory->getSize(); $slot < $size; $slot++){
+			if(!$inventory->isSlotEmpty($slot)){
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
 	 * Returns the item to move after the event has been called, or null if the move was cancelled.
 	 */
-	private function callMoveItemEvent(?Inventory $source, Inventory $destination, Item $item) : ?Item{
+	private function callMoveItemEvent(?Inventory $source, ?Inventory $destination, Item $item) : ?Item{
 		$ev = new InventoryMoveItemEvent($source, $destination, $item);
 		$ev->call();
 		return $ev->isCancelled() ? null : $ev->getItem();

@@ -30,6 +30,7 @@ use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\world\World;
 use function max;
+use function min;
 
 class Hopper extends Spawnable implements Container, Nameable{
 
@@ -52,7 +53,7 @@ class Hopper extends Spawnable implements Container, Nameable{
 		$this->loadItems($nbt);
 		$this->loadName($nbt);
 
-		$this->transferCooldown = max(0, $nbt->getInt(self::TAG_TRANSFER_COOLDOWN, 0));
+		$this->transferCooldown = max(0, min(self::DEFAULT_TRANSFER_COOLDOWN, $nbt->getInt(self::TAG_TRANSFER_COOLDOWN, 0)));
 	}
 
 	protected function writeSaveData(CompoundTag $nbt) : void{

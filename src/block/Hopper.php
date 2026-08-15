@@ -238,9 +238,11 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				if(!$jukeboxBlock instanceof Jukebox){
 					return false;
 				}
+				// The source is always written first, so a listener reacting to either write can never observe the record
+				// in both the hopper and the jukebox at once.
+				$inventory->setItem($slot, $item);
 				$jukeboxBlock->insertRecord($recordToPush);
 				$this->position->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
-				$inventory->setItem($slot, $item);
 				return true;
 
 			}elseif($destination instanceof Container){
@@ -320,16 +322,24 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			return false;
 		}
 		$recordToPull = $this->callMoveItemEvent(null, $inventory, $record);
-		if($recordToPull === null || !$inventory->canAddItem($recordToPull)){
+		// Only a record can leave a jukebox, so a handler replacing the item with something else would create an item
+		// out of thin air and destroy the record in the process.
+		if(!$recordToPull instanceof Record || !$inventory->canAddItem($recordToPull)){
 			return false;
 		}
 
-		// A handler of the event above may have ejected the record itself, so the block has to be read again before
-		// the record is taken out of it.
+		// A handler of the event above may have ejected or swapped the record itself, so the block has to be read again
+		// - taking a record out that the jukebox no longer holds would duplicate it.
 		$jukeboxBlock = $jukebox->getBlock();
-		if(!$jukeboxBlock instanceof Jukebox || $jukeboxBlock->extractRecord() === null){
+		if(!$jukeboxBlock instanceof Jukebox){
 			return false;
 		}
+		$currentRecord = $jukeboxBlock->getRecord();
+		if($currentRecord === null || !$currentRecord->equalsExact($record)){
+			return false;
+		}
+
+		$jukeboxBlock->extractRecord();
 		$this->position->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
 		$inventory->addItem($recordToPull);
 		return true;

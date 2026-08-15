@@ -33,6 +33,7 @@ use pocketmine\block\tile\Container;
 use pocketmine\block\tile\Furnace as TileFurnace;
 use pocketmine\block\tile\Hopper as TileHopper;
 use pocketmine\block\tile\Jukebox as TileJukebox;
+use pocketmine\block\tile\Tile;
 use pocketmine\block\utils\PoweredByRedstone;
 use pocketmine\block\utils\PoweredByRedstoneTrait;
 use pocketmine\block\utils\SupportType;
@@ -113,26 +114,31 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	}
 
 	public function onScheduledUpdate() : void{
-		$tile = $this->position->getWorld()->getTile($this->position);
+		$world = $this->position->getWorld();
+		$tile = $world->getTile($this->position);
 		if(!$tile instanceof TileHopper){
 			return;
 		}
-		$this->position->getWorld()->scheduleDelayedBlockUpdate($this->position, 1);
+		$world->scheduleDelayedBlockUpdate($this->position, 1);
+
+		// A powered hopper is locked, which freezes its cooldown instead of letting it tick down.
+		if($this->isPowered()){
+			return;
+		}
 
 		$transferCooldown = $tile->getTransferCooldown();
 		if($transferCooldown > 0){
 			$transferCooldown--;
 			$tile->setTransferCooldown($transferCooldown);
-		}
-
-		if($this->isPowered() || $transferCooldown > 0){
-			return;
+			if($transferCooldown > 0){
+				return;
+			}
 		}
 
 		$inventory = $tile->getInventory();
 		$success = $this->push($inventory);
 		// Hoppers that have a container above them, won't try to pick up items.
-		$origin = $this->position->getWorld()->getTile($this->position->getSide(Facing::UP));
+		$origin = $this->getLoadedTile($this->position->getSide(Facing::UP));
 		if($origin instanceof Container){
 			// Hoppers only pull from the container part directly above them, not from the other half of a double chest.
 			$success = $this->pull($inventory, $origin->getRealInventory()) || $success;
@@ -152,19 +158,18 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * Returns true if an item was successfully pushed or false on failure.
 	 */
 	private function push(HopperInventory $inventory) : bool{
-		if($this->isInventoryEmpty($inventory)){
-			return false;
-		}
-		$destination = $this->position->getWorld()->getTile($this->position->getSide($this->facing));
-		if($destination === null){
-			return false;
-		}
+		$destination = null;
 
-		for($slot = 0; $slot < $inventory->getSize(); $slot++){
-			$item = $inventory->getItem($slot);
-			if($item->isNull()){
+		for($slot = 0, $size = $inventory->getSize(); $slot < $size; $slot++){
+			if($inventory->isSlotEmpty($slot)){
 				continue;
 			}
+			// The destination is only looked up once the hopper is known to hold something, so idle hoppers don't probe
+			// the world every tick.
+			if($destination === null && ($destination = $this->getLoadedTile($this->position->getSide($this->facing))) === null){
+				return false;
+			}
+			$item = $inventory->getItem($slot);
 
 			// Hoppers interact differently when pushing into different kinds of tiles.
 			//TODO: Composter
@@ -349,6 +354,10 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			if($entity->isClosed() || $entity->isFlaggedForDespawn() || !$entity instanceof ItemEntity){
 				continue;
 			}
+			// Just like players, hoppers can't collect an item entity before its pickup delay has run out.
+			if($entity->getPickupDelay() !== 0){
+				continue;
+			}
 			// Unlike Java Edition, Bedrock Edition's hoppers don't save in which order item entities landed on top of them to collect them in that order.
 			// In Bedrock Edition hoppers collect item entities in the order in which they entered the chunk.
 			// Because of how entities are saved by PocketMine-MP the first entities of this loop are also the first ones who were saved.
@@ -416,8 +425,10 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			$itemInSlot = $itemToMove;
 		}
 
-		$destination->setItem($destinationSlot, $itemInSlot);
+		// The source is always written first, so a listener reacting to either write can never observe the same item in
+		// both inventories at once.
 		$source->setItem($sourceSlot, $sourceItem);
+		$destination->setItem($destinationSlot, $itemInSlot);
 		return true;
 	}
 
@@ -442,6 +453,15 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		$source->setItem($sourceSlot, $sourceItem);
 		$destination->addItem($itemToMove);
 		return true;
+	}
+
+	/**
+	 * Returns the tile at the given position, or null if there is none or the position isn't in loaded terrain. Hoppers
+	 * tick every tick, so probing a neighbour with World::getTile() would keep loading the chunk it sits in.
+	 */
+	private function getLoadedTile(Vector3 $pos) : ?Tile{
+		$world = $this->position->getWorld();
+		return $world->isInLoadedTerrain($pos) ? $world->getTile($pos) : null;
 	}
 
 	/**

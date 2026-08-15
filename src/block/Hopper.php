@@ -217,18 +217,26 @@ class Hopper extends Transparent implements PoweredByRedstone{
 					return false;
 				}
 
+				$originalItem = clone $item;
+				$recordToPush = $this->callMoveItemEvent($inventory, null, $item->pop());
+				if(!$recordToPush instanceof Record || !$this->isSlotUnchanged($inventory, $slot, $originalItem)){
+					return false;
+				}
+				// A handler of the event above may have inserted a record itself, in which case the push has to be
+				// aborted - the record would otherwise be taken out of the hopper without ending up anywhere.
+				if($destination->getRecord() !== null){
+					return false;
+				}
+
 				// The Jukebox block is handling the playing of records, so we need to get it here and can't use TileJukebox::setRecord().
 				$jukeboxBlock = $destination->getBlock();
-				if($jukeboxBlock instanceof Jukebox){
-					$recordToPush = $this->callMoveItemEvent($inventory, null, $item->pop());
-					if($recordToPush instanceof Record){
-						$jukeboxBlock->insertRecord($recordToPush);
-						$jukeboxBlock->getPosition()->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
-						$inventory->setItem($slot, $item);
-						return true;
-					}
+				if(!$jukeboxBlock instanceof Jukebox){
+					return false;
 				}
-				return false;
+				$jukeboxBlock->insertRecord($recordToPush);
+				$this->position->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
+				$inventory->setItem($slot, $item);
+				return true;
 
 			}elseif($destination instanceof Container){
 				if(!$this->transferToInventory($inventory, $slot, $item, $destination->getInventory())){
@@ -303,7 +311,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			return false;
 		}
 		$record = $jukeboxBlock->getRecord();
-		if($record === null || !$inventory->canAddItem($record)){
+		if($record === null){
 			return false;
 		}
 		$recordToPull = $this->callMoveItemEvent(null, $inventory, $record);
@@ -311,7 +319,12 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			return false;
 		}
 
-		$jukeboxBlock->extractRecord();
+		// A handler of the event above may have ejected the record itself, so the block has to be read again before
+		// the record is taken out of it.
+		$jukeboxBlock = $jukebox->getBlock();
+		if(!$jukeboxBlock instanceof Jukebox || $jukeboxBlock->extractRecord() === null){
+			return false;
+		}
 		$this->position->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
 		$inventory->addItem($recordToPull);
 		return true;
@@ -341,10 +354,6 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			// Because of how entities are saved by PocketMine-MP the first entities of this loop are also the first ones who were saved.
 			// That's why we don't need to implement any sorting mechanism.
 			$item = $entity->getItem();
-			if($inventory->getAddableItemQuantity($item) <= 0){
-				continue;
-			}
-
 			$ev = new BlockItemPickupEvent($this, $entity, $item, $inventory);
 			$ev->call();
 			if($ev->isCancelled()){
@@ -385,14 +394,22 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 */
 	private function transferToSlot(Inventory $source, int $sourceSlot, Item $sourceItem, Inventory $destination, int $destinationSlot) : bool{
 		$itemInSlot = $destination->getItem($destinationSlot);
-		if(!$itemInSlot->isNull() && (!$itemInSlot->canStackWith($sourceItem) || $itemInSlot->getCount() >= $itemInSlot->getMaxStackSize())){
+		if(!$this->canMergeInto($destination, $itemInSlot, (clone $sourceItem)->setCount(1))){
 			return false;
 		}
 
+		$originalSourceItem = clone $sourceItem;
 		$itemToMove = $this->callMoveItemEvent($source, $destination, $sourceItem->pop());
-		if($itemToMove === null || !$this->canMergeInto($destination, $itemInSlot, $itemToMove)){
+		if($itemToMove === null || !$this->isSlotUnchanged($source, $sourceSlot, $originalSourceItem)){
 			return false;
 		}
+		// The destination slot was read before the event, so it has to be read again - merging into a stale copy
+		// would overwrite whatever a handler put there.
+		$itemInSlot = $destination->getItem($destinationSlot);
+		if(!$this->canMergeInto($destination, $itemInSlot, $itemToMove)){
+			return false;
+		}
+
 		if(!$itemInSlot->isNull()){
 			$itemInSlot->setCount($itemInSlot->getCount() + $itemToMove->getCount());
 		}else{
@@ -409,12 +426,16 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * it. Returns true if the item was moved.
 	 */
 	private function transferToInventory(Inventory $source, int $sourceSlot, Item $sourceItem, Inventory $destination) : bool{
+		$originalSourceItem = clone $sourceItem;
 		$itemToMove = $sourceItem->pop();
 		if(!$destination->canAddItem($itemToMove)){
 			return false;
 		}
 		$itemToMove = $this->callMoveItemEvent($source, $destination, $itemToMove);
 		if($itemToMove === null || !$destination->canAddItem($itemToMove)){
+			return false;
+		}
+		if(!$this->isSlotUnchanged($source, $sourceSlot, $originalSourceItem)){
 			return false;
 		}
 
@@ -432,6 +453,15 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			return $incoming->getCount() <= $maxStackSize;
 		}
 		return $existing->canStackWith($incoming) && $existing->getCount() + $incoming->getCount() <= $maxStackSize;
+	}
+
+	/**
+	 * Returns whether the given slot still holds the item it held before InventoryMoveItemEvent was called. Handlers of
+	 * that event are free to modify the inventories involved, and writing a snapshot taken beforehand back into the slot
+	 * would duplicate or destroy whatever they put there.
+	 */
+	private function isSlotUnchanged(Inventory $inventory, int $slot, Item $expected) : bool{
+		return $inventory->getItem($slot)->equalsExact($expected);
 	}
 
 	/**

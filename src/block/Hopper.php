@@ -113,12 +113,11 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	}
 
 	public function onScheduledUpdate() : void{
-		$this->position->getWorld()->scheduleDelayedBlockUpdate($this->position, 1);
-
 		$tile = $this->position->getWorld()->getTile($this->position);
 		if(!$tile instanceof TileHopper){
 			return;
 		}
+		$this->position->getWorld()->scheduleDelayedBlockUpdate($this->position, 1);
 
 		$transferCooldown = $tile->getTransferCooldown();
 		if($transferCooldown > 0){
@@ -167,8 +166,6 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				continue;
 			}
 
-			$resetDestinationCooldown = false;
-
 			// Hoppers interact differently when pushing into different kinds of tiles.
 			//TODO: Composter
 			if($destination instanceof TileFurnace){
@@ -176,64 +173,36 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				// If the hopper is facing in any other direction, it will only push items that can be used as fuel to the furnace's fuel slot.
 				if($this->facing === Facing::DOWN){
 					$slotInFurnace = FurnaceInventory::SLOT_INPUT;
-					$itemInFurnace = $destination->getInventory()->getSmelting();
 				}else{
 					if($item->getFuelTime() === 0){
 						continue;
 					}
 					$slotInFurnace = FurnaceInventory::SLOT_FUEL;
-					$itemInFurnace = $destination->getInventory()->getFuel();
 				}
-				if(!$itemInFurnace->isNull() && (!$itemInFurnace->canStackWith($item) || $itemInFurnace->getCount() >= $itemInFurnace->getMaxStackSize())){
+				if(!$this->transferToSlot($inventory, $slot, $item, $destination->getInventory(), $slotInFurnace)){
 					continue;
 				}
-
-				$itemToPush = $this->callMoveItemEvent($inventory, $destination->getInventory(), $item->pop());
-				if($itemToPush === null || !$this->canMergeInto($destination->getInventory(), $itemInFurnace, $itemToPush)){
-					continue;
-				}
-				if(!$itemInFurnace->isNull()){
-					$itemInFurnace->setCount($itemInFurnace->getCount() + $itemToPush->getCount());
-				}else{
-					$itemInFurnace = $itemToPush;
-				}
-
-				$destination->getInventory()->setItem($slotInFurnace, $itemInFurnace);
-				$inventory->setItem($slot, $item);
 				return true;
 
 			}elseif($destination instanceof TileBrewingStand){
 				$brewingInventory = $destination->getInventory();
 				$slotInStand = $this->getBrewingStandSlot($brewingInventory, $item);
-				if($slotInStand === null){
+				if($slotInStand === null || !$this->transferToSlot($inventory, $slot, $item, $brewingInventory, $slotInStand)){
 					continue;
 				}
-				$itemInStand = $brewingInventory->getItem($slotInStand);
-				if(!$itemInStand->isNull() && (!$itemInStand->canStackWith($item) || $itemInStand->getCount() >= $itemInStand->getMaxStackSize())){
-					continue;
-				}
-
-				$itemToPush = $this->callMoveItemEvent($inventory, $brewingInventory, $item->pop());
-				if($itemToPush === null || !$this->canMergeInto($brewingInventory, $itemInStand, $itemToPush)){
-					continue;
-				}
-				if(!$itemInStand->isNull()){
-					$itemInStand->setCount($itemInStand->getCount() + $itemToPush->getCount());
-				}else{
-					$itemInStand = $itemToPush;
-				}
-
-				$brewingInventory->setItem($slotInStand, $itemInStand);
-				$inventory->setItem($slot, $item);
 				return true;
 
 			}elseif($destination instanceof TileHopper){
-				$itemToPush = $item->pop();
-				if(!$destination->getInventory()->canAddItem($itemToPush)){
+				$destinationInventory = $destination->getInventory();
+				// Hoppers pushing into empty hoppers set the empty hoppers transfer cooldown back to the default amount of ticks.
+				$resetDestinationCooldown = $this->isInventoryEmpty($destinationInventory);
+				if(!$this->transferToInventory($inventory, $slot, $item, $destinationInventory)){
 					continue;
 				}
-				// Hoppers pushing into empty hoppers set the empty hoppers transfer cooldown back to the default amount of ticks.
-				$resetDestinationCooldown = $this->isInventoryEmpty($destination->getInventory());
+				if($resetDestinationCooldown){
+					$destination->setTransferCooldown(TileHopper::DEFAULT_TRANSFER_COOLDOWN);
+				}
+				return true;
 
 			}elseif($destination instanceof TileJukebox){
 				if(!($item instanceof Record)){
@@ -262,26 +231,14 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				return false;
 
 			}elseif($destination instanceof Container){
-				$itemToPush = $item->pop();
-				if(!$destination->getInventory()->canAddItem($itemToPush)){
+				if(!$this->transferToInventory($inventory, $slot, $item, $destination->getInventory())){
 					continue;
 				}
+				return true;
 
 			}else{
 				return false;
 			}
-
-			$itemToPush = $this->callMoveItemEvent($inventory, $destination->getInventory(), $itemToPush);
-			if($itemToPush === null || !$destination->getInventory()->canAddItem($itemToPush)){
-				continue;
-			}
-			if($resetDestinationCooldown && $destination instanceof TileHopper){
-				$destination->setTransferCooldown(TileHopper::DEFAULT_TRANSFER_COOLDOWN);
-			}
-
-			$inventory->setItem($slot, $item);
-			$destination->getInventory()->addItem($itemToPush);
-			return true;
 		}
 		return false;
 	}
@@ -306,57 +263,24 @@ class Hopper extends Transparent implements PoweredByRedstone{
 					return false;
 				}
 			}
-			$itemToPull = $item->pop();
-			if(!$inventory->canAddItem($itemToPull)){
-				return false;
-			}
-			$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
-			if($itemToPull === null || !$inventory->canAddItem($itemToPull)){
-				return false;
-			}
-
-			$origin->setItem($slot, $item);
-			$inventory->addItem($itemToPull);
-			return true;
+			return $this->transferToInventory($origin, $slot, $item, $inventory);
 
 		}elseif($origin instanceof BrewingStandInventory){
 			// Hoppers only pull the brewed potions out of a brewing stand's bottle slots.
 			foreach([BrewingStandInventory::SLOT_BOTTLE_LEFT, BrewingStandInventory::SLOT_BOTTLE_MIDDLE, BrewingStandInventory::SLOT_BOTTLE_RIGHT] as $slot){
 				$item = $origin->getItem($slot);
-				if($item->isNull()){
+				if($item->isNull() || !$this->transferToInventory($origin, $slot, $item, $inventory)){
 					continue;
 				}
-				$itemToPull = $item->pop();
-				if(!$inventory->canAddItem($itemToPull)){
-					continue;
-				}
-				$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
-				if($itemToPull === null || !$inventory->canAddItem($itemToPull)){
-					continue;
-				}
-
-				$origin->setItem($slot, $item);
-				$inventory->addItem($itemToPull);
 				return true;
 			}
 
 		}else{
-			for($slot = 0; $slot < $origin->getSize(); $slot++){
+			for($slot = 0, $size = $origin->getSize(); $slot < $size; $slot++){
 				$item = $origin->getItem($slot);
-				if($item->isNull()){
+				if($item->isNull() || !$this->transferToInventory($origin, $slot, $item, $inventory)){
 					continue;
 				}
-				$itemToPull = $item->pop();
-				if(!$inventory->canAddItem($itemToPull)){
-					continue;
-				}
-				$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
-				if($itemToPull === null || !$inventory->canAddItem($itemToPull)){
-					continue;
-				}
-
-				$origin->setItem($slot, $item);
-				$inventory->addItem($itemToPull);
 				return true;
 			}
 		}
@@ -368,6 +292,11 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * Returns true if the record was successfully pulled or false on failure.
 	 */
 	private function pullFromJukebox(HopperInventory $inventory, TileJukebox $jukebox) : bool{
+		//TODO:
+		// Just like inserting a record, pulling one out should be blocked while the jukebox is playing, since a playing
+		// jukebox emits a redstone signal which powers the hopper. We can neither rely on redstone nor tell whether the
+		// record has finished playing, so the record is pulled out immediately for now.
+
 		// The Jukebox block is handling the playing of records, so we need to get it here and can't use TileJukebox::setRecord().
 		$jukeboxBlock = $jukebox->getBlock();
 		if(!$jukeboxBlock instanceof Jukebox){
@@ -426,8 +355,13 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				continue;
 			}
 			$pickedUpItem = $ev->getItem();
+			// The item left on the ground is the one the entity holds, so a different item may not be picked up in its
+			// place - otherwise the leftover stack would no longer match what was actually taken.
+			if(!$pickedUpItem->canStackWith($item)){
+				continue;
+			}
 			// Hoppers pick up as much of the item entity's stack as they can hold and leave the rest on the ground.
-			$entityCount = $entity->getItem()->getCount();
+			$entityCount = $item->getCount();
 			$addableQuantity = min($destination->getAddableItemQuantity($pickedUpItem), $entityCount);
 			if($addableQuantity <= 0){
 				continue;
@@ -443,6 +377,50 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Moves a single item out of the given source slot into a fixed slot of the destination inventory, merging it with
+	 * the item already occupying that slot. Returns true if the item was moved.
+	 */
+	private function transferToSlot(Inventory $source, int $sourceSlot, Item $sourceItem, Inventory $destination, int $destinationSlot) : bool{
+		$itemInSlot = $destination->getItem($destinationSlot);
+		if(!$itemInSlot->isNull() && (!$itemInSlot->canStackWith($sourceItem) || $itemInSlot->getCount() >= $itemInSlot->getMaxStackSize())){
+			return false;
+		}
+
+		$itemToMove = $this->callMoveItemEvent($source, $destination, $sourceItem->pop());
+		if($itemToMove === null || !$this->canMergeInto($destination, $itemInSlot, $itemToMove)){
+			return false;
+		}
+		if(!$itemInSlot->isNull()){
+			$itemInSlot->setCount($itemInSlot->getCount() + $itemToMove->getCount());
+		}else{
+			$itemInSlot = $itemToMove;
+		}
+
+		$destination->setItem($destinationSlot, $itemInSlot);
+		$source->setItem($sourceSlot, $sourceItem);
+		return true;
+	}
+
+	/**
+	 * Moves a single item out of the given source slot into the first slot of the destination inventory that can hold
+	 * it. Returns true if the item was moved.
+	 */
+	private function transferToInventory(Inventory $source, int $sourceSlot, Item $sourceItem, Inventory $destination) : bool{
+		$itemToMove = $sourceItem->pop();
+		if(!$destination->canAddItem($itemToMove)){
+			return false;
+		}
+		$itemToMove = $this->callMoveItemEvent($source, $destination, $itemToMove);
+		if($itemToMove === null || !$destination->canAddItem($itemToMove)){
+			return false;
+		}
+
+		$source->setItem($sourceSlot, $sourceItem);
+		$destination->addItem($itemToMove);
+		return true;
 	}
 
 	/**
@@ -469,12 +447,22 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	}
 
 	/**
-	 * Returns the item to move after the event has been called, or null if the move was cancelled.
+	 * Returns the item to move after the event has been called, or null if the move was cancelled or the event left
+	 * nothing to move.
 	 */
 	private function callMoveItemEvent(?Inventory $source, ?Inventory $destination, Item $item) : ?Item{
 		$ev = new InventoryMoveItemEvent($source, $destination, $item);
 		$ev->call();
-		return $ev->isCancelled() ? null : $ev->getItem();
+		if($ev->isCancelled()){
+			return null;
+		}
+		$itemToMove = $ev->getItem();
+		if($itemToMove->isNull()){
+			return null;
+		}
+		// Only ever a single item is taken out of the source inventory, so the count has to be clamped here - otherwise
+		// an event handler raising it would create items out of thin air.
+		return $itemToMove->setCount(1);
 	}
 
 	/**

@@ -25,8 +25,10 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\block\inventory\BrewingStandInventory;
 use pocketmine\block\inventory\FurnaceInventory;
 use pocketmine\block\inventory\HopperInventory;
+use pocketmine\block\tile\BrewingStand as TileBrewingStand;
 use pocketmine\block\tile\Container;
 use pocketmine\block\tile\Furnace as TileFurnace;
 use pocketmine\block\tile\Hopper as TileHopper;
@@ -36,10 +38,16 @@ use pocketmine\block\utils\PoweredByRedstoneTrait;
 use pocketmine\block\utils\SupportType;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\entity\object\ItemEntity;
+use pocketmine\event\block\BlockItemPickupEvent;
+use pocketmine\event\inventory\InventoryMoveItemEvent;
 use pocketmine\inventory\Inventory;
 use pocketmine\item\Bucket;
+use pocketmine\item\GlassBottle;
 use pocketmine\item\Item;
+use pocketmine\item\Potion;
 use pocketmine\item\Record;
+use pocketmine\item\SplashPotion;
+use pocketmine\item\VanillaItems;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
@@ -126,9 +134,10 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		$success = $this->push($inventory);
 		// Hoppers that have a container above them, won't try to pick up items.
 		$origin = $this->position->getWorld()->getTile($this->position->getSide(Facing::UP));
-		//TODO: Not all blocks a hopper can pull from have an inventory (for example: Jukebox).
 		if($origin instanceof Container){
 			$success = $this->pull($inventory, $origin->getInventory()) || $success;
+		}elseif($origin instanceof TileJukebox){
+			$success = $this->pullFromJukebox($inventory, $origin) || $success;
 		}else{
 			$success = $this->pickup($inventory) || $success;
 		}
@@ -157,10 +166,10 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				continue;
 			}
 
+			$resetDestinationCooldown = false;
+
 			// Hoppers interact differently when pushing into different kinds of tiles.
 			//TODO: Composter
-			//TODO: Brewing Stand
-			//TODO: Jukebox (improve)
 			if($destination instanceof TileFurnace){
 				// If the hopper is facing down, it will push every item to the furnace's input slot, even items that aren't smeltable.
 				// If the hopper is facing in any other direction, it will only push items that can be used as fuel to the furnace's fuel slot.
@@ -181,15 +190,50 @@ class Hopper extends Transparent implements PoweredByRedstone{
 					if(!$itemInFurnace->canStackWith($item)){
 						continue;
 					}
-					$item->pop();
-					$itemInFurnace->setCount($itemInFurnace->getCount() + 1);
-				}else{
-					$itemInFurnace = $item->pop();
 				}
 
-				//TODO: event on item inventory switch
+				$itemToPush = $this->callMoveItemEvent($inventory, $destination->getInventory(), $item->pop());
+				if($itemToPush === null){
+					continue;
+				}
+				if(!$itemInFurnace->isNull()){
+					if(!$itemInFurnace->canStackWith($itemToPush)){
+						continue;
+					}
+					$itemInFurnace->setCount($itemInFurnace->getCount() + $itemToPush->getCount());
+				}else{
+					$itemInFurnace = $itemToPush;
+				}
 
 				$destination->getInventory()->setItem($slotInFurnace, $itemInFurnace);
+				$inventory->setItem($slot, $item);
+				return true;
+
+			}elseif($destination instanceof TileBrewingStand){
+				$brewingInventory = $destination->getInventory();
+				$slotInStand = $this->getBrewingStandSlot($brewingInventory, $item);
+				if($slotInStand === null){
+					continue;
+				}
+				$itemInStand = $brewingInventory->getItem($slotInStand);
+				if(!$itemInStand->isNull() && (!$itemInStand->canStackWith($item) || $itemInStand->getCount() >= $itemInStand->getMaxStackSize())){
+					continue;
+				}
+
+				$itemToPush = $this->callMoveItemEvent($inventory, $brewingInventory, $item->pop());
+				if($itemToPush === null){
+					continue;
+				}
+				if(!$itemInStand->isNull()){
+					if(!$itemInStand->canStackWith($itemToPush)){
+						continue;
+					}
+					$itemInStand->setCount($itemInStand->getCount() + $itemToPush->getCount());
+				}else{
+					$itemInStand = $itemToPush;
+				}
+
+				$brewingInventory->setItem($slotInStand, $itemInStand);
 				$inventory->setItem($slot, $item);
 				return true;
 
@@ -199,9 +243,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 					continue;
 				}
 				// Hoppers pushing into empty hoppers set the empty hoppers transfer cooldown back to the default amount of ticks.
-				if(count($destination->getInventory()->getContents()) === 0){
-					$destination->setTransferCooldown(TileHopper::DEFAULT_TRANSFER_COOLDOWN);
-				}
+				$resetDestinationCooldown = count($destination->getInventory()->getContents()) === 0;
 
 			}elseif($destination instanceof TileJukebox){
 				if(!($item instanceof Record)){
@@ -239,7 +281,13 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				return false;
 			}
 
-			//TODO: event on item inventory switch
+			$itemToPush = $this->callMoveItemEvent($inventory, $destination->getInventory(), $itemToPush);
+			if($itemToPush === null){
+				continue;
+			}
+			if($resetDestinationCooldown && $destination instanceof TileHopper){
+				$destination->setTransferCooldown(TileHopper::DEFAULT_TRANSFER_COOLDOWN);
+			}
 
 			$inventory->setItem($slot, $item);
 			$destination->getInventory()->addItem($itemToPush);
@@ -255,8 +303,6 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	private function pull(HopperInventory $inventory, Inventory $origin) : bool{
 		// Hoppers interact differently when pulling from different kinds of tiles.
 		//TODO: Composter
-		//TODO: Brewing Stand
-		//TODO: Jukebox
 		if($origin instanceof FurnaceInventory){
 			// Hoppers either pull empty buckets from the furnace's fuel slot or pull from its result slot.
 			// They prioritise pulling from the fuel slot over the result slot.
@@ -274,12 +320,35 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			if(!$inventory->canAddItem($itemToPull)){
 				return false;
 			}
-
-			//TODO: event on item inventory switch
+			$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
+			if($itemToPull === null){
+				return false;
+			}
 
 			$origin->setItem($slot, $item);
 			$inventory->addItem($itemToPull);
 			return true;
+
+		}elseif($origin instanceof BrewingStandInventory){
+			// Hoppers only pull the brewed potions out of a brewing stand's bottle slots.
+			foreach([BrewingStandInventory::SLOT_BOTTLE_LEFT, BrewingStandInventory::SLOT_BOTTLE_MIDDLE, BrewingStandInventory::SLOT_BOTTLE_RIGHT] as $slot){
+				$item = $origin->getItem($slot);
+				if($item->isNull()){
+					continue;
+				}
+				$itemToPull = $item->pop();
+				if(!$inventory->canAddItem($itemToPull)){
+					continue;
+				}
+				$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
+				if($itemToPull === null){
+					continue;
+				}
+
+				$origin->setItem($slot, $item);
+				$inventory->addItem($itemToPull);
+				return true;
+			}
 
 		}else{
 			for($slot = 0; $slot < $origin->getSize(); $slot++){
@@ -291,8 +360,10 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				if(!$inventory->canAddItem($itemToPull)){
 					continue;
 				}
-
-				//TODO: event on item inventory switch
+				$itemToPull = $this->callMoveItemEvent($origin, $inventory, $itemToPull);
+				if($itemToPull === null){
+					continue;
+				}
 
 				$origin->setItem($slot, $item);
 				$inventory->addItem($itemToPull);
@@ -300,6 +371,27 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * This function handles pulling the inserted record out of a jukebox above the hopper.
+	 * Returns true if the record was successfully pulled or false on failure.
+	 */
+	private function pullFromJukebox(HopperInventory $inventory, TileJukebox $jukebox) : bool{
+		// The Jukebox block is handling the playing of records, so we need to get it here and can't use TileJukebox::setRecord().
+		$jukeboxBlock = $jukebox->getBlock();
+		if(!$jukeboxBlock instanceof Jukebox){
+			return false;
+		}
+		$record = $jukeboxBlock->getRecord();
+		if($record === null || !$inventory->canAddItem($record)){
+			return false;
+		}
+
+		$jukeboxBlock->extractRecord();
+		$this->position->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
+		$inventory->addItem($record);
+		return true;
 	}
 
 	/**
@@ -330,12 +422,57 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				continue;
 			}
 
-			//TODO: event on block picking up an item
+			$ev = new BlockItemPickupEvent($this, $entity, $item, $inventory);
+			$ev->call();
+			if($ev->isCancelled()){
+				continue;
+			}
+			$destination = $ev->getInventory();
+			if($destination === null){
+				continue;
+			}
+			$pickedUpItem = $ev->getItem();
+			if(!$destination->canAddItem($pickedUpItem)){
+				continue;
+			}
 
-			$inventory->addItem($item);
+			$destination->addItem($pickedUpItem);
 			$entity->flagForDespawn();
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Returns the item to move after the event has been called, or null if the move was cancelled.
+	 */
+	private function callMoveItemEvent(Inventory $source, Inventory $destination, Item $item) : ?Item{
+		$ev = new InventoryMoveItemEvent($source, $destination, $item);
+		$ev->call();
+		return $ev->isCancelled() ? null : $ev->getItem();
+	}
+
+	/**
+	 * Returns the brewing stand slot the given item would be pushed into, or null if the item cannot be pushed.
+	 */
+	private function getBrewingStandSlot(BrewingStandInventory $inventory, Item $item) : ?int{
+		// Hoppers pushing from above fill the ingredient slot, while hoppers pushing from the side fill the fuel and bottle slots.
+		if($this->facing === Facing::DOWN){
+			return BrewingStandInventory::SLOT_INGREDIENT;
+		}
+		if($item->equals(VanillaItems::BLAZE_POWDER(), true, false)){
+			return BrewingStandInventory::SLOT_FUEL;
+		}
+		if(!$item instanceof Potion && !$item instanceof SplashPotion && !$item instanceof GlassBottle){
+			return null;
+		}
+
+		foreach([BrewingStandInventory::SLOT_BOTTLE_LEFT, BrewingStandInventory::SLOT_BOTTLE_MIDDLE, BrewingStandInventory::SLOT_BOTTLE_RIGHT] as $bottleSlot){
+			$itemInSlot = $inventory->getItem($bottleSlot);
+			if($itemInSlot->isNull() || ($itemInSlot->canStackWith($item) && $itemInSlot->getCount() < $itemInSlot->getMaxStackSize())){
+				return $bottleSlot;
+			}
+		}
+		return null;
 	}
 }

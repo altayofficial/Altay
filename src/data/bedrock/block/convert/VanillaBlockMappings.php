@@ -560,6 +560,7 @@ final class VanillaBlockMappings{
 		foreach([
 			Ids::ACACIA_SAPLING => Blocks::ACACIA_SAPLING(),
 			Ids::BIRCH_SAPLING => Blocks::BIRCH_SAPLING(),
+			Ids::CHERRY_SAPLING => Blocks::CHERRY_SAPLING(),
 			Ids::DARK_OAK_SAPLING => Blocks::DARK_OAK_SAPLING(),
 			Ids::JUNGLE_SAPLING => Blocks::JUNGLE_SAPLING(),
 			Ids::OAK_SAPLING => Blocks::OAK_SAPLING(),

@@ -167,6 +167,7 @@ final class VanillaBlocks{
 	private static Wood $_mCHERRY_LOG;
 	private static Planks $_mCHERRY_PLANKS;
 	private static WoodenPressurePlate $_mCHERRY_PRESSURE_PLATE;
+	private static Sapling $_mCHERRY_SAPLING;
 	private static FloorSign $_mCHERRY_SIGN;
 	private static WoodenSlab $_mCHERRY_SLAB;
 	private static WoodenStairs $_mCHERRY_STAIRS;
@@ -1027,6 +1028,7 @@ final class VanillaBlocks{
 			"cherry_log" => fn(Wood $v) => self::$_mCHERRY_LOG = $v,
 			"cherry_planks" => fn(Planks $v) => self::$_mCHERRY_PLANKS = $v,
 			"cherry_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mCHERRY_PRESSURE_PLATE = $v,
+			"cherry_sapling" => fn(Sapling $v) => self::$_mCHERRY_SAPLING = $v,
 			"cherry_sign" => fn(FloorSign $v) => self::$_mCHERRY_SIGN = $v,
 			"cherry_slab" => fn(WoodenSlab $v) => self::$_mCHERRY_SLAB = $v,
 			"cherry_stairs" => fn(WoodenStairs $v) => self::$_mCHERRY_STAIRS = $v,
@@ -2397,6 +2399,11 @@ final class VanillaBlocks{
 	public static function CHERRY_PRESSURE_PLATE() : WoodenPressurePlate{
 		if(!isset(self::$_mCHERRY_PRESSURE_PLATE)){ self::init(); }
 		return clone self::$_mCHERRY_PRESSURE_PLATE;
+	}
+
+	public static function CHERRY_SAPLING() : Sapling{
+		if(!isset(self::$_mCHERRY_SAPLING)){ self::init(); }
+		return clone self::$_mCHERRY_SAPLING;
 	}
 
 	public static function CHERRY_SIGN() : FloorSign{

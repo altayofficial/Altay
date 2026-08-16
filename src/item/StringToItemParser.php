@@ -252,6 +252,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("cherry_log", fn() => Blocks::CHERRY_LOG());
 		$result->registerBlock("cherry_planks", fn() => Blocks::CHERRY_PLANKS());
 		$result->registerBlock("cherry_pressure_plate", fn() => Blocks::CHERRY_PRESSURE_PLATE());
+		$result->registerBlock("cherry_sapling", fn() => Blocks::CHERRY_SAPLING());
 		$result->registerBlock("cherry_sign", fn() => Blocks::CHERRY_SIGN());
 		$result->registerBlock("cherry_slab", fn() => Blocks::CHERRY_SLAB());
 		$result->registerBlock("cherry_stairs", fn() => Blocks::CHERRY_STAIRS());

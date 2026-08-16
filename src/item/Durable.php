@@ -28,8 +28,8 @@ namespace pocketmine\item;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
-use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\inventory\Inventory;
+use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\utils\Utils;
@@ -38,6 +38,12 @@ use function min;
 abstract class Durable extends Item{
 	protected int $damage = 0;
 	private bool $unbreakable = false;
+
+	private ?int $damageContextCause = null;
+	private ?Living $damageContextEntity = null;
+	private Block|Entity|null $damageContextTarget = null;
+	private ?Inventory $damageContextInventory = null;
+	private ?int $damageContextSlot = null;
 
 	/**
 	 * Returns whether this item will take damage when used.
@@ -62,6 +68,17 @@ abstract class Durable extends Item{
 	 * @return bool if any damage was applied to the item
 	 */
 	public function applyDamage(int $amount) : bool{
+		if($this->damageContextCause !== null){
+			return $this->applyDamageWithContext(
+				$amount,
+				$this->damageContextCause,
+				$this->damageContextEntity,
+				$this->damageContextTarget,
+				$this->damageContextInventory,
+				$this->damageContextSlot
+			);
+		}
+
 		return $this->applyDamageWithContext(
 			$amount,
 			ItemDamageEvent::CAUSE_PLUGIN
@@ -192,5 +209,41 @@ abstract class Durable extends Item{
 		parent::serializeCompoundTag($tag);
 		$this->unbreakable ? $tag->setByte("Unbreakable", 1) : $tag->removeTag("Unbreakable");
 		$this->damage !== 0 ? $tag->setInt("Damage", $this->damage) : $tag->removeTag("Damage");
+	}
+
+	public function onAttackEntityWithContext(Entity $victim, Living $entity, ?Inventory $inventory, ?int $slot, array &$returnedItems) : bool{
+		$this->damageContextCause = ItemDamageEvent::CAUSE_ENTITY_ATTACK;
+		$this->damageContextEntity = $entity;
+		$this->damageContextTarget = $victim;
+		$this->damageContextInventory = $inventory;
+		$this->damageContextSlot = $slot;
+
+		try{
+			return $this->onAttackEntity($victim, $returnedItems);
+		}finally{
+			$this->clearDamageContext();
+		}
+	}
+
+	public function onDestroyBlockWithContext(Block $block, ?Living $entity, ?Inventory $inventory, ?int $slot, array &$returnedItems) : bool{
+		$this->damageContextCause = ItemDamageEvent::CAUSE_BLOCK_BREAK;
+		$this->damageContextEntity = $entity;
+		$this->damageContextTarget = $block;
+		$this->damageContextInventory = $inventory;
+		$this->damageContextSlot = $slot;
+
+		try{
+			return $this->onDestroyBlock($block, $returnedItems);
+		}finally{
+			$this->clearDamageContext();
+		}
+	}
+
+	private function clearDamageContext() : void{
+		$this->damageContextCause = null;
+		$this->damageContextEntity = null;
+		$this->damageContextTarget = null;
+		$this->damageContextInventory = null;
+		$this->damageContextSlot = null;
 	}
 }

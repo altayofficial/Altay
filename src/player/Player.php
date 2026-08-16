@@ -298,7 +298,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	protected float $flightSpeedMultiplier = self::DEFAULT_FLIGHT_SPEED_MULTIPLIER;
 
-	/** @phpstan-var positive-int|null  */
+	/** @phpstan-var positive-int|null */
 	protected ?int $lineHeight = null;
 	protected string $locale = "en_US";
 
@@ -350,7 +350,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		$this->spawnThreshold = (int) (($this->server->getConfigGroup()->getPropertyInt(YmlServerProperties::CHUNK_SENDING_SPAWN_RADIUS, 4) ** 2) * M_PI);
 		$this->chunkSelector = new ChunkSelector();
 
-		$this->chunkLoader = new class implements ChunkLoader{};
+		$this->chunkLoader = new class implements ChunkLoader{
+		};
 		$this->chunkTicker = new ChunkTicker();
 		$world = $spawnLocation->getWorld();
 		//load the spawn chunk so we can see the terrain
@@ -989,8 +990,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	/**
-	 * @param true[] $oldTickingChunks
-	 * @param true[] $newTickingChunks
+	 * @param true[]                   $oldTickingChunks
+	 * @param true[]                   $newTickingChunks
 	 *
 	 * @phpstan-param array<int, true> $oldTickingChunks
 	 * @phpstan-param array<int, true> $newTickingChunks
@@ -2079,7 +2080,13 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			//reactive damage like thorns might cause us to be killed by attacking another mob, which
 			//would mean we'd already have dropped the inventory by the time we reached here
 			$returnedItems = [];
-			$heldItem->onAttackEntity($entity, $returnedItems);
+
+			if($heldItem instanceof Durable){
+				$heldItem->onAttackEntityWithContext($entity, $this, $this->inventory, $this->inventory->getHeldItemIndex(), $returnedItems);
+			}else{
+				$heldItem->onAttackEntity($entity, $returnedItems);
+			}
+
 			$this->returnItemsFromAction($oldItem, $heldItem, $returnedItems);
 
 			$this->hungerManager->exhaust(0.1, PlayerExhaustEvent::CAUSE_ATTACK);
@@ -2228,8 +2235,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	/**
 	 * Adds a title text to the user's screen, with an optional subtitle.
 	 *
-	 * @param int $fadeIn  Duration in ticks for fade-in. If -1 is given, client-sided defaults will be used.
-	 * @param int $stay    Duration in ticks to stay on screen for
+	 * @param int $fadeIn Duration in ticks for fade-in. If -1 is given, client-sided defaults will be used.
+	 * @param int $stay Duration in ticks to stay on screen for
 	 * @param int $fadeOut Duration in ticks for fade-out.
 	 */
 	public function sendTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1) : void{
@@ -2271,8 +2278,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	/**
 	 * Sets the title duration.
 	 *
-	 * @param int $fadeIn  Title fade-in time in ticks.
-	 * @param int $stay    Title stay time in ticks.
+	 * @param int $fadeIn Title fade-in time in ticks.
+	 * @param int $stay Title stay time in ticks.
 	 * @param int $fadeOut Title fade-out time in ticks.
 	 */
 	public function setTitleDuration(int $fadeIn, int $stay, int $fadeOut) : void{
@@ -2361,7 +2368,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * Transfers a player to another server.
 	 *
 	 * @param string                   $address The IP address or hostname of the destination server
-	 * @param int                      $port    The destination port, defaults to 19132
+	 * @param int                      $port The destination port, defaults to 19132
 	 * @param Translatable|string|null $message Message to show in the console when closing the player, null will use the default message
 	 *
 	 * @return bool if transfer was successful.
@@ -2380,8 +2387,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	/**
 	 * Kicks a player from the server
 	 *
-	 * @param Translatable|string      $reason                  Shown in the server log - this should be a short one-line message
-	 * @param Translatable|string|null $quitMessage             Message to broadcast to online players (null will use default)
+	 * @param Translatable|string      $reason Shown in the server log - this should be a short one-line message
+	 * @param Translatable|string|null $quitMessage Message to broadcast to online players (null will use default)
 	 * @param Translatable|string|null $disconnectScreenMessage Shown on the player's disconnection screen (null will use the reason)
 	 */
 	public function kick(Translatable|string $reason = "", Translatable|string|null $quitMessage = null, Translatable|string|null $disconnectScreenMessage = null) : bool{
@@ -2413,8 +2420,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 *
 	 * Note for internals developers: Do not call this from network sessions. It will cause a feedback loop.
 	 *
-	 * @param Translatable|string      $reason                  Shown in the server log - this should be a short one-line message
-	 * @param Translatable|string|null $quitMessage             Message to broadcast to online players (null will use default)
+	 * @param Translatable|string      $reason Shown in the server log - this should be a short one-line message
+	 * @param Translatable|string|null $quitMessage Message to broadcast to online players (null will use default)
 	 * @param Translatable|string|null $disconnectScreenMessage Shown on the player's disconnection screen (null will use the reason)
 	 */
 	public function disconnect(Translatable|string $reason, Translatable|string|null $quitMessage = null, Translatable|string|null $disconnectScreenMessage = null) : void{
@@ -2427,11 +2434,12 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	/**
+	 * @param Translatable|string      $reason Shown in the server log - this should be a short one-line message
+	 * @param Translatable|string|null $quitMessage Message to broadcast to online players (null will use default)
+	 *
 	 * @internal
 	 * This method executes post-disconnect actions and cleanups.
 	 *
-	 * @param Translatable|string      $reason      Shown in the server log - this should be a short one-line message
-	 * @param Translatable|string|null $quitMessage Message to broadcast to online players (null will use default)
 	 */
 	public function onPostDisconnect(Translatable|string $reason, Translatable|string|null $quitMessage) : void{
 		if($this->isConnected()){

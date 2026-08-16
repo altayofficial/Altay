@@ -60,6 +60,7 @@ use pocketmine\event\world\WorldDisplayNameChangeEvent;
 use pocketmine\event\world\WorldParticleEvent;
 use pocketmine\event\world\WorldSaveEvent;
 use pocketmine\event\world\WorldSoundEvent;
+use pocketmine\item\Durable;
 use pocketmine\item\Item;
 use pocketmine\item\ItemUseResult;
 use pocketmine\item\LegacyStringToItemParser;
@@ -2200,7 +2201,17 @@ class World implements ChunkManager{
 			$this->destroyBlockInternal($t, $item, $player, $createParticles, $returnedItems);
 		}
 
-		$item->onDestroyBlock($target, $returnedItems);
+		if($item instanceof Durable && $player !== null){
+			$item->onDestroyBlockWithContext(
+				$target,
+				$player,
+				$player->getInventory(),
+				$player->getInventory()->getHeldItemIndex(),
+				$returnedItems
+			);
+		}else{
+			$item->onDestroyBlock($target, $returnedItems);
+		}
 
 		if(count($drops) > 0){
 			$dropPos = $vector->add(0.5, 0.5, 0.5);

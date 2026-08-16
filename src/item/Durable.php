@@ -211,6 +211,9 @@ abstract class Durable extends Item{
 		$this->damage !== 0 ? $tag->setInt("Damage", $this->damage) : $tag->removeTag("Damage");
 	}
 
+	/**
+	 * @param Item[] $returnedItems
+	 */
 	public function onAttackEntityWithContext(Entity $victim, Living $entity, ?Inventory $inventory, ?int $slot, array &$returnedItems) : bool{
 		$this->damageContextCause = ItemDamageEvent::CAUSE_ENTITY_ATTACK;
 		$this->damageContextEntity = $entity;
@@ -225,6 +228,9 @@ abstract class Durable extends Item{
 		}
 	}
 
+	/**
+	 * @param Item[] $returnedItems
+	 */
 	public function onDestroyBlockWithContext(Block $block, ?Living $entity, ?Inventory $inventory, ?int $slot, array &$returnedItems) : bool{
 		$this->damageContextCause = ItemDamageEvent::CAUSE_BLOCK_BREAK;
 		$this->damageContextEntity = $entity;

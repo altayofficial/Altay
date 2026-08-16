@@ -177,6 +177,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::APPLE, Items::APPLE());
 		$this->map1to1Item(Ids::BAKED_POTATO, Items::BAKED_POTATO());
 		$this->map1to1Item(Ids::BAMBOO_HANGING_SIGN, Items::BAMBOO_HANGING_SIGN());
+		$this->map1to1Item(Ids::BAMBOO_RAFT, Items::BAMBOO_RAFT());
 		$this->map1to1Item(Ids::BAMBOO_SIGN, Items::BAMBOO_SIGN());
 		$this->map1to1Item(Ids::BEEF, Items::RAW_BEEF());
 		$this->map1to1Item(Ids::BEETROOT, Items::BEETROOT());

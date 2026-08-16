@@ -1302,6 +1302,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("baked_potato", fn() => Items::BAKED_POTATO());
 		$result->register("baked_potatoes", fn() => Items::BAKED_POTATO());
 		$result->register("bamboo_hanging_sign", fn() => Items::BAMBOO_HANGING_SIGN());
+		$result->register("bamboo_raft", fn() => Items::BAMBOO_RAFT());
 		$result->register("beef", fn() => Items::RAW_BEEF());
 		$result->register("beetroot", fn() => Items::BEETROOT());
 		$result->register("beetroot_seed", fn() => Items::BEETROOT_SEEDS());

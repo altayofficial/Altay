@@ -59,6 +59,8 @@ use function min;
 class Hopper extends Transparent implements PoweredByRedstone{
 	use PoweredByRedstoneTrait;
 
+	private const BOWL_DEPTH = 6 / 16;
+
 	private int $facing = Facing::DOWN;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
@@ -79,7 +81,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 
 	protected function recalculateCollisionBoxes() : array{
 		$result = [
-			AxisAlignedBB::one()->trim(Facing::UP, 6 / 16) //the empty area around the bottom is currently considered solid
+			AxisAlignedBB::one()->trim(Facing::UP, self::BOWL_DEPTH) //the empty area around the bottom is currently considered solid
 		];
 
 		foreach(Facing::HORIZONTAL as $f){ //add the frame parts around the bowl
@@ -350,10 +352,11 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * Returns true if an item was successfully picked up or false on failure.
 	 */
 	private function pickup(HopperInventory $inventory) : bool{
-		// In Bedrock Edition hoppers collect from the lower 3/4 of the block space above them.
+		// In Bedrock Edition hoppers collect from the lower 3/4 of the block space above them, down to the floor of
+		// their own bowl - that's where items dropped onto a hopper come to rest.
 		$pickupCollisionBox = new AxisAlignedBB(
 			$this->position->getX(),
-			$this->position->getY() + 1,
+			$this->position->getY() + 1 - self::BOWL_DEPTH,
 			$this->position->getZ(),
 			$this->position->getX() + 1,
 			$this->position->getY() + 1.75,
@@ -364,8 +367,9 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			if($entity->isClosed() || $entity->isFlaggedForDespawn() || !$entity instanceof ItemEntity){
 				continue;
 			}
-			// Just like players, hoppers can't collect an item entity before its pickup delay has run out.
-			if($entity->getPickupDelay() !== 0){
+			// The pickup delay only holds players off from collecting an item they have just thrown, so hoppers ignore
+			// it. An item whose delay never runs out is meant to be uncollectable though.
+			if($entity->getPickupDelay() === ItemEntity::NEVER_DESPAWN){
 				continue;
 			}
 			// Unlike Java Edition, Bedrock Edition's hoppers don't save in which order item entities landed on top of them to collect them in that order.

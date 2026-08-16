@@ -28,6 +28,7 @@ namespace pocketmine\item;
 use pocketmine\block\Block;
 use pocketmine\block\BlockTypeIds;
 use pocketmine\block\VanillaBlocks;
+use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\world\sound\FlintSteelSound;
@@ -40,7 +41,7 @@ class FlintSteel extends Tool{
 			$world->setBlock($blockReplace->getPosition(), VanillaBlocks::FIRE());
 			$world->addSound($blockReplace->getPosition()->add(0.5, 0.5, 0.5), new FlintSteelSound());
 
-			$this->applyDamage(1);
+			$this->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $blockClicked, $player->getInventory(), $player->getInventory()->getHeldItemIndex());
 
 			return ItemUseResult::SUCCESS;
 		}

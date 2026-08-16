@@ -41,6 +41,7 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDeathEvent;
 use pocketmine\event\entity\EntityFrostWalkerEvent;
+use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\inventory\ArmorInventory;
 use pocketmine\inventory\CallbackInventoryListener;
 use pocketmine\inventory\Inventory;
@@ -487,7 +488,7 @@ abstract class Living extends Entity{
 	protected function applyPostDamageEffects(EntityDamageEvent $source) : void{
 		$this->setAbsorption(max(0, $this->getAbsorption() + $source->getModifier(EntityDamageEvent::MODIFIER_ABSORPTION)));
 		if($source->canBeReducedByArmor()){
-			$this->damageArmor($source->getBaseDamage());
+			$this->damageArmor($source->getBaseDamage(), $source);
 		}
 
 		if($source instanceof EntityDamageByEntityEvent && ($attacker = $source->getDamager()) !== null){
@@ -495,10 +496,10 @@ abstract class Living extends Entity{
 			foreach($this->armorInventory->getContents() as $k => $item){
 				if($item instanceof Armor && ($thornsLevel = $item->getEnchantmentLevel(VanillaEnchantments::THORNS())) > 0){
 					if(mt_rand(0, 99) < $thornsLevel * 15){
-						$this->damageItem($item, 3);
+						$this->damageItem($item, 3, ItemDamageEvent::CAUSE_THORNS, $attacker, $this->armorInventory, $k);
 						$damage += ($thornsLevel > 10 ? $thornsLevel - 10 : 1 + mt_rand(0, 3));
 					}else{
-						$this->damageItem($item, 1); //thorns causes an extra +1 durability loss even if it didn't activate
+						$this->damageItem($item, 1, ItemDamageEvent::CAUSE_THORNS, $attacker, $this->armorInventory, $k); //thorns causes an extra +1 durability loss even if it didn't activate
 					}
 
 					$this->armorInventory->setItem($k, $item);
@@ -513,7 +514,7 @@ abstract class Living extends Entity{
 				$helmet = $this->armorInventory->getHelmet();
 				if($helmet instanceof Armor){
 					$finalDamage = $source->getFinalDamage();
-					$this->damageItem($helmet, (int) round($finalDamage * 4 + Utils::getRandomFloat() * $finalDamage * 2));
+					$this->damageItem($helmet, (int) round($finalDamage * 4 + Utils::getRandomFloat() * $finalDamage * 2), ItemDamageEvent::CAUSE_ARMOR_DAMAGE, $attacker, $this->armorInventory, ArmorInventory::SLOT_HEAD);
 					$this->armorInventory->setHelmet($helmet);
 				}
 			}
@@ -524,14 +525,18 @@ abstract class Living extends Entity{
 	 * Damages the worn armour according to the amount of damage given. Each 4 points (rounded down) deals 1 damage
 	 * point to each armour piece, but never less than 1 total.
 	 */
-	public function damageArmor(float $damage) : void{
+	public function damageArmor(float $damage, ?EntityDamageEvent $source = null) : void{
 		$durabilityRemoved = (int) max(floor($damage / 4), 1);
+
+		$target = $source instanceof EntityDamageByEntityEvent ?
+			$source->getDamager() :
+			null;
 
 		$armor = $this->armorInventory->getContents();
 		foreach($armor as $slotId => $item){
 			if($item instanceof Armor){
 				$oldItem = clone $item;
-				$this->damageItem($item, $durabilityRemoved);
+				$this->damageItem($item, $durabilityRemoved, ItemDamageEvent::CAUSE_ARMOR_DAMAGE, $target, $this->armorInventory, $slotId);
 				if(!$item->equalsExact($oldItem)){
 					$this->armorInventory->setItem($slotId, $item);
 				}
@@ -539,8 +544,23 @@ abstract class Living extends Entity{
 		}
 	}
 
-	private function damageItem(Durable $item, int $durabilityRemoved) : void{
-		$item->applyDamage($durabilityRemoved);
+	private function damageItem(
+		Durable $item,
+		int $durabilityRemoved,
+		int $cause,
+		Block|Entity|null $target = null,
+		?Inventory $inventory = null,
+		?int $slot = null
+	) : void{
+		$item->applyDamageWithContext(
+			$durabilityRemoved,
+			$cause,
+			$this,
+			$target,
+			$inventory,
+			$slot
+		);
+
 		if($item->isBroken()){
 			$this->broadcastSound(new ItemBreakSound());
 		}
@@ -565,8 +585,8 @@ abstract class Living extends Entity{
 		}
 
 		if($source instanceof EntityDamageByEntityEvent && (
-			$source->getCause() === EntityDamageEvent::CAUSE_BLOCK_EXPLOSION ||
-			$source->getCause() === EntityDamageEvent::CAUSE_ENTITY_EXPLOSION)
+				$source->getCause() === EntityDamageEvent::CAUSE_BLOCK_EXPLOSION ||
+				$source->getCause() === EntityDamageEvent::CAUSE_ENTITY_EXPLOSION)
 		){
 			//TODO: knockback should not just apply for entity damage sources
 			//this doesn't matter for TNT right now because the PrimedTNT entity is considered the source, not the block.
@@ -875,7 +895,8 @@ abstract class Living extends Entity{
 	}
 
 	/**
-	 * @param true[] $transparent
+	 * @param true[]                   $transparent
+	 *
 	 * @phpstan-param array<int, true> $transparent
 	 *
 	 * @return Block[]
@@ -918,7 +939,8 @@ abstract class Living extends Entity{
 	}
 
 	/**
-	 * @param true[] $transparent
+	 * @param true[]                   $transparent
+	 *
 	 * @phpstan-param array<int, true> $transparent
 	 */
 	public function getTargetBlock(int $maxDistance, array $transparent = []) : ?Block{
@@ -961,8 +983,8 @@ abstract class Living extends Entity{
 		parent::syncNetworkData($properties);
 
 		$visibleEffects = [];
-		foreach ($this->effectManager->all() as $effect) {
-			if (!$effect->isVisible() || !$effect->getType()->hasBubbles()) {
+		foreach($this->effectManager->all() as $effect){
+			if(!$effect->isVisible() || !$effect->getType()->hasBubbles()){
 				continue;
 			}
 			$visibleEffects[EffectIdMap::getInstance()->toId($effect->getType())] = $effect->isAmbient();
@@ -973,12 +995,12 @@ abstract class Living extends Entity{
 
 		$effectsData = 0;
 		$packedEffectsCount = 0;
-		foreach ($visibleEffects as $effectId => $isAmbient) {
+		foreach($visibleEffects as $effectId => $isAmbient){
 			$effectsData = ($effectsData << 7) |
 				(($effectId & 0x3f) << 1) | //Why not use 7 bits instead of only 6? mojang...
 				($isAmbient ? 1 : 0);
 
-			if (++$packedEffectsCount >= 8) {
+			if(++$packedEffectsCount >= 8){
 				break;
 			}
 		}

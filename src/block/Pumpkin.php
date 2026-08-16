@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\Item;
 use pocketmine\item\Shears;
 use pocketmine\item\VanillaItems;
@@ -37,7 +38,7 @@ class Pumpkin extends Opaque{
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($item instanceof Shears && in_array($face, Facing::HORIZONTAL, true)){
-			$item->applyDamage(1);
+			$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
 			$world = $this->position->getWorld();
 			$world->setBlock($this->position, VanillaBlocks::CARVED_PUMPKIN()->setFacing($face));
 			$world->dropItem($this->position->add(0.5, 0.5, 0.5), VanillaItems::PUMPKIN_SEEDS()->setCount(1));

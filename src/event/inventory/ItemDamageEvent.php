@@ -31,6 +31,7 @@ use pocketmine\entity\Living;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 use pocketmine\event\Event;
+use pocketmine\inventory\Inventory;
 use pocketmine\item\Durable;
 
 /**
@@ -39,22 +40,24 @@ use pocketmine\item\Durable;
 class ItemDamageEvent extends Event implements Cancellable{
 	use CancellableTrait;
 
-	public const CAUSE_ENTITY_ATTACK = 0;
+	public const CAUSE_PLUGIN = 0;
 	public const CAUSE_BLOCK_BREAK = 1;
-	public const CAUSE_ARMOR_DAMAGE = 2;
-	public const CAUSE_OTHER = 3;
+	public const CAUSE_ENTITY_ATTACK = 2;
+	public const CAUSE_ARMOR_DAMAGE = 3;
+	public const CAUSE_THORNS = 4;
+	public const CAUSE_BLOCK_INTERACT = 5;
+	public const CAUSE_PROJECTILE = 6;
 
 	public function __construct(
-		private Living $entity,
 		private Durable $item,
 		private int $damage,
-		private int $cause,
-		private Entity|Block|null $target = null
+		private int $unbreakingDamageReduction = 0,
+		private int $cause = self::CAUSE_PLUGIN,
+		private ?Living $entity = null,
+		private Block|Entity|null $target = null,
+		private ?Inventory $inventory = null,
+		private ?int $slot = null
 	){
-	}
-
-	public function getEntity() : Living{
-		return $this->entity;
 	}
 
 	public function getItem() : Durable{
@@ -69,11 +72,31 @@ class ItemDamageEvent extends Event implements Cancellable{
 		$this->damage = $damage;
 	}
 
+	public function getUnbreakingDamageReduction() : int{
+		return $this->unbreakingDamageReduction;
+	}
+
+	public function setUnbreakingDamageReduction(int $unbreakingDamageReduction) : void{
+		$this->unbreakingDamageReduction = $unbreakingDamageReduction;
+	}
+
 	public function getCause() : int{
 		return $this->cause;
 	}
 
-	public function getTarget() : Entity|Block|null{
+	public function getEntity() : ?Living{
+		return $this->entity;
+	}
+
+	public function getTarget() : Block|Entity|null{
 		return $this->target;
+	}
+
+	public function getInventory() : ?Inventory{
+		return $this->inventory;
+	}
+
+	public function getSlot() : ?int{
+		return $this->slot;
 	}
 }

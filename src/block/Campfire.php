@@ -42,6 +42,7 @@ use pocketmine\entity\projectile\SplashPotion;
 use pocketmine\event\block\CampfireCookEvent;
 use pocketmine\event\entity\EntityDamageByBlockEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\Durable;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\item\Item;
@@ -64,10 +65,10 @@ use function min;
 use function mt_rand;
 
 class Campfire extends Transparent implements Lightable, HorizontalFacing{
-	use HorizontalFacingTrait{
+	use HorizontalFacingTrait {
 		HorizontalFacingTrait::describeBlockOnlyState as encodeFacingState;
 	}
-	use LightableTrait{
+	use LightableTrait {
 		LightableTrait::describeBlockOnlyState as encodeLitState;
 	}
 
@@ -193,13 +194,13 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 				return true;
 			}elseif($item->getTypeId() === ItemTypeIds::FLINT_AND_STEEL || $item->hasEnchantment(VanillaEnchantments::FIRE_ASPECT())){
 				if($item instanceof Durable){
-					$item->applyDamage(1);
+					$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
 				}
 				$this->ignite();
 				return true;
 			}
 		}elseif($item instanceof Shovel){
-			$item->applyDamage(1);
+			$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
 			$this->extinguish();
 			return true;
 		}
@@ -257,7 +258,7 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 					$ev = new CampfireCookEvent($this, $slot, $item, $result);
 					$ev->call();
 
-					if ($ev->isCancelled()){
+					if($ev->isCancelled()){
 						continue;
 					}
 

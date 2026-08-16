@@ -25,7 +25,11 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use pocketmine\block\Block;
+use pocketmine\entity\Entity;
+use pocketmine\entity\Living;
 use pocketmine\event\inventory\ItemDamageEvent;
+use pocketmine\inventory\Inventory;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\utils\Utils;
@@ -53,18 +57,70 @@ abstract class Durable extends Item{
 	}
 
 	/**
-	 * Applies damage to the item.
+	 * Applies damage to the item without any specific usage context.
 	 *
 	 * @return bool if any damage was applied to the item
 	 */
 	public function applyDamage(int $amount) : bool{
+		return $this->applyDamageWithContext(
+			$amount,
+			ItemDamageEvent::CAUSE_PLUGIN
+		);
+	}
+
+	/**
+	 * Applies damage to the item with information about how and where
+	 * the item was damaged.
+	 *
+	 * @return bool if any damage was applied to the item
+	 */
+	public function applyDamageWithContext(
+		int $amount,
+		int $cause,
+		?Living $entity = null,
+		Block|Entity|null $target = null,
+		?Inventory $inventory = null,
+		?int $slot = null
+	) : bool{
 		if($this->isUnbreakable() || $this->isBroken()){
 			return false;
 		}
 
-		$amount -= $this->getUnbreakingDamageReduction($amount);
+		$unbreakingDamageReduction = $this->getUnbreakingDamageReduction($amount);
 
-		$this->damage = min($this->damage + $amount, $this->getMaxDurability());
+		$event = new ItemDamageEvent(
+			$this,
+			$amount,
+			$unbreakingDamageReduction,
+			$cause,
+			$entity,
+			$target,
+			$inventory,
+			$slot
+		);
+		$event->call();
+
+		if($event->isCancelled()){
+			return false;
+		}
+
+		$finalDamage = max(
+			0,
+			$event->getDamage() - $event->getUnbreakingDamageReduction()
+		);
+
+		return $this->applyRawDamage($finalDamage);
+	}
+
+	/**
+	 * Applies already calculated durability damage.
+	 */
+	private function applyRawDamage(int $amount) : bool{
+		$this->damage = min(
+			$this->damage + $amount,
+			$this->getMaxDurability()
+		);
+
 		if($this->isBroken()){
 			$this->onBroken();
 		}

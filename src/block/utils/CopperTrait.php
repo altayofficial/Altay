@@ -27,6 +27,7 @@ namespace pocketmine\block\utils;
 
 use pocketmine\block\Block;
 use pocketmine\data\runtime\RuntimeDataDescriber;
+use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\Axe;
 use pocketmine\item\Item;
 use pocketmine\item\ItemTypeIds;
@@ -63,6 +64,7 @@ trait CopperTrait{
 
 	/**
 	 * @param Item[] &$returnedItems
+	 *
 	 * @see Block::onInteract()
 	 */
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
@@ -81,7 +83,7 @@ trait CopperTrait{
 				$this->position->getWorld()->setBlock($this->position, $this);
 				//TODO: white particles are supposed to appear when removing wax
 				$this->position->getWorld()->addSound($this->position, new CopperWaxRemoveSound());
-				$item->applyDamage(1);
+				$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
 				return true;
 			}
 
@@ -91,7 +93,7 @@ trait CopperTrait{
 				$this->position->getWorld()->setBlock($this->position, $this);
 				//TODO: turquoise particles are supposed to appear when removing oxidation
 				$this->position->getWorld()->addSound($this->position, new ScrapeSound());
-				$item->applyDamage(1);
+				$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
 				return true;
 			}
 		}

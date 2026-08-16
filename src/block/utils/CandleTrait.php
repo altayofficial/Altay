@@ -27,6 +27,7 @@ namespace pocketmine\block\utils;
 
 use pocketmine\block\Block;
 use pocketmine\entity\projectile\Projectile;
+use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\Durable;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\item\Item;
@@ -47,6 +48,7 @@ trait CandleTrait{
 
 	/**
 	 * @param Item[] &$returnedItems
+	 *
 	 * @see Block::onInteract()
 	 */
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
@@ -55,7 +57,7 @@ trait CandleTrait{
 				return true;
 			}
 			if($item instanceof Durable){
-				$item->applyDamage(1);
+				$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
 			}elseif($item->getTypeId() === ItemTypeIds::FIRE_CHARGE){
 				$item->pop();
 				//TODO: not sure if this is intentional, but it's what Bedrock currently does as of 1.20.10

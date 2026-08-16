@@ -62,15 +62,6 @@ abstract class Durable extends Item{
 			return false;
 		}
 
-		$ev = new ItemDamageEvent($this, $amount, $this->getUnbreakingDamageReduction($amount));
-		$ev->call();
-
-		if ($ev->isCancelled()) {
-			return false;
-		}
-
-		$amount = $ev->getDamage() - $ev->getUnbreakingDamageReduction();
-
 		$amount -= $this->getUnbreakingDamageReduction($amount);
 
 		$this->damage = min($this->damage + $amount, $this->getMaxDurability());

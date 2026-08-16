@@ -25,6 +25,9 @@ declare(strict_types=1);
 
 namespace pocketmine\event\inventory;
 
+use pocketmine\block\Block;
+use pocketmine\entity\Entity;
+use pocketmine\entity\Living;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 use pocketmine\event\Event;
@@ -36,30 +39,41 @@ use pocketmine\item\Durable;
 class ItemDamageEvent extends Event implements Cancellable{
 	use CancellableTrait;
 
+	public const CAUSE_ENTITY_ATTACK = 0;
+	public const CAUSE_BLOCK_BREAK = 1;
+	public const CAUSE_ARMOR_DAMAGE = 2;
+	public const CAUSE_OTHER = 3;
+
 	public function __construct(
+		private Living $entity,
 		private Durable $item,
 		private int $damage,
-		private int $unbreakingDamageReduction = 0
+		private int $cause,
+		private Entity|Block|null $target = null
 	){
 	}
 
-	public function getDamage() : int{
-		return $this->damage;
+	public function getEntity() : Living{
+		return $this->entity;
 	}
 
 	public function getItem() : Durable{
 		return $this->item;
 	}
 
-	public function getUnbreakingDamageReduction() : int{
-		return $this->unbreakingDamageReduction;
+	public function getDamage() : int{
+		return $this->damage;
 	}
 
 	public function setDamage(int $damage) : void{
 		$this->damage = $damage;
 	}
 
-	public function setUnbreakingDamageReduction(int $unbreakingDamageReduction) : void{
-		$this->unbreakingDamageReduction = $unbreakingDamageReduction;
+	public function getCause() : int{
+		return $this->cause;
+	}
+
+	public function getTarget() : Entity|Block|null{
+		return $this->target;
 	}
 }

@@ -26,6 +26,7 @@ namespace pocketmine\network\mcpe\transport;
 use altay\network\nethernet\NetherNetTransport;
 use altay\network\nethernet\ServerData;
 use altay\network\transport\Transport;
+use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use function dirname;
 use function file_exists;
 use function getenv;
@@ -42,7 +43,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private int $maxPlayerCount,
 		private string $bindAddress = "0.0.0.0",
 		private int $port = NetherNetTransport::DISCOVERY_PORT,
-		private bool $onlineMode = false
+		private bool $onlineMode = false,
+		private ?string $endpointAddress = null
 	){}
 
 	public function getName() : string{
@@ -60,6 +62,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 			$this->networkId,
 			new ServerData(
 				serverName: $this->motd,
+				protocol: ProtocolInfo::CURRENT_PROTOCOL,
+				gameVersion: ProtocolInfo::MINECRAFT_VERSION_NETWORK,
 				levelName: $this->levelName,
 				maxPlayerCount: $this->maxPlayerCount,
 				acceptsOnlineAuth: $this->onlineMode,
@@ -69,7 +73,9 @@ final class NetherNetTransportFactory implements TransportFactory{
 			$this->port,
 			//vanilla clients do not attach identity assertions to LAN offers, they only do so
 			//for Xbox Live session signaling so that means assertions are still verified when present
-			false
+			false,
+			null,
+			$this->endpointAddress
 		);
 	}
 

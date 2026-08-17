@@ -186,24 +186,16 @@ function ping_nethernet(\Socket $socket, string $serverIp, int $serverPort, int 
  * @return array{serverName: string, levelName: string, playerCount: int, maxPlayerCount: int}|null
  */
 function decode_server_data(string $data) : ?array{
-	$in = new BinaryStream($data);
 	try{
-		if($in->getByte() !== ServerData::VERSION){
-			return null;
-		}
-		$serverName = $in->get($in->getUnsignedVarInt());
-		$levelName = $in->get($in->getUnsignedVarInt());
-		$in->getVarInt(); //game type
-		$playerCount = $in->getLInt();
-		$maxPlayerCount = $in->getLInt();
+		$serverData = ServerData::decode($data);
 	}catch(BinaryDataException){
 		return null;
 	}
 	return [
-		"serverName" => $serverName,
-		"levelName" => $levelName,
-		"playerCount" => $playerCount,
-		"maxPlayerCount" => $maxPlayerCount
+		"serverName" => $serverData->serverName,
+		"levelName" => $serverData->levelName,
+		"playerCount" => $serverData->playerCount,
+		"maxPlayerCount" => $serverData->maxPlayerCount
 	];
 }
 

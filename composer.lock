@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1e7f3993d094618b09d93351a742ad81",
+    "content-hash": "42030f5f6bf6bcbb4b12f34714d52bfa",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -71,12 +71,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "0e3d80765761a7e4239f99725dee82e36b81742a"
+                "reference": "612b3bbe77ccb8e7b13f1ec9c5366bd25b71e1af"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/0e3d80765761a7e4239f99725dee82e36b81742a",
-                "reference": "0e3d80765761a7e4239f99725dee82e36b81742a",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/612b3bbe77ccb8e7b13f1ec9c5366bd25b71e1af",
+                "reference": "612b3bbe77ccb8e7b13f1ec9c5366bd25b71e1af",
                 "shasum": ""
             },
             "type": "library",
@@ -87,7 +87,7 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.50"
             },
-            "time": "2026-08-17T11:10:21+00:00"
+            "time": "2026-08-17T16:33:54+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
@@ -95,12 +95,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "ba6cf913f4a8fffb9da48e771767c39726365d3b"
+                "reference": "26f4e7c8fa9f42d875c2eb0908849633aa07e2c3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/ba6cf913f4a8fffb9da48e771767c39726365d3b",
-                "reference": "ba6cf913f4a8fffb9da48e771767c39726365d3b",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/26f4e7c8fa9f42d875c2eb0908849633aa07e2c3",
+                "reference": "26f4e7c8fa9f42d875c2eb0908849633aa07e2c3",
                 "shasum": ""
             },
             "require": {
@@ -144,7 +144,7 @@
                 "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.50",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-08-17T10:58:25+00:00"
+            "time": "2026-08-17T17:24:35+00:00"
         },
         {
             "name": "altayofficial/nbt",
@@ -4907,7 +4907,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.4",
+        "php": "^8.1",
         "php-64bit": "*",
         "ext-chunkutils2": "^0.3.1",
         "ext-crypto": "^0.3.1",

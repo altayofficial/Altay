@@ -260,6 +260,8 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("painting", fn(IID $id) => new PaintingItem($id, "Painting"));
 		self::registerDelayed("pale_oak_sign", fn(string $name) : ItemBlockWallOrFloor => new ItemBlockWallOrFloor(self::makeIID($name), Blocks::PALE_OAK_SIGN(), Blocks::PALE_OAK_WALL_SIGN()));
 		self::registerDelayed("pale_oak_hanging_sign", fn(string $name) : HangingSign => new HangingSign(self::makeIID($name), "Pale Oak Hanging Sign", Blocks::PALE_OAK_CEILING_CENTER_HANGING_SIGN(), Blocks::PALE_OAK_CEILING_EDGES_HANGING_SIGN(), Blocks::PALE_OAK_WALL_HANGING_SIGN()));
+		self::registerDelayed("poplar_sign", fn(string $name) : ItemBlockWallOrFloor => new ItemBlockWallOrFloor(self::makeIID($name), Blocks::POPLAR_SIGN(), Blocks::POPLAR_WALL_SIGN()));
+		self::registerDelayed("poplar_hanging_sign", fn(string $name) : HangingSign => new HangingSign(self::makeIID($name), "Poplar Hanging Sign", Blocks::POPLAR_CEILING_CENTER_HANGING_SIGN(), Blocks::POPLAR_CEILING_EDGES_HANGING_SIGN(), Blocks::POPLAR_WALL_HANGING_SIGN()));
 		self::register("paper", fn(IID $id) => new Item($id, "Paper"));
 		self::register("phantom_membrane", fn(IID $id) => new Item($id, "Phantom Membrane"));
 		self::register("pitcher_pod", fn(IID $id) => new PitcherPod($id, "Pitcher Pod"));

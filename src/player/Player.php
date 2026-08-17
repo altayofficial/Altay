@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\player;
 
 use pocketmine\block\BaseSign;
-use pocketmine\block\Bed;
+use pocketmine\block\BedBase;
 use pocketmine\block\BlockTypeTags;
 use pocketmine\block\RespawnAnchor;
 use pocketmine\block\UnknownBlock;
@@ -1182,7 +1182,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			return false;
 		}
 
-		if($b instanceof Bed){
+		if($b instanceof BedBase){
 			$b->setOccupied();
 			$this->getWorld()->setBlock($pos, $b);
 		}
@@ -1200,7 +1200,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	public function stopSleep() : void{
 		if($this->sleeping instanceof Vector3){
 			$b = $this->getWorld()->getBlock($this->sleeping);
-			if($b instanceof Bed){
+			if($b instanceof BedBase){
 				$b->setOccupied(false);
 				$this->getWorld()->setBlock($this->sleeping, $b);
 			}
@@ -2959,7 +2959,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	public function onBlockChanged(Vector3 $block) : void{
-		if($this->sleeping !== null && $block->equals($this->sleeping) && !($this->getWorld()->getBlock($block) instanceof Bed)){
+		if($this->sleeping !== null && $block->equals($this->sleeping) && !($this->getWorld()->getBlock($block) instanceof BedBase)){
 			$this->logger->debug("Bed was changed or deleted, aborting sleep");
 			$this->stopSleep();
 		}

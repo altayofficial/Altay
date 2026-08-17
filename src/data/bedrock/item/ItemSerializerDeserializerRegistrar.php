@@ -158,9 +158,13 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Block(Ids::NETHER_SPROUTS, Blocks::NETHER_SPROUTS());
 		$this->map1to1Block(Ids::NETHER_WART, Blocks::NETHER_WART());
 		$this->map1to1Block(Ids::PALE_OAK_DOOR, Blocks::PALE_OAK_DOOR());
+		$this->map1to1Block(Ids::POPLAR_DOOR, Blocks::POPLAR_DOOR());
+		$this->map1to1Block(Ids::RED_SHRUB, Blocks::RED_SHRUB());
 		$this->map1to1Block(Ids::REPEATER, Blocks::REDSTONE_REPEATER());
+		$this->map1to1Block(Ids::SHELF_MUSHROOM, Blocks::SHELF_MUSHROOM());
 		$this->map1to1Block(Ids::SOUL_CAMPFIRE, Blocks::SOUL_CAMPFIRE());
 		$this->map1to1Block(Ids::SPRUCE_DOOR, Blocks::SPRUCE_DOOR());
+		$this->map1to1Block(Ids::STRAW_BED, Blocks::STRAW_BED());
 		$this->map1to1Block(Ids::SUGAR_CANE, Blocks::SUGARCANE());
 		$this->map1to1Block(Ids::WARPED_DOOR, Blocks::WARPED_DOOR());
 		$this->map1to1Block(Ids::WOODEN_DOOR, Blocks::OAK_DOOR());
@@ -367,6 +371,9 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::PAINTING, Items::PAINTING());
 		$this->map1to1Item(Ids::PALE_OAK_HANGING_SIGN, Items::PALE_OAK_HANGING_SIGN());
 		$this->map1to1Item(Ids::PALE_OAK_SIGN, Items::PALE_OAK_SIGN());
+		$this->map1to1Item(Ids::POPLAR_BOAT, Items::POPLAR_BOAT());
+		$this->map1to1Item(Ids::POPLAR_HANGING_SIGN, Items::POPLAR_HANGING_SIGN());
+		$this->map1to1Item(Ids::POPLAR_SIGN, Items::POPLAR_SIGN());
 		$this->map1to1Item(Ids::PAPER, Items::PAPER());
 		$this->map1to1Item(Ids::PHANTOM_MEMBRANE, Items::PHANTOM_MEMBRANE());
 		$this->map1to1Item(Ids::PITCHER_POD, Items::PITCHER_POD());

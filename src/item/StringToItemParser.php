@@ -930,6 +930,21 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("pale_oak_stairs", fn() => Blocks::PALE_OAK_STAIRS());
 		$result->registerBlock("pale_oak_trapdoor", fn() => Blocks::PALE_OAK_TRAPDOOR());
 		$result->registerBlock("pale_oak_wood", fn() => Blocks::PALE_OAK_WOOD()->setStripped(false));
+		$result->registerBlock("orange_poplar_leaves", fn() => Blocks::ORANGE_POPLAR_LEAVES());
+		$result->registerBlock("poplar_button", fn() => Blocks::POPLAR_BUTTON());
+		$result->registerBlock("poplar_door", fn() => Blocks::POPLAR_DOOR());
+		$result->registerBlock("poplar_fence", fn() => Blocks::POPLAR_FENCE());
+		$result->registerBlock("poplar_fence_gate", fn() => Blocks::POPLAR_FENCE_GATE());
+		$result->registerBlock("poplar_log", fn() => Blocks::POPLAR_LOG()->setStripped(false));
+		$result->registerBlock("poplar_planks", fn() => Blocks::POPLAR_PLANKS());
+		$result->registerBlock("poplar_pressure_plate", fn() => Blocks::POPLAR_PRESSURE_PLATE());
+		$result->registerBlock("poplar_sign", fn() => Blocks::POPLAR_SIGN());
+		$result->registerBlock("poplar_slab", fn() => Blocks::POPLAR_SLAB());
+		$result->registerBlock("poplar_stairs", fn() => Blocks::POPLAR_STAIRS());
+		$result->registerBlock("poplar_trapdoor", fn() => Blocks::POPLAR_TRAPDOOR());
+		$result->registerBlock("poplar_wood", fn() => Blocks::POPLAR_WOOD()->setStripped(false));
+		$result->registerBlock("red_poplar_leaves", fn() => Blocks::RED_POPLAR_LEAVES());
+		$result->registerBlock("yellow_poplar_leaves", fn() => Blocks::YELLOW_POPLAR_LEAVES());
 		$result->registerBlock("peony", fn() => Blocks::PEONY());
 		$result->registerBlock("pink_petals", fn() => Blocks::PINK_PETALS());
 		$result->registerBlock("pink_tulip", fn() => Blocks::PINK_TULIP());
@@ -1012,6 +1027,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("raw_iron_block", fn() => Blocks::RAW_IRON());
 		$result->registerBlock("red_flower", fn() => Blocks::POPPY());
 		$result->registerBlock("red_mushroom", fn() => Blocks::RED_MUSHROOM());
+		$result->registerBlock("red_shrub", fn() => Blocks::RED_SHRUB());
 		$result->registerBlock("red_mushroom_block", fn() => Blocks::RED_MUSHROOM_BLOCK());
 		$result->registerBlock("red_nether_brick", fn() => Blocks::RED_NETHER_BRICKS());
 		$result->registerBlock("red_nether_brick_slab", fn() => Blocks::RED_NETHER_BRICK_SLAB());
@@ -1058,6 +1074,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("sculk", fn() => Blocks::SCULK());
 		$result->registerBlock("sea_lantern", fn() => Blocks::SEA_LANTERN());
 		$result->registerBlock("sea_pickle", fn() => Blocks::SEA_PICKLE());
+		$result->registerBlock("shelf_mushroom", fn() => Blocks::SHELF_MUSHROOM());
 		$result->registerBlock("sealantern", fn() => Blocks::SEA_LANTERN());
 		$result->registerBlock("shroomlight", fn() => Blocks::SHROOMLIGHT());
 		$result->registerBlock("shulker_box", fn() => Blocks::SHULKER_BOX());
@@ -1141,6 +1158,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("stone_wall", fn() => Blocks::COBBLESTONE_WALL());
 		$result->registerBlock("stonebrick", fn() => Blocks::STONE_BRICKS());
 		$result->registerBlock("stonecutter", fn() => Blocks::STONECUTTER());
+		$result->registerBlock("straw_bed", fn() => Blocks::STRAW_BED());
 		$result->registerBlock("stonecutter_block", fn() => Blocks::STONECUTTER());
 		$result->registerBlock("stripped_acacia_log", fn() => Blocks::ACACIA_LOG()->setStripped(true));
 		$result->registerBlock("stripped_acacia_wood", fn() => Blocks::ACACIA_WOOD()->setStripped(true));
@@ -1161,6 +1179,8 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("stripped_oak_wood", fn() => Blocks::OAK_WOOD()->setStripped(true));
 		$result->registerBlock("stripped_pale_oak_log", fn() => Blocks::PALE_OAK_LOG()->setStripped(true));
 		$result->registerBlock("stripped_pale_oak_wood", fn() => Blocks::PALE_OAK_WOOD()->setStripped(true));
+		$result->registerBlock("stripped_poplar_log", fn() => Blocks::POPLAR_LOG()->setStripped(true));
+		$result->registerBlock("stripped_poplar_wood", fn() => Blocks::POPLAR_WOOD()->setStripped(true));
 		$result->registerBlock("stripped_spruce_log", fn() => Blocks::SPRUCE_LOG()->setStripped(true));
 		$result->registerBlock("stripped_spruce_wood", fn() => Blocks::SPRUCE_WOOD()->setStripped(true));
 		$result->registerBlock("stripped_warped_hyphae", fn() => Blocks::WARPED_HYPHAE()->setStripped(true));
@@ -1549,6 +1569,8 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("oak_hanging_sign", fn() => Items::OAK_HANGING_SIGN());
 		$result->register("painting", fn() => Items::PAINTING());
 		$result->register("pale_oak_hanging_sign", fn() => Items::PALE_OAK_HANGING_SIGN());
+		$result->register("poplar_boat", fn() => Items::POPLAR_BOAT());
+		$result->register("poplar_hanging_sign", fn() => Items::POPLAR_HANGING_SIGN());
 		$result->register("paper", fn() => Items::PAPER());
 		$result->register("phantom_membrane", fn() => Items::PHANTOM_MEMBRANE());
 		$result->register("pitcher_pod", fn() => Items::PITCHER_POD());

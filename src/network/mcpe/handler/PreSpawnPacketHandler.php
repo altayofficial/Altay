@@ -83,10 +83,10 @@ class PreSpawnPacketHandler extends PacketHandler{
 				->setTag("template_pools", new ListTag([], NBT::TAG_Compound))
 				->setTag("jigsaws", new ListTag([], NBT::TAG_Compound))
 				->setTag("structure_sets", new ListTag([], NBT::TAG_Compound))
-			)), true); // TODO: custom jigsaw structure support
+			)), true); // TODO: Custom jigsaw structure support
 
 			$this->session->getLogger()->debug("Preparing VoxelShapesPacket");
-			$this->session->sendDataPacket(VoxelShapesPacket::create([], [], 0), true); // TODO: Voxel shapes support
+			$this->session->sendDataPacket(StaticPacketCache::getInstance()->getVoxelShapes(), true); // TODO: Custom voxel shapes support
 
 			$this->session->getLogger()->debug("Preparing StartGamePacket");
 			$levelSettings = new LevelSettings();
@@ -128,11 +128,11 @@ class PreSpawnPacketHandler extends PacketHandler{
 				sprintf("%s %s", VersionInfo::NAME, VersionInfo::VERSION()->getFullVersion(true)),
 				Uuid::fromString(Uuid::NIL),
 				false,
-				true, //blockNetworkIdsAreHashes - the dictionary uses hashed network IDs from block_palette.nbt
+				true, //the dictionary uses hashed network IDs from block_palette.nbt
 				new NetworkPermissions(disableClientSounds: true),
 				null,
 				new ServerTelemetryData("", "", "", ""),
-				[],
+				StaticPacketCache::getInstance()->getBlockDefinitions(),
 				0
 			));
 
@@ -143,7 +143,7 @@ class PreSpawnPacketHandler extends PacketHandler{
 			$this->session->sendDataPacket(StaticPacketCache::getInstance()->getAvailableActorIdentifiers());
 
 			$this->session->getLogger()->debug("Sending biome definitions");
-			$this->session->sendDataPacket(StaticPacketCache::getInstance()->getBiomeDefs());
+			$this->session->sendDataPacket(StaticPacketCache::getInstance()->getBiomeDefinitionList());
 
 			$this->session->getLogger()->debug("Sending attributes");
 			$this->session->getEntityEventBroadcaster()->syncAttributes([$this->session], $this->player, $this->player->getAttributeMap()->getAll());

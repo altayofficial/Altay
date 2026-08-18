@@ -1195,6 +1195,7 @@ abstract class Entity{
 
 		$this->passengers[spl_object_id($passenger)] = $passenger;
 		$passenger->vehicle = $this;
+		$passenger->networkPropertiesDirty = true;
 		$passenger->setPosition($this->location->addVector($this->getSeatPosition($passenger)));
 
 		$this->broadcastLink($passenger, $this->getLinkType($passenger));
@@ -1215,6 +1216,7 @@ abstract class Entity{
 
 		unset($this->passengers[$key]);
 		$passenger->vehicle = null;
+		$passenger->networkPropertiesDirty = true;
 
 		$this->broadcastLink($passenger, EntityLink::TYPE_REMOVE);
 
@@ -1841,9 +1843,10 @@ abstract class Entity{
 		$properties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
 		$properties->setString(EntityMetadataProperties::SCORE_TAG, $this->scoreTag);
 		$properties->setByte(EntityMetadataProperties::COLOR, 0);
-		//without this the client seats a rider at this entity's own origin, which buries it in whatever
-		//the entity is standing on
-		$properties->setVector3(EntityMetadataProperties::RIDER_SEAT_POSITION, $this->getSeatPosition());
+		if($this->vehicle !== null){
+			//the seat travels on the rider rather than on the vehicle, which is how the game sends it
+			$properties->setVector3(EntityMetadataProperties::RIDER_SEAT_POSITION, $this->vehicle->getSeatPosition($this));
+		}
 
 		$properties->setGenericFlag(EntityMetadataFlags::AFFECTED_BY_GRAVITY, $this->gravityEnabled);
 		$properties->setGenericFlag(EntityMetadataFlags::CAN_CLIMB, $this->canClimb);

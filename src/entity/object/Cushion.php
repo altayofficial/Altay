@@ -96,11 +96,11 @@ class Cushion extends Living{
 	}
 
 	/**
-	 * A rider sits right on the cushion's own position rather than on top of the pad. Any lift at all
-	 * leaves it hovering, because the client already raises a seated rider by itself.
+	 * The game seats a boat rider at 1.02, which lands it a little above the boat's own position, so a
+	 * cushion sitting almost flat on the floor wants a touch less than that.
 	 */
 	public function getSeatPosition(?Entity $passenger = null) : Vector3{
-		return Vector3::zero();
+		return new Vector3(0, 1.0, 0);
 	}
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{

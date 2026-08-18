@@ -1168,10 +1168,10 @@ abstract class Entity{
 	}
 
 	/**
-	 * Returns where a passenger sits relative to this entity's position. Vehicles carrying more than one
-	 * passenger are expected to space them out by their index.
+	 * Returns where a passenger sits relative to this entity's position. Called with null to ask where a
+	 * rider would sit, which is what the client is told so that it can draw one.
 	 */
-	public function getSeatPosition(Entity $passenger) : Vector3{
+	public function getSeatPosition(?Entity $passenger = null) : Vector3{
 		return new Vector3(0, $this->size->getHeight(), 0);
 	}
 
@@ -1841,6 +1841,9 @@ abstract class Entity{
 		$properties->setString(EntityMetadataProperties::NAMETAG, $this->nameTag);
 		$properties->setString(EntityMetadataProperties::SCORE_TAG, $this->scoreTag);
 		$properties->setByte(EntityMetadataProperties::COLOR, 0);
+		//without this the client seats a rider at this entity's own origin, which buries it in whatever
+		//the entity is standing on
+		$properties->setVector3(EntityMetadataProperties::RIDER_SEAT_POSITION, $this->getSeatPosition());
 
 		$properties->setGenericFlag(EntityMetadataFlags::AFFECTED_BY_GRAVITY, $this->gravityEnabled);
 		$properties->setGenericFlag(EntityMetadataFlags::CAN_CLIMB, $this->canClimb);

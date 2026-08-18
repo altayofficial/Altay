@@ -235,6 +235,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::registerDelayed("lava_bucket", fn(string $name) : LiquidBucket => new LiquidBucket(self::makeIID($name), "Lava Bucket", Blocks::LAVA()));
 		self::register("leather", fn(IID $id) => new Item($id, "Leather"));
 		self::register("lingering_potion", fn(IID $id) => new SplashPotion($id, "Lingering Potion", linger: true));
+		self::register("mace", fn(IID $id) => new Mace($id, "Mace", [EnchantmentTags::MACE]));
 		self::register("magma_cream", fn(IID $id) => new Item($id, "Magma Cream"));
 		self::registerDelayed("mangrove_sign", fn(string $name) : ItemBlockWallOrFloor => new ItemBlockWallOrFloor(self::makeIID($name), Blocks::MANGROVE_SIGN(), Blocks::MANGROVE_WALL_SIGN()));
 		self::registerDelayed("mangrove_hanging_sign", fn(string $name) : HangingSign => new HangingSign(self::makeIID($name), "Mangrove Hanging Sign", Blocks::MANGROVE_CEILING_CENTER_HANGING_SIGN(), Blocks::MANGROVE_CEILING_EDGES_HANGING_SIGN(), Blocks::MANGROVE_WALL_HANGING_SIGN()));

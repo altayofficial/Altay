@@ -96,11 +96,11 @@ class Cushion extends Living{
 	}
 
 	/**
-	 * A quarter of the pad's height. Sitting any higher leaves the rider hovering, and sitting at the
-	 * floor buries it, so this is where a rider settles into the cushion.
+	 * A rider sits right on the cushion's own position rather than on top of the pad. Any lift at all
+	 * leaves it hovering, because the client already raises a seated rider by itself.
 	 */
 	public function getSeatPosition(?Entity $passenger = null) : Vector3{
-		return new Vector3(0, 0.03125, 0);
+		return Vector3::zero();
 	}
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{

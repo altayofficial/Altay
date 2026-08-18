@@ -71,12 +71,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "0e3d80765761a7e4239f99725dee82e36b81742a"
+                "reference": "31a55044ba106b61c593d4bca8e3fc9e0d437371"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/0e3d80765761a7e4239f99725dee82e36b81742a",
-                "reference": "0e3d80765761a7e4239f99725dee82e36b81742a",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/31a55044ba106b61c593d4bca8e3fc9e0d437371",
+                "reference": "31a55044ba106b61c593d4bca8e3fc9e0d437371",
                 "shasum": ""
             },
             "type": "library",
@@ -87,7 +87,7 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.50"
             },
-            "time": "2026-08-17T11:10:21+00:00"
+            "time": "2026-08-18T16:33:51+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
@@ -95,12 +95,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "ba6cf913f4a8fffb9da48e771767c39726365d3b"
+                "reference": "10113fb0da5ae22bee9a88444e97cbd17eac3654"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/ba6cf913f4a8fffb9da48e771767c39726365d3b",
-                "reference": "ba6cf913f4a8fffb9da48e771767c39726365d3b",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/10113fb0da5ae22bee9a88444e97cbd17eac3654",
+                "reference": "10113fb0da5ae22bee9a88444e97cbd17eac3654",
                 "shasum": ""
             },
             "require": {
@@ -144,7 +144,7 @@
                 "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.50",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-08-17T10:58:25+00:00"
+            "time": "2026-08-18T16:19:55+00:00"
         },
         {
             "name": "altayofficial/nbt",

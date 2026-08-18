@@ -96,10 +96,10 @@ class Cushion extends Living{
 	}
 
 	/**
-	 * A cushion is only a quarter of a block tall, so whoever sits on it barely leaves the floor.
+	 * Half the height of the pad, so that whoever sits down sinks into it rather than perching on top.
 	 */
 	public function getSeatPosition(?Entity $passenger = null) : Vector3{
-		return new Vector3(0, 0.25, 0);
+		return new Vector3(0, 0.125, 0);
 	}
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{

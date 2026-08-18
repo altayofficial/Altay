@@ -128,7 +128,7 @@ final class RespawnAnchor extends Opaque{
 		$explosion = new Explosion(Position::fromObject($this->position->add(0.5, 0.5, 0.5), $this->position->getWorld()), $ev->getRadius(), $this);
 		$explosion->setFireChance($ev->getFireChance());
 
-		if(!$hasWater && !($block->getSide(Facing::UP) instanceof Water)){
+		if(!$hasWater){
 			$explosion->explodeA();
 		}
 

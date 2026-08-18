@@ -473,6 +473,7 @@ final class VanillaBlocks{
 	private static Glowstone $_mGLOWSTONE;
 	private static GlowLichen $_mGLOW_LICHEN;
 	private static Opaque $_mGOLD;
+	private static Flower $_mGOLDEN_DANDELION;
 	private static GoldOre $_mGOLD_ORE;
 	private static Opaque $_mGRANITE;
 	private static Slab $_mGRANITE_SLAB;
@@ -1340,6 +1341,7 @@ final class VanillaBlocks{
 			"glowstone" => fn(Glowstone $v) => self::$_mGLOWSTONE = $v,
 			"glow_lichen" => fn(GlowLichen $v) => self::$_mGLOW_LICHEN = $v,
 			"gold" => fn(Opaque $v) => self::$_mGOLD = $v,
+			"golden_dandelion" => fn(Flower $v) => self::$_mGOLDEN_DANDELION = $v,
 			"gold_ore" => fn(GoldOre $v) => self::$_mGOLD_ORE = $v,
 			"granite" => fn(Opaque $v) => self::$_mGRANITE = $v,
 			"granite_slab" => fn(Slab $v) => self::$_mGRANITE_SLAB = $v,
@@ -3941,6 +3943,11 @@ final class VanillaBlocks{
 	public static function GOLD() : Opaque{
 		if(!isset(self::$_mGOLD)){ self::init(); }
 		return clone self::$_mGOLD;
+	}
+
+	public static function GOLDEN_DANDELION() : Flower{
+		if(!isset(self::$_mGOLDEN_DANDELION)){ self::init(); }
+		return clone self::$_mGOLDEN_DANDELION;
 	}
 
 	public static function GOLD_ORE() : GoldOre{

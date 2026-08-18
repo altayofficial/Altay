@@ -43,6 +43,7 @@ class BuildPermission extends Opaque{
 
 	public function onBreak(Item $item, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($player !== null && !$this->canBeModifiedBy($player)){
+			$this->position->getWorld()->setBlock($this->position, $this);
 			return false;
 		}
 

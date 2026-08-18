@@ -20,14 +20,14 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@2.32.0
         with:
-          php-version: "8.4"
+          php-version: "8.1"
 
       - name: Restore Composer package cache
         uses: actions/cache@v4
         with:
           path: "~/.cache/composer"
-          key: "php-8.4-composer-notify-${{ hashFiles('**/composer.json') }}"
-          restore-keys: "php-8.4-composer-notify-"
+          key: "php-8.1-composer-notify-${{ hashFiles('**/composer.json') }}"
+          restore-keys: "php-8.1-composer-notify-"
 
       - name: Install Composer dependencies
         run: composer install --no-dev --prefer-dist --no-interaction --ignore-platform-reqs

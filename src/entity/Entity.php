@@ -84,6 +84,7 @@ use function fmod;
 use function get_class;
 use function min;
 use function sin;
+use function array_key_first;
 use function array_values;
 use function spl_object_id;
 use const M_PI_2;
@@ -1196,13 +1197,15 @@ abstract class Entity{
 		$passenger->vehicle = $this;
 		$passenger->setPosition($this->location->addVector($this->getSeatPosition($passenger)));
 
-		$this->broadcastLink($passenger, EntityLink::TYPE_PASSENGER);
+		$this->broadcastLink($passenger, $this->getLinkType($passenger));
 
 		return true;
 	}
 
 	/**
-	 * Takes the given entity off this one. The passenger is left standing where the vehicle is.
+	 * Takes the given entity off this one and stands it back up where the vehicle is. The passenger is
+	 * teleported rather than moved, because its client has been drawing it in the seat and has to be told
+	 * where it really ended up.
 	 */
 	public function removePassenger(Entity $passenger) : bool{
 		$key = spl_object_id($passenger);
@@ -1214,6 +1217,10 @@ abstract class Entity{
 		$passenger->vehicle = null;
 
 		$this->broadcastLink($passenger, EntityLink::TYPE_REMOVE);
+
+		if(!$passenger->closed && $passenger->location->isValid()){
+			$passenger->teleport($this->location->addVector($this->getSeatPosition($passenger)));
+		}
 
 		return true;
 	}
@@ -1232,6 +1239,10 @@ abstract class Entity{
 		}
 	}
 
+	private function getLinkType(Entity $passenger) : int{
+		return array_key_first($this->passengers) === spl_object_id($passenger) ? EntityLink::TYPE_RIDER : EntityLink::TYPE_PASSENGER;
+	}
+
 	private function broadcastLink(Entity $passenger, int $type) : void{
 		$link = new EntityLink($this->getId(), $passenger->getId(), $type, true, false, 0.0);
 		$targets = $this->hasSpawned + $passenger->hasSpawned;
@@ -1248,10 +1259,10 @@ abstract class Entity{
 	private function getNetworkLinks() : array{
 		$links = [];
 		foreach($this->passengers as $passenger){
-			$links[] = new EntityLink($this->getId(), $passenger->getId(), EntityLink::TYPE_PASSENGER, true, false, 0.0);
+			$links[] = new EntityLink($this->getId(), $passenger->getId(), $this->getLinkType($passenger), true, false, 0.0);
 		}
 		if($this->vehicle !== null){
-			$links[] = new EntityLink($this->vehicle->getId(), $this->getId(), EntityLink::TYPE_PASSENGER, true, false, 0.0);
+			$links[] = new EntityLink($this->vehicle->getId(), $this->getId(), $this->vehicle->getLinkType($this), true, false, 0.0);
 		}
 		return $links;
 	}

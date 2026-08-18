@@ -1,6 +1,6 @@
 #PHP is built in a separate image from PM, so that we don't need to rebuild the entire Dockerfile whenever one src file changes
 FROM ubuntu:22.04 AS build-php
-ARG COMPILE_SH_ARGS="-f -g -P5 -z 8.4"
+ARG COMPILE_SH_ARGS="-f -g -P5 -z 8.1"
 
 RUN apt-get update && apt-get install --no-install-recommends -y curl ca-certificates build-essential m4 gzip bzip2 bison git cmake autoconf automake pkg-config libtool libtool-bin re2c
 
@@ -27,7 +27,7 @@ COPY ./generated /opt/pocketmine/repo/generated
 COPY ./composer.json ./composer.lock /opt/pocketmine/repo/
 
 WORKDIR /opt/pocketmine/repo
-RUN composer install --classmap-authoritative --no-dev --prefer-dist --ignore-platform-req=ext-ffi
+RUN composer install --classmap-authoritative --no-dev --prefer-dist
 RUN php vendor/altayofficial/bedrock-data/.minify_json.php
 RUN php -dphar.readonly=0 ./build/server-phar.php --git ${GIT_HASH}
 # Just to make sure the build script didn't false-positive-exit

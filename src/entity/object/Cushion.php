@@ -100,7 +100,7 @@ class Cushion extends Living{
 	 * floor buries it, so this is where a rider settles into the cushion.
 	 */
 	public function getSeatPosition(?Entity $passenger = null) : Vector3{
-		return new Vector3(0, 0.0625, 0);
+		return new Vector3(0, 0.03125, 0);
 	}
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{

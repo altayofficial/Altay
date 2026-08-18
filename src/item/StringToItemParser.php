@@ -1292,6 +1292,7 @@ final class StringToItemParser extends StringToTParser{
 		foreach(DyeColor::cases() as $color){
 			$prefix = fn(string $name) => strtolower($color->name) . "_" . $name;
 
+			$result->register($prefix("cushion"), fn() => Items::CUSHION()->setColor($color));
 			$result->register($prefix("dye"), fn() => Items::DYE()->setColor($color));
 		}
 

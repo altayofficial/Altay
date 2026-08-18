@@ -144,6 +144,7 @@ final class VanillaItems{
 	private static CoralFan $_mCORAL_FAN;
 	private static HangingSign $_mCRIMSON_HANGING_SIGN;
 	private static ItemBlockWallOrFloor $_mCRIMSON_SIGN;
+	private static Cushion $_mCUSHION;
 	private static Boat $_mDARK_OAK_BOAT;
 	private static HangingSign $_mDARK_OAK_HANGING_SIGN;
 	private static ItemBlockWallOrFloor $_mDARK_OAK_SIGN;
@@ -506,6 +507,7 @@ final class VanillaItems{
 			"coral_fan" => fn(CoralFan $v) => self::$_mCORAL_FAN = $v,
 			"crimson_hanging_sign" => fn(HangingSign $v) => self::$_mCRIMSON_HANGING_SIGN = $v,
 			"crimson_sign" => fn(ItemBlockWallOrFloor $v) => self::$_mCRIMSON_SIGN = $v,
+			"cushion" => fn(Cushion $v) => self::$_mCUSHION = $v,
 			"dark_oak_boat" => fn(Boat $v) => self::$_mDARK_OAK_BOAT = $v,
 			"dark_oak_hanging_sign" => fn(HangingSign $v) => self::$_mDARK_OAK_HANGING_SIGN = $v,
 			"dark_oak_sign" => fn(ItemBlockWallOrFloor $v) => self::$_mDARK_OAK_SIGN = $v,
@@ -1286,6 +1288,11 @@ final class VanillaItems{
 	public static function CRIMSON_SIGN() : ItemBlockWallOrFloor{
 		if(!isset(self::$_mCRIMSON_SIGN)){ self::init(); }
 		return clone self::$_mCRIMSON_SIGN;
+	}
+
+	public static function CUSHION() : Cushion{
+		if(!isset(self::$_mCUSHION)){ self::init(); }
+		return clone self::$_mCUSHION;
 	}
 
 	public static function DARK_OAK_BOAT() : Boat{

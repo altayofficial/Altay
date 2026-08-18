@@ -41,6 +41,7 @@ use pocketmine\data\bedrock\MedicineTypeIdMap;
 use pocketmine\data\bedrock\PotionTypeIdMap;
 use pocketmine\data\bedrock\SuspiciousStewTypeIdMap;
 use pocketmine\item\Banner;
+use pocketmine\item\Cushion;
 use pocketmine\item\Dye;
 use pocketmine\item\FireworkStar;
 use pocketmine\item\GoatHorn;
@@ -51,6 +52,7 @@ use pocketmine\item\SplashPotion;
 use pocketmine\item\SuspiciousStew;
 use pocketmine\item\VanillaItems as Items;
 use pocketmine\nbt\tag\CompoundTag;
+use function strtolower;
 
 final class ItemSerializerDeserializerRegistrar{
 
@@ -598,6 +600,13 @@ final class ItemSerializerDeserializerRegistrar{
 			$this->deserializer?->map($id, fn() => Items::DYE()->setColor($color));
 		}
 		$this->serializer?->map(Items::DYE(), fn(Dye $item) => new Data(DyeColorIdMap::getInstance()->toItemId($item->getColor())));
+
+		//a cushion is a separate item per colour rather than one id with a meta value
+		foreach(DyeColor::cases() as $color){
+			$id = "minecraft:" . strtolower($color->name) . "_cushion";
+			$this->deserializer?->map($id, fn() => Items::CUSHION()->setColor($color));
+		}
+		$this->serializer?->map(Items::CUSHION(), fn(Cushion $item) => new Data("minecraft:" . strtolower($item->getColor()->name) . "_cushion"));
 
 		$this->deserializer?->map(Ids::BANNER, function(Data $data) : Item{
 			$type = $data->getTag()?->getInt(TileBanner::TAG_TYPE, TileBanner::TYPE_NORMAL) ?? TileBanner::TYPE_NORMAL;

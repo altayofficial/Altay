@@ -103,6 +103,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("amethyst_shard", fn(IID $id) => new Item($id, "Amethyst Shard"));
 		self::register("apple", fn(IID $id) => new Apple($id, "Apple"));
 		self::register("arrow", fn(IID $id) => new Arrow($id, "Arrow"));
+		self::register("cushion", fn(IID $id) => new Cushion($id, "Cushion"));
 		self::register("baked_potato", fn(IID $id) => new BakedPotato($id, "Baked Potato"));
 		self::register("bamboo", fn(IID $id) => new Bamboo($id, "Bamboo"));
 		self::registerDelayed("bamboo_sign", fn(string $name) : ItemBlockWallOrFloor => new ItemBlockWallOrFloor(self::makeIID($name), Blocks::BAMBOO_SIGN(), Blocks::BAMBOO_WALL_SIGN()));

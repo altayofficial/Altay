@@ -321,6 +321,7 @@ final class VanillaItems{
 	private static Item $_mSENTRY_ARMOR_TRIM_SMITHING_TEMPLATE;
 	private static Item $_mSHAPER_ARMOR_TRIM_SMITHING_TEMPLATE;
 	private static Shears $_mSHEARS;
+	private static Shield $_mSHIELD;
 	private static Item $_mSHULKER_SHELL;
 	private static Item $_mSILENCE_ARMOR_TRIM_SMITHING_TEMPLATE;
 	private static Item $_mSLIMEBALL;
@@ -684,6 +685,7 @@ final class VanillaItems{
 			"sentry_armor_trim_smithing_template" => fn(Item $v) => self::$_mSENTRY_ARMOR_TRIM_SMITHING_TEMPLATE = $v,
 			"shaper_armor_trim_smithing_template" => fn(Item $v) => self::$_mSHAPER_ARMOR_TRIM_SMITHING_TEMPLATE = $v,
 			"shears" => fn(Shears $v) => self::$_mSHEARS = $v,
+			"shield" => fn(Shield $v) => self::$_mSHIELD = $v,
 			"shulker_shell" => fn(Item $v) => self::$_mSHULKER_SHELL = $v,
 			"silence_armor_trim_smithing_template" => fn(Item $v) => self::$_mSILENCE_ARMOR_TRIM_SMITHING_TEMPLATE = $v,
 			"slimeball" => fn(Item $v) => self::$_mSLIMEBALL = $v,
@@ -2173,6 +2175,11 @@ final class VanillaItems{
 	public static function SHEARS() : Shears{
 		if(!isset(self::$_mSHEARS)){ self::init(); }
 		return clone self::$_mSHEARS;
+	}
+
+	public static function SHIELD() : Shield{
+		if(!isset(self::$_mSHIELD)){ self::init(); }
+		return clone self::$_mSHIELD;
 	}
 
 	public static function SHULKER_SHELL() : Item{

@@ -80,6 +80,7 @@ use pocketmine\block\RedstoneRepeater;
 use pocketmine\block\RedstoneTorch;
 use pocketmine\block\RespawnAnchor;
 use pocketmine\block\Sapling;
+use pocketmine\block\Seagrass;
 use pocketmine\block\SeaPickle;
 use pocketmine\block\SmallDripleaf;
 use pocketmine\block\SnowLayer;
@@ -104,6 +105,7 @@ use pocketmine\block\utils\LeverFacing;
 use pocketmine\block\utils\MobHeadType;
 use pocketmine\block\utils\MushroomBlockType;
 use pocketmine\block\utils\PoweredByRedstone;
+use pocketmine\block\utils\SeagrassType;
 use pocketmine\block\VanillaBlocks as Blocks;
 use pocketmine\block\Vine;
 use pocketmine\data\bedrock\block\BlockLegacyMetadata;
@@ -435,6 +437,9 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::SANDSTONE(), Ids::SANDSTONE);
 		$reg->mapSimple(Blocks::SCULK(), Ids::SCULK);
 		$reg->mapSimple(Blocks::SEA_LANTERN(), Ids::SEA_LANTERN);
+		$reg->mapModel(Model::create(Blocks::SEAGRASS(), Ids::SEAGRASS)->properties([
+			new ValueFromStringProperty(StateNames::SEA_GRASS_TYPE, ValueMappings::getInstance()->seaGrassType, fn(Seagrass $b) => $b->getSeagrassType(), fn(Seagrass $b, SeagrassType $v) => $b->setSeagrassType($v))
+		]));
 		$reg->mapSimple(Blocks::SHROOMLIGHT(), Ids::SHROOMLIGHT);
 		$reg->mapSimple(Blocks::SHULKER_BOX(), Ids::UNDYED_SHULKER_BOX);
 		$reg->mapSimple(Blocks::SLIME(), Ids::SLIME);

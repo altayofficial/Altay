@@ -34,6 +34,7 @@ use pocketmine\block\utils\FroglightType;
 use pocketmine\block\utils\LeverFacing;
 use pocketmine\block\utils\MobHeadType;
 use pocketmine\block\utils\MushroomBlockType;
+use pocketmine\block\utils\SeagrassType;
 use pocketmine\data\bedrock\block\BlockLegacyMetadata as LegacyMeta;
 use pocketmine\data\bedrock\block\BlockStateStringValues as StringValues;
 use pocketmine\data\bedrock\block\BlockTypeNames as Ids;
@@ -59,6 +60,9 @@ final class ValueMappings{
 	public readonly EnumFromRawStateMap $dripleafState;
 	/** @phpstan-var EnumFromRawStateMap<BellAttachmentType, string> */
 	public readonly EnumFromRawStateMap $bellAttachmentType;
+
+	/** @phpstan-var EnumFromRawStateMap<SeagrassType, string> */
+	public readonly EnumFromRawStateMap $seaGrassType;
 	/** @phpstan-var EnumFromRawStateMap<LeverFacing, string> */
 	public readonly EnumFromRawStateMap $leverFacing;
 
@@ -159,6 +163,11 @@ final class ValueMappings{
 			BellAttachmentType::CEILING => StringValues::ATTACHMENT_HANGING,
 			BellAttachmentType::ONE_WALL => StringValues::ATTACHMENT_SIDE,
 			BellAttachmentType::TWO_WALLS => StringValues::ATTACHMENT_MULTIPLE,
+		});
+		$this->seaGrassType = EnumFromRawStateMap::string(SeagrassType::class, fn(SeagrassType $case) => match ($case) {
+			SeagrassType::NORMAL => StringValues::SEA_GRASS_TYPE_DEFAULT,
+			SeagrassType::DOUBLE_TOP => StringValues::SEA_GRASS_TYPE_DOUBLE_TOP,
+			SeagrassType::DOUBLE_BOTTOM => StringValues::SEA_GRASS_TYPE_DOUBLE_BOT,
 		});
 		$this->leverFacing = EnumFromRawStateMap::string(LeverFacing::class, fn(LeverFacing $case) => match ($case) {
 			LeverFacing::DOWN_AXIS_Z => StringValues::LEVER_DIRECTION_DOWN_NORTH_SOUTH,

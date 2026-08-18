@@ -39,13 +39,9 @@ use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 class Cushion extends Living{
 	private const TAG_COLOR = "Color"; //TAG_Byte
 
-	/**
-	 * The size and the model index below are what a server sends for a cushion it summons itself; a
-	 * cushion is a flat pad a quarter of a block tall.
-	 */
-	private const MODEL_VARIANT = 15;
-
 	private DyeColor $color = DyeColor::WHITE;
+
+	protected int $maxDeadTicks = 1;
 
 	public static function getNetworkTypeId() : string{ return "minecraft:cushion"; }
 
@@ -95,8 +91,8 @@ class Cushion extends Living{
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{
 		parent::syncNetworkData($properties);
 
-		$properties->setInt(EntityMetadataProperties::VARIANT, self::MODEL_VARIANT);
-		$properties->setByte(EntityMetadataProperties::COLOR, DyeColorIdMap::getInstance()->toId($this->color));
+		//the colour rides on the variant as an inverted dye ID, the same way a banner stores its colour
+		$properties->setInt(EntityMetadataProperties::VARIANT, DyeColorIdMap::getInstance()->toInvertedId($this->color));
 		$properties->setGenericFlag(EntityMetadataFlags::IMMOBILE, true);
 	}
 }

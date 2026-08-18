@@ -899,6 +899,13 @@ class Block{
 	}
 
 	/**
+	 * Returns the multiplier applied to fall damage taken from landing on this block.
+	 */
+	public function getFallDamageMultiplier() : float{
+		return 1.0;
+	}
+
+	/**
 	 * Called when a projectile collides with one of this block's collision boxes.
 	 */
 	public function onProjectileHit(Projectile $projectile, RayTraceResult $hitResult) : void{

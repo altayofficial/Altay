@@ -193,6 +193,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::BLAZE_POWDER, Items::BLAZE_POWDER());
 		$this->map1to1Item(Ids::BLAZE_ROD, Items::BLAZE_ROD());
 		$this->map1to1Item(Ids::BLEACH, Items::BLEACH());
+		$this->map1to1Item(Ids::BOLT_ARMOR_TRIM_SMITHING_TEMPLATE, Items::BOLT_ARMOR_TRIM_SMITHING_TEMPLATE());
 		$this->map1to1Item(Ids::BONE, Items::BONE());
 		$this->map1to1Item(Ids::BONE_MEAL, Items::BONE_MEAL());
 		$this->map1to1Item(Ids::BOOK, Items::BOOK());
@@ -275,6 +276,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::FISHING_ROD, Items::FISHING_ROD());
 		$this->map1to1Item(Ids::FLINT, Items::FLINT());
 		$this->map1to1Item(Ids::FLINT_AND_STEEL, Items::FLINT_AND_STEEL());
+		$this->map1to1Item(Ids::FLOW_ARMOR_TRIM_SMITHING_TEMPLATE, Items::FLOW_ARMOR_TRIM_SMITHING_TEMPLATE());
 		$this->map1to1Item(Ids::GHAST_TEAR, Items::GHAST_TEAR());
 		$this->map1to1Item(Ids::GLASS_BOTTLE, Items::GLASS_BOTTLE());
 		$this->map1to1Item(Ids::GLISTERING_MELON_SLICE, Items::GLISTERING_MELON());

@@ -321,6 +321,58 @@ final class CraftingManagerFromDataHelper{
 	/**
 	 * @param mixed[] $recipe
 	 */
+	private static function loadSmithingTransformRecipe(CraftingManager $manager, array $recipe) : void{
+		if(!isset($recipe["base"], $recipe["addition"], $recipe["template"], $recipe["result"]) ||
+			!is_array($recipe["base"]) || !is_array($recipe["addition"]) || !is_array($recipe["template"]) || !is_array($recipe["result"])
+		){
+			throw new SavedDataLoadingException("Smithing transform recipe should have base, addition, template and result objects");
+		}
+
+		$base = self::deserializeNetworkIngredient($recipe["base"]);
+		$addition = self::deserializeNetworkIngredient($recipe["addition"]);
+		$template = self::deserializeNetworkIngredient($recipe["template"]);
+		if($base === null || $addition === null || $template === null){
+			//unknown ingredient item
+			return;
+		}
+
+		$result = self::deserializeNetworkItemStack($recipe["result"]);
+		if($result === null){
+			//unknown result item
+			return;
+		}
+
+		$manager->registerShapelessRecipe(new ShapelessRecipe(
+			[$base, $addition, $template],
+			[$result],
+			ShapelessRecipeType::SMITHING
+		));
+	}
+
+	/**
+	 * @param mixed[] $recipe
+	 */
+	private static function loadSmithingTrimRecipe(CraftingManager $manager, array $recipe) : void{
+		if(!isset($recipe["base"], $recipe["addition"], $recipe["template"]) ||
+			!is_array($recipe["base"]) || !is_array($recipe["addition"]) || !is_array($recipe["template"])
+		){
+			throw new SavedDataLoadingException("Smithing trim recipe should have base, addition and template objects");
+		}
+
+		$base = self::deserializeNetworkIngredient($recipe["base"]);
+		$addition = self::deserializeNetworkIngredient($recipe["addition"]);
+		$template = self::deserializeNetworkIngredient($recipe["template"]);
+		if($base === null || $addition === null || $template === null){
+			//unknown ingredient item
+			return;
+		}
+
+		$manager->registerSmithingTrimRecipe(new SmithingTrimRecipe($base, $addition, $template));
+	}
+
+	/**
+	 * @param mixed[] $recipe
+	 */
 	private static function loadShapedRecipe(CraftingManager $manager, array $recipe) : void{
 		if(($recipe["block"] ?? null) !== "crafting_table"){ //TODO: filter others out for now to avoid breaking economics
 			return;
@@ -425,9 +477,13 @@ final class CraftingManagerFromDataHelper{
 					case self::NETWORK_RECIPE_TYPE_SHAPED:
 						self::loadShapedRecipe($result, $recipe);
 						break;
-					case self::NETWORK_RECIPE_TYPE_MULTI:
 					case self::NETWORK_RECIPE_TYPE_SMITHING_TRANSFORM:
+						self::loadSmithingTransformRecipe($result, $recipe);
+						break;
 					case self::NETWORK_RECIPE_TYPE_SMITHING_TRIM:
+						self::loadSmithingTrimRecipe($result, $recipe);
+						break;
+					case self::NETWORK_RECIPE_TYPE_MULTI:
 						//TODO: not supported by the crafting system yet
 						break;
 				}

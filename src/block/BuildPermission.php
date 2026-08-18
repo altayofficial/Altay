@@ -27,6 +27,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
+use pocketmine\permission\DefaultPermissions;
 use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
 
@@ -53,6 +54,6 @@ class BuildPermission extends Opaque{
 	}
 
 	private function canBeModifiedBy(Player $player) : bool{
-		return $player->isCreative() && $player->getServer()->isOp($player->getName());
+		return $player->isCreative() && $player->hasPermission(DefaultPermissions::ROOT_OPERATOR);
 	}
 }

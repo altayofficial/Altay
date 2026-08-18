@@ -68,6 +68,7 @@ use pocketmine\utils\Utils;
 use pocketmine\VersionInfo;
 use pocketmine\world\format\Chunk;
 use pocketmine\world\Position;
+use pocketmine\world\sound\EntityAttackSound;
 use pocketmine\world\sound\Sound;
 use pocketmine\world\World;
 use function abs;
@@ -1594,6 +1595,13 @@ abstract class Entity{
 	 */
 	public function getPickedItem() : ?Item{
 		return null;
+	}
+
+	/**
+	 * Returns the sound played when a player attacks this entity, or null if the entity plays its own hurt sounds.
+	 */
+	public function getAttackSound() : ?Sound{
+		return new EntityAttackSound();
 	}
 
 	/**

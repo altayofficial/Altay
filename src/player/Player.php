@@ -2077,7 +2077,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$this->getWorld()->addSound($soundPos, new EntityAttackNoDamageSound());
 			return false;
 		}
-		$this->getWorld()->addSound($soundPos, new EntityAttackSound());
+		$attackSound = $entity->getAttackSound();
+		if($attackSound !== null){
+			$this->getWorld()->addSound($soundPos, $attackSound);
+		}
 
 		if($ev->getModifier(EntityDamageEvent::MODIFIER_CRITICAL) > 0 && $entity instanceof Living){
 			$entity->broadcastAnimation(new CriticalHitAnimation($entity));

@@ -40,6 +40,7 @@ final class ItemEnchantmentTags{
 	public const SHIELD = "shield";
 	public const SWORD = "sword";
 	public const TRIDENT = "trident";
+	public const SPEAR = "spear";
 	public const BOW = "bow";
 	public const CROSSBOW = "crossbow";
 	public const SHEARS = "shears";

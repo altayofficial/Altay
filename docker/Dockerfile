@@ -1,6 +1,6 @@
 #PHP is built in a separate image from PM, so that we don't need to rebuild the entire Dockerfile whenever one src file changes
 FROM ubuntu:22.04 AS build-php
-ARG COMPILE_SH_ARGS="-f -g -P5 -z 8.1"
+ARG COMPILE_SH_ARGS="-f -g -P5"
 
 RUN apt-get update && apt-get install --no-install-recommends -y curl ca-certificates build-essential m4 gzip bzip2 bison git cmake autoconf automake pkg-config libtool libtool-bin re2c
 

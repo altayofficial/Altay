@@ -135,7 +135,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 
 		$railBreakInfo = new Info(new BreakInfo(0.7));
 		self::register("activator_rail", fn(BID $id) => new ActivatorRail($id, "Activator Rail", $railBreakInfo));
-		$buildPermissionBreakInfo = new Info(new BreakInfo(0.2, ToolType::NONE, 0, 18000000.0));
+		$buildPermissionBreakInfo = new Info(new BreakInfo(0.2, ToolType::NONE, 0, 18000.0));
 		self::register("allow", fn(BID $id) => new BuildPermission($id, "Allow", $buildPermissionBreakInfo));
 		self::register("anvil", fn(BID $id) => new Anvil($id, "Anvil", new Info(BreakInfo::pickaxe(5.0, ToolTier::WOOD, 6000.0))));
 		self::register("azalea", fn(BID $id) => new Azalea($id, "Azalea", new Info(BreakInfo::instant(), [Tags::POTTABLE_PLANTS])));

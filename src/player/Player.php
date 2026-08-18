@@ -1393,6 +1393,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	private function actuallyHandleMovement(Vector3 $newPos) : void{
+		if($this->isRiding()){
+			//a seated player is carried by its vehicle, so its own movement is the client guessing where the seat is
+			return;
+		}
 		$this->moveRateLimit--;
 		if($this->moveRateLimit < 0){
 			return;

@@ -846,6 +846,11 @@ class InGamePacketHandler extends PacketHandler{
 			$this->inventoryManager->onClientOpenMainInventory();
 			return true;
 		}
+		if($packet->action === InteractPacket::ACTION_LEAVE_VEHICLE){
+			//the client asks to get off whatever it thinks it is riding, which is not necessarily the target
+			$vehicle = $this->player->getVehicle();
+			return $vehicle !== null && $vehicle->removePassenger($this->player);
+		}
 		return false; //TODO
 	}
 

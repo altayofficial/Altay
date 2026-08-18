@@ -27,14 +27,17 @@ namespace pocketmine\entity\object;
 
 use pocketmine\block\utils\DyeColor;
 use pocketmine\data\bedrock\DyeColorIdMap;
+use pocketmine\entity\Entity;
 use pocketmine\entity\EntitySizeInfo;
 use pocketmine\entity\Living;
 use pocketmine\item\Item;
 use pocketmine\item\VanillaItems;
+use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
+use pocketmine\player\Player;
 
 class Cushion extends Living{
 	private const TAG_COLOR = "Color"; //TAG_Byte
@@ -86,6 +89,17 @@ class Cushion extends Living{
 	 */
 	public function getDrops() : array{
 		return [VanillaItems::CUSHION()->setColor($this->color)];
+	}
+
+	public function onInteract(Player $player, Vector3 $clickPos) : bool{
+		return $this->getPassengers() === [] && $this->addPassenger($player);
+	}
+
+	/**
+	 * A cushion is only a quarter of a block tall, so whoever sits on it barely leaves the floor.
+	 */
+	public function getSeatPosition(Entity $passenger) : Vector3{
+		return new Vector3(0, 0.25, 0);
 	}
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{

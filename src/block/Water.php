@@ -27,6 +27,7 @@ namespace pocketmine\block;
 
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityExtinguishEvent;
+use pocketmine\math\Facing;
 use pocketmine\world\sound\BucketEmptyWaterSound;
 use pocketmine\world\sound\BucketFillWaterSound;
 use pocketmine\world\sound\Sound;
@@ -35,6 +36,19 @@ class Water extends Liquid{
 
 	public function getLightFilter() : int{
 		return 2;
+	}
+
+	public function onScheduledUpdate() : void{
+		if($this->isSource()){
+			$down = $this->getSide(Facing::DOWN);
+			$dragDown = $down->getTypeId() === BlockTypeIds::MAGMA;
+			if($dragDown || $down->getTypeId() === BlockTypeIds::SOUL_SAND){
+				$this->position->getWorld()->setBlock($this->position, VanillaBlocks::BUBBLE_COLUMN()->setDragDown($dragDown));
+				return;
+			}
+		}
+
+		parent::onScheduledUpdate();
 	}
 
 	public function getBucketFillSound() : Sound{

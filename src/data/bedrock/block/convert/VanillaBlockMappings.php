@@ -37,6 +37,7 @@ use pocketmine\block\Bell;
 use pocketmine\block\BigDripleafHead;
 use pocketmine\block\Block;
 use pocketmine\block\BrewingStand;
+use pocketmine\block\BubbleColumn;
 use pocketmine\block\Cactus;
 use pocketmine\block\Cake;
 use pocketmine\block\Candle;
@@ -175,6 +176,9 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::BOOKSHELF(), Ids::BOOKSHELF);
 		$reg->mapSimple(Blocks::BRICKS(), Ids::BRICK_BLOCK);
 		$reg->mapSimple(Blocks::BROWN_MUSHROOM(), Ids::BROWN_MUSHROOM);
+		$reg->mapModel(Model::create(Blocks::BUBBLE_COLUMN(), Ids::BUBBLE_COLUMN)->properties([
+			new BoolProperty(StateNames::DRAG_DOWN, fn(BubbleColumn $b) => $b->isDragDown(), fn(BubbleColumn $b, bool $v) => $b->setDragDown($v))
+		]));
 		$reg->mapSimple(Blocks::BUDDING_AMETHYST(), Ids::BUDDING_AMETHYST);
 		$reg->mapSimple(Blocks::CALCITE(), Ids::CALCITE);
 		$reg->mapSimple(Blocks::CARTOGRAPHY_TABLE(), Ids::CARTOGRAPHY_TABLE);

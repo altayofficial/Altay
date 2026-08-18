@@ -161,6 +161,7 @@ final class VanillaBlockMappings{
 
 	private static function registerSimpleIdOnlyMappings(BlockSerializerDeserializerRegistrar $reg) : void{
 		$reg->mapSimple(Blocks::AIR(), Ids::AIR);
+		$reg->mapSimple(Blocks::ALLOW(), Ids::ALLOW);
 		$reg->mapSimple(Blocks::AMETHYST(), Ids::AMETHYST_BLOCK);
 		$reg->mapSimple(Blocks::ANCIENT_DEBRIS(), Ids::ANCIENT_DEBRIS);
 		$reg->mapSimple(Blocks::ANDESITE(), Ids::ANDESITE);
@@ -217,6 +218,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::DEEPSLATE_IRON_ORE(), Ids::DEEPSLATE_IRON_ORE);
 		$reg->mapSimple(Blocks::DEEPSLATE_LAPIS_LAZULI_ORE(), Ids::DEEPSLATE_LAPIS_ORE);
 		$reg->mapSimple(Blocks::DEEPSLATE_TILES(), Ids::DEEPSLATE_TILES);
+		$reg->mapSimple(Blocks::DENY(), Ids::DENY);
 		$reg->mapSimple(Blocks::DIAMOND(), Ids::DIAMOND_BLOCK);
 		$reg->mapSimple(Blocks::DIAMOND_ORE(), Ids::DIAMOND_ORE);
 		$reg->mapSimple(Blocks::DIORITE(), Ids::DIORITE);

@@ -135,6 +135,8 @@ final class VanillaBlocksInputs extends RegistrySource{
 
 		$railBreakInfo = new Info(new BreakInfo(0.7));
 		self::register("activator_rail", fn(BID $id) => new ActivatorRail($id, "Activator Rail", $railBreakInfo));
+		$buildPermissionBreakInfo = new Info(new BreakInfo(0.2, ToolType::NONE, 0, 18000.0));
+		self::register("allow", fn(BID $id) => new BuildPermission($id, "Allow", $buildPermissionBreakInfo));
 		self::register("anvil", fn(BID $id) => new Anvil($id, "Anvil", new Info(BreakInfo::pickaxe(5.0, ToolTier::WOOD, 6000.0))));
 		self::register("azalea", fn(BID $id) => new Azalea($id, "Azalea", new Info(BreakInfo::instant(), [Tags::POTTABLE_PLANTS])));
 		self::register("flowering_azalea", fn(BID $id) => new Azalea($id, "Flowering Azalea", new Info(BreakInfo::instant(), [Tags::POTTABLE_PLANTS])));
@@ -198,6 +200,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("coral_block", fn(BID $id) => new CoralBlock($id, "Coral Block", new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 30.0))));
 		self::register("daylight_sensor", fn(BID $id) => new DaylightSensor($id, "Daylight Sensor", new Info(BreakInfo::axe(0.2))), TileDaylightSensor::class);
 		self::register("dead_bush", fn(BID $id) => new DeadBush($id, "Dead Bush", new Info(BreakInfo::instant(ToolType::SHEARS, 1), [Tags::POTTABLE_PLANTS])));
+		self::register("deny", fn(BID $id) => new BuildPermission($id, "Deny", $buildPermissionBreakInfo));
 		self::register("detector_rail", fn(BID $id) => new DetectorRail($id, "Detector Rail", $railBreakInfo));
 
 		self::register("diamond", fn(BID $id) => new Opaque($id, "Diamond Block", new Info(BreakInfo::pickaxe(5.0, ToolTier::IRON, 30.0))));

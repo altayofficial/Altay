@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\block\utils\CoveredWithWaterTrait;
 use pocketmine\block\utils\SeagrassType;
 use pocketmine\block\utils\SupportType;
 use pocketmine\data\runtime\RuntimeDataDescriber;
@@ -34,9 +35,9 @@ use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
-use function mt_rand;
 
 class Seagrass extends Transparent{
+	use CoveredWithWaterTrait;
 
 	protected SeagrassType $seagrassType = SeagrassType::NORMAL;
 
@@ -79,10 +80,6 @@ class Seagrass extends Transparent{
 	}
 
 	public function onNearbyBlockChange() : void{
-		$this->position->getWorld()->scheduleDelayedBlockUpdate($this->position, mt_rand(40, 200));
-	}
-
-	public function onScheduledUpdate() : void{
 		if(!$this->isCoveredWithWater() || !$this->hasValidSupport()){
 			$this->position->getWorld()->useBreakOn($this->position);
 		}
@@ -106,7 +103,7 @@ class Seagrass extends Transparent{
 		return true;
 	}
 
-	public function getDrops(Item $item) : array{
+	public function getDropsForCompatibleTool(Item $item) : array{
 		if($this->seagrassType === SeagrassType::DOUBLE_TOP){
 			return [];
 		}
@@ -114,39 +111,38 @@ class Seagrass extends Transparent{
 		return [$this->asItem()];
 	}
 
-	private function hasValidSupport() : bool{
-		if($this->seagrassType === SeagrassType::DOUBLE_TOP){
-			$down = $this->getSide(Facing::DOWN);
-			return $down instanceof Seagrass && $down->seagrassType === SeagrassType::DOUBLE_BOTTOM;
+	public function getAffectedBlocks() : array{
+		$otherHalf = $this->getOtherHalf();
+
+		return $otherHalf !== null ? [$this, $otherHalf] : parent::getAffectedBlocks();
+	}
+
+	/**
+	 * Returns the matching half of this double seagrass, or null if this isn't a double seagrass or the other half is
+	 * missing.
+	 */
+	private function getOtherHalf() : ?Seagrass{
+		if($this->seagrassType === SeagrassType::NORMAL){
+			return null;
 		}
 
-		if(!$this->canSurviveOn($this->getSide(Facing::DOWN))){
+		$expected = $this->seagrassType === SeagrassType::DOUBLE_TOP ? SeagrassType::DOUBLE_BOTTOM : SeagrassType::DOUBLE_TOP;
+		$other = $this->getSide($this->seagrassType === SeagrassType::DOUBLE_TOP ? Facing::DOWN : Facing::UP);
+
+		return $other instanceof Seagrass && $other->seagrassType === $expected ? $other : null;
+	}
+
+	private function hasValidSupport() : bool{
+		if($this->seagrassType !== SeagrassType::NORMAL && $this->getOtherHalf() === null){
 			return false;
 		}
 
-		if($this->seagrassType === SeagrassType::DOUBLE_BOTTOM){
-			$up = $this->getSide(Facing::UP);
-			return $up instanceof Seagrass && $up->seagrassType === SeagrassType::DOUBLE_TOP;
-		}
-
-		return true;
+		return $this->seagrassType === SeagrassType::DOUBLE_TOP || $this->canSurviveOn($this->getSide(Facing::DOWN));
 	}
 
 	private function canSurviveOn(Block $block) : bool{
 		return $block->isSolid()
 			&& $block->getTypeId() !== BlockTypeIds::MAGMA
 			&& $block->getTypeId() !== BlockTypeIds::SOUL_SAND;
-	}
-
-	private function isCoveredWithWater() : bool{
-		$world = $this->position->getWorld();
-		foreach($this->position->sides() as $side){
-			if($world->getBlock($side) instanceof Water){
-				return true;
-			}
-		}
-
-		//TODO: check water inside the block itself (not supported on the API yet)
-		return false;
 	}
 }

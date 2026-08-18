@@ -437,9 +437,6 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::SANDSTONE(), Ids::SANDSTONE);
 		$reg->mapSimple(Blocks::SCULK(), Ids::SCULK);
 		$reg->mapSimple(Blocks::SEA_LANTERN(), Ids::SEA_LANTERN);
-		$reg->mapModel(Model::create(Blocks::SEAGRASS(), Ids::SEAGRASS)->properties([
-			new ValueFromStringProperty(StateNames::SEA_GRASS_TYPE, ValueMappings::getInstance()->seaGrassType, fn(Seagrass $b) => $b->getSeagrassType(), fn(Seagrass $b, SeagrassType $v) => $b->setSeagrassType($v))
-		]));
 		$reg->mapSimple(Blocks::SHROOMLIGHT(), Ids::SHROOMLIGHT);
 		$reg->mapSimple(Blocks::SHULKER_BOX(), Ids::UNDYED_SHULKER_BOX);
 		$reg->mapSimple(Blocks::SLIME(), Ids::SLIME);
@@ -605,6 +602,10 @@ final class VanillaBlockMappings{
 				new ValueFromIntProperty(StateNames::HUGE_MUSHROOM_BITS, ValueMappings::getInstance()->mushroomBlockType, fn(RedMushroomBlock $b) => $b->getMushroomBlockType(), fn(RedMushroomBlock $b, MushroomBlockType $v) => $b->setMushroomBlockType($v)),
 			]));
 		}
+
+		$reg->mapModel(Model::create(Blocks::SEAGRASS(), Ids::SEAGRASS)->properties([
+			new ValueFromStringProperty(StateNames::SEA_GRASS_TYPE, ValueMappings::getInstance()->seaGrassType, fn(Seagrass $b) => $b->getSeagrassType(), fn(Seagrass $b, SeagrassType $v) => $b->setSeagrassType($v))
+		]));
 
 		$reg->mapModel(Model::create(Blocks::GLOW_LICHEN(), Ids::GLOW_LICHEN)->properties([$commonProperties->multiFacingFlags]));
 		$reg->mapModel(Model::create(Blocks::RESIN_CLUMP(), Ids::RESIN_CLUMP)->properties([$commonProperties->multiFacingFlags]));

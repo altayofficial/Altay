@@ -60,7 +60,6 @@ final class ValueMappings{
 	public readonly EnumFromRawStateMap $dripleafState;
 	/** @phpstan-var EnumFromRawStateMap<BellAttachmentType, string> */
 	public readonly EnumFromRawStateMap $bellAttachmentType;
-
 	/** @phpstan-var EnumFromRawStateMap<SeagrassType, string> */
 	public readonly EnumFromRawStateMap $seaGrassType;
 	/** @phpstan-var EnumFromRawStateMap<LeverFacing, string> */

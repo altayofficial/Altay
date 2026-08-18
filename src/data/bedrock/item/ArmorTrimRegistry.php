@@ -23,11 +23,12 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\item;
+namespace pocketmine\data\bedrock\item;
 
 use pocketmine\crafting\CraftingManagerFromDataHelper;
 use pocketmine\data\bedrock\BedrockDataFiles;
 use pocketmine\data\SavedDataLoadingException;
+use pocketmine\item\Item;
 use pocketmine\utils\Filesystem;
 use pocketmine\utils\SingletonTrait;
 use function is_array;

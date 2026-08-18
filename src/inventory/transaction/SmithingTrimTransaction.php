@@ -25,9 +25,9 @@ declare(strict_types=1);
 
 namespace pocketmine\inventory\transaction;
 
+use pocketmine\data\bedrock\item\ArmorTrimRegistry;
 use pocketmine\item\Armor;
 use pocketmine\item\ArmorTrim;
-use pocketmine\item\ArmorTrimRegistry;
 use pocketmine\item\Item;
 use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;

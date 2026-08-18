@@ -69,4 +69,5 @@ final class EnchantmentIds{
 	public const QUICK_CHARGE = 35;
 	public const SOUL_SPEED = 36;
 	public const SWIFT_SNEAK = 37;
+	public const LUNGE = 41;
 }

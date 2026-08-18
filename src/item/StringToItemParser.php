@@ -1651,6 +1651,13 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("tide_armor_trim_smithing_template", fn() => Items::TIDE_ARMOR_TRIM_SMITHING_TEMPLATE());
 		$result->register("totem", fn() => Items::TOTEM());
 		$result->register("trident", fn() => Items::TRIDENT());
+		$result->register("copper_spear", fn() => Items::COPPER_SPEAR());
+		$result->register("diamond_spear", fn() => Items::DIAMOND_SPEAR());
+		$result->register("golden_spear", fn() => Items::GOLDEN_SPEAR());
+		$result->register("iron_spear", fn() => Items::IRON_SPEAR());
+		$result->register("netherite_spear", fn() => Items::NETHERITE_SPEAR());
+		$result->register("stone_spear", fn() => Items::STONE_SPEAR());
+		$result->register("wooden_spear", fn() => Items::WOODEN_SPEAR());
 		$result->register("turtle_helmet", fn() => Items::TURTLE_HELMET());
 		$result->register("vex_armor_trim_smithing_template", fn() => Items::VEX_ARMOR_TRIM_SMITHING_TEMPLATE());
 		$result->register("turtle_shell_piece", fn() => Items::SCUTE());

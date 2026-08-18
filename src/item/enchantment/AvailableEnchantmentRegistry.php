@@ -84,6 +84,7 @@ final class AvailableEnchantmentRegistry{
 		);
 		$this->register(Enchantments::VANISHING(), [], [Tags::ALL]);
 		$this->register(Enchantments::SWIFT_SNEAK(), [], [Tags::LEGGINGS]);
+		$this->register(Enchantments::LUNGE(), [Tags::SPEAR], []);
 	}
 
 	/**

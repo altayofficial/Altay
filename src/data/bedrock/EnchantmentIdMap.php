@@ -70,5 +70,7 @@ final class EnchantmentIdMap{
 		$this->register(EnchantmentIds::SWIFT_SNEAK, VanillaEnchantments::SWIFT_SNEAK());
 
 		$this->register(EnchantmentIds::FROST_WALKER, VanillaEnchantments::FROST_WALKER());
+
+		$this->register(EnchantmentIds::LUNGE, VanillaEnchantments::LUNGE());
 	}
 }

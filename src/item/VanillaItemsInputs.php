@@ -382,6 +382,7 @@ final class VanillaItemsInputs extends RegistrySource{
 			self::register($idPrefix . "_pickaxe", fn(IID $id) => new Pickaxe($id, $namePrefix . " Pickaxe", $tier, [EnchantmentTags::PICKAXE]));
 			self::register($idPrefix . "_shovel", fn(IID $id) => new Shovel($id, $namePrefix . " Shovel", $tier, [EnchantmentTags::SHOVEL]));
 			self::register($idPrefix . "_sword", fn(IID $id) => new Sword($id, $namePrefix . " Sword", $tier, [EnchantmentTags::SWORD]));
+			self::register($idPrefix . "_spear", fn(IID $id) => new Spear($id, $namePrefix . " Spear", $tier, [EnchantmentTags::SPEAR]));
 		}
 	}
 

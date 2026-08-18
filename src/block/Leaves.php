@@ -159,7 +159,7 @@ class Leaves extends Transparent{
 				LeavesType::MANGROVE, //TODO: mangrove propagule
 				LeavesType::AZALEA => VanillaBlocks::AZALEA(),
 				LeavesType::FLOWERING_AZALEA => VanillaBlocks::FLOWERING_AZALEA(),
-				LeavesType::CHERRY => null, //TODO: cherry
+				LeavesType::CHERRY => VanillaBlocks::CHERRY_SAPLING(),
 				LeavesType::PALE_OAK => null, //TODO: pale oak
 			})?->asItem();
 			if($sapling !== null){

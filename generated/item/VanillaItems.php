@@ -50,6 +50,7 @@ final class VanillaItems{
 	private static BakedPotato $_mBAKED_POTATO;
 	private static Bamboo $_mBAMBOO;
 	private static HangingSign $_mBAMBOO_HANGING_SIGN;
+	private static Boat $_mBAMBOO_RAFT;
 	private static ItemBlockWallOrFloor $_mBAMBOO_SIGN;
 	private static Banner $_mBANNER;
 	private static Beetroot $_mBEETROOT;
@@ -164,6 +165,7 @@ final class VanillaItems{
 	private static Dye $_mDYE;
 	private static Item $_mECHO_SHARD;
 	private static Egg $_mEGG;
+	private static Elytra $_mELYTRA;
 	private static Item $_mEMERALD;
 	private static EnchantedBook $_mENCHANTED_BOOK;
 	private static GoldenAppleEnchanted $_mENCHANTED_GOLDEN_APPLE;
@@ -358,6 +360,7 @@ final class VanillaItems{
 	private static Item $_mWHEAT;
 	private static WheatSeeds $_mWHEAT_SEEDS;
 	private static Item $_mWILD_ARMOR_TRIM_SMITHING_TEMPLATE;
+	private static WindCharge $_mWIND_CHARGE;
 	private static Axe $_mWOODEN_AXE;
 	private static Hoe $_mWOODEN_HOE;
 	private static Pickaxe $_mWOODEN_PICKAXE;
@@ -410,6 +413,7 @@ final class VanillaItems{
 			"baked_potato" => fn(BakedPotato $v) => self::$_mBAKED_POTATO = $v,
 			"bamboo" => fn(Bamboo $v) => self::$_mBAMBOO = $v,
 			"bamboo_hanging_sign" => fn(HangingSign $v) => self::$_mBAMBOO_HANGING_SIGN = $v,
+			"bamboo_raft" => fn(Boat $v) => self::$_mBAMBOO_RAFT = $v,
 			"bamboo_sign" => fn(ItemBlockWallOrFloor $v) => self::$_mBAMBOO_SIGN = $v,
 			"banner" => fn(Banner $v) => self::$_mBANNER = $v,
 			"beetroot" => fn(Beetroot $v) => self::$_mBEETROOT = $v,
@@ -524,6 +528,7 @@ final class VanillaItems{
 			"dye" => fn(Dye $v) => self::$_mDYE = $v,
 			"echo_shard" => fn(Item $v) => self::$_mECHO_SHARD = $v,
 			"egg" => fn(Egg $v) => self::$_mEGG = $v,
+			"elytra" => fn(Elytra $v) => self::$_mELYTRA = $v,
 			"emerald" => fn(Item $v) => self::$_mEMERALD = $v,
 			"enchanted_book" => fn(EnchantedBook $v) => self::$_mENCHANTED_BOOK = $v,
 			"enchanted_golden_apple" => fn(GoldenAppleEnchanted $v) => self::$_mENCHANTED_GOLDEN_APPLE = $v,
@@ -718,6 +723,7 @@ final class VanillaItems{
 			"wheat" => fn(Item $v) => self::$_mWHEAT = $v,
 			"wheat_seeds" => fn(WheatSeeds $v) => self::$_mWHEAT_SEEDS = $v,
 			"wild_armor_trim_smithing_template" => fn(Item $v) => self::$_mWILD_ARMOR_TRIM_SMITHING_TEMPLATE = $v,
+			"wind_charge" => fn(WindCharge $v) => self::$_mWIND_CHARGE = $v,
 			"wooden_axe" => fn(Axe $v) => self::$_mWOODEN_AXE = $v,
 			"wooden_hoe" => fn(Hoe $v) => self::$_mWOODEN_HOE = $v,
 			"wooden_pickaxe" => fn(Pickaxe $v) => self::$_mWOODEN_PICKAXE = $v,
@@ -812,6 +818,11 @@ final class VanillaItems{
 	public static function BAMBOO_HANGING_SIGN() : HangingSign{
 		if(!isset(self::$_mBAMBOO_HANGING_SIGN)){ self::init(); }
 		return clone self::$_mBAMBOO_HANGING_SIGN;
+	}
+
+	public static function BAMBOO_RAFT() : Boat{
+		if(!isset(self::$_mBAMBOO_RAFT)){ self::init(); }
+		return clone self::$_mBAMBOO_RAFT;
 	}
 
 	public static function BAMBOO_SIGN() : ItemBlockWallOrFloor{
@@ -1382,6 +1393,11 @@ final class VanillaItems{
 	public static function EGG() : Egg{
 		if(!isset(self::$_mEGG)){ self::init(); }
 		return clone self::$_mEGG;
+	}
+
+	public static function ELYTRA() : Elytra{
+		if(!isset(self::$_mELYTRA)){ self::init(); }
+		return clone self::$_mELYTRA;
 	}
 
 	public static function EMERALD() : Item{
@@ -2352,6 +2368,11 @@ final class VanillaItems{
 	public static function WILD_ARMOR_TRIM_SMITHING_TEMPLATE() : Item{
 		if(!isset(self::$_mWILD_ARMOR_TRIM_SMITHING_TEMPLATE)){ self::init(); }
 		return clone self::$_mWILD_ARMOR_TRIM_SMITHING_TEMPLATE;
+	}
+
+	public static function WIND_CHARGE() : WindCharge{
+		if(!isset(self::$_mWIND_CHARGE)){ self::init(); }
+		return clone self::$_mWIND_CHARGE;
 	}
 
 	public static function WOODEN_AXE() : Axe{

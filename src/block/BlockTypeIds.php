@@ -886,8 +886,9 @@ final class BlockTypeIds{
 	public const BORDER_BLOCK = 10853;
 	public const ALLOW = 10854;
 	public const DENY = 10855;
+  public const DECORATED_POT = 10856;
 
-	public const FIRST_UNUSED_BLOCK_ID = 10856;
+	public const FIRST_UNUSED_BLOCK_ID = 10857;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_BLOCK_ID;
 

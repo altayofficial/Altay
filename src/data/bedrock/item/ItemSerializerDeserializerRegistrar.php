@@ -39,6 +39,7 @@ use pocketmine\data\bedrock\item\ItemTypeNames as Ids;
 use pocketmine\data\bedrock\item\SavedItemData as Data;
 use pocketmine\data\bedrock\MedicineTypeIdMap;
 use pocketmine\data\bedrock\PotionTypeIdMap;
+use pocketmine\data\bedrock\PotterySherdTypeIdMap;
 use pocketmine\data\bedrock\SuspiciousStewTypeIdMap;
 use pocketmine\item\Banner;
 use pocketmine\item\Dye;
@@ -47,6 +48,8 @@ use pocketmine\item\GoatHorn;
 use pocketmine\item\Item;
 use pocketmine\item\Medicine;
 use pocketmine\item\Potion;
+use pocketmine\item\PotterySherd;
+use pocketmine\item\PotterySherdType;
 use pocketmine\item\SplashPotion;
 use pocketmine\item\SuspiciousStew;
 use pocketmine\item\VanillaItems as Items;
@@ -595,6 +598,12 @@ final class ItemSerializerDeserializerRegistrar{
 			$this->deserializer?->map($id, fn() => Items::DYE()->setColor($color));
 		}
 		$this->serializer?->map(Items::DYE(), fn(Dye $item) => new Data(DyeColorIdMap::getInstance()->toItemId($item->getColor())));
+
+		foreach(PotterySherdType::cases() as $sherdType){
+			$id = PotterySherdTypeIdMap::getInstance()->toId($sherdType);
+			$this->deserializer?->map($id, fn() => Items::POTTERY_SHERD()->setSherdType($sherdType));
+		}
+		$this->serializer?->map(Items::POTTERY_SHERD(), fn(PotterySherd $item) => new Data(PotterySherdTypeIdMap::getInstance()->toId($item->getSherdType())));
 
 		$this->deserializer?->map(Ids::BANNER, function(Data $data) : Item{
 			$type = $data->getTag()?->getInt(TileBanner::TAG_TYPE, TileBanner::TYPE_NORMAL) ?? TileBanner::TYPE_NORMAL;

@@ -384,6 +384,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("daylight_sensor_inverted", fn() => Blocks::DAYLIGHT_SENSOR()->setInverted(true));
 		$result->registerBlock("dead_bush", fn() => Blocks::DEAD_BUSH());
 		$result->registerBlock("deadbush", fn() => Blocks::DEAD_BUSH());
+		$result->registerBlock("decorated_pot", fn() => Blocks::DECORATED_POT());
 		$result->registerBlock("deepslate", fn() => Blocks::DEEPSLATE());
 		$result->registerBlock("deepslate_bricks", fn() => Blocks::DEEPSLATE_BRICKS());
 		$result->registerBlock("deepslate_brick_slab", fn() => Blocks::DEEPSLATE_BRICK_SLAB());
@@ -1275,6 +1276,12 @@ final class StringToItemParser extends StringToTParser{
 			$prefix = fn(string $name) => strtolower($goatHornType->name) . "_" . $name;
 
 			$result->register($prefix("goat_horn"), fn() => Items::GOAT_HORN()->setHornType($goatHornType));
+		}
+
+		foreach(PotterySherdType::cases() as $sherdType){
+			$prefix = fn(string $name) => strtolower($sherdType->name) . "_" . $name;
+
+			$result->register($prefix("pottery_sherd"), fn() => Items::POTTERY_SHERD()->setSherdType($sherdType));
 		}
 
 		foreach(SuspiciousStewType::cases() as $suspiciousStewType){

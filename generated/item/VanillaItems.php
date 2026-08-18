@@ -271,6 +271,7 @@ final class VanillaItems{
 	private static Item $_mPOPPED_CHORUS_FRUIT;
 	private static Potato $_mPOTATO;
 	private static Potion $_mPOTION;
+	private static PotterySherd $_mPOTTERY_SHERD;
 	private static Item $_mPRISMARINE_CRYSTALS;
 	private static Item $_mPRISMARINE_SHARD;
 	private static Pufferfish $_mPUFFERFISH;
@@ -634,6 +635,7 @@ final class VanillaItems{
 			"popped_chorus_fruit" => fn(Item $v) => self::$_mPOPPED_CHORUS_FRUIT = $v,
 			"potato" => fn(Potato $v) => self::$_mPOTATO = $v,
 			"potion" => fn(Potion $v) => self::$_mPOTION = $v,
+			"pottery_sherd" => fn(PotterySherd $v) => self::$_mPOTTERY_SHERD = $v,
 			"prismarine_crystals" => fn(Item $v) => self::$_mPRISMARINE_CRYSTALS = $v,
 			"prismarine_shard" => fn(Item $v) => self::$_mPRISMARINE_SHARD = $v,
 			"pufferfish" => fn(Pufferfish $v) => self::$_mPUFFERFISH = $v,
@@ -1923,6 +1925,11 @@ final class VanillaItems{
 	public static function POTION() : Potion{
 		if(!isset(self::$_mPOTION)){ self::init(); }
 		return clone self::$_mPOTION;
+	}
+
+	public static function POTTERY_SHERD() : PotterySherd{
+		if(!isset(self::$_mPOTTERY_SHERD)){ self::init(); }
+		return clone self::$_mPOTTERY_SHERD;
 	}
 
 	public static function PRISMARINE_CRYSTALS() : Item{

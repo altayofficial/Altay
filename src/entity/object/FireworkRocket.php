@@ -125,12 +125,7 @@ class FireworkRocket extends Entity implements Explosive, NeverSavedWithChunkEnt
 		$hasUpdate = parent::entityBaseTick($tickDiff);
 
 		if(!$this->isFlaggedForDespawn()){
-			//Don't keep accelerating long-lived fireworks - this gets very rapidly out of control and makes the server
-			//die. Vanilla fireworks will only live for about 52 ticks maximum anyway, so this only makes sure plugin
-			//created fireworks don't murder the server
-			if($this->ticksLived < 60){
-				$this->addMotion($this->motion->x * 0.15, 0.04, $this->motion->z * 0.15);
-			}
+			$this->tickFlight();
 
 			if($this->ticksLived >= $this->maxFlightTimeTicks){
 				$this->flagForDespawn();
@@ -139,6 +134,15 @@ class FireworkRocket extends Entity implements Explosive, NeverSavedWithChunkEnt
 		}
 
 		return $hasUpdate;
+	}
+
+	protected function tickFlight() : void{
+		//Don't keep accelerating long-lived fireworks - this gets very rapidly out of control and makes the server
+		//die. Vanilla fireworks will only live for about 52 ticks maximum anyway, so this only makes sure plugin
+		//created fireworks don't murder the server
+		if($this->ticksLived < 60){
+			$this->addMotion($this->motion->x * 0.15, 0.04, $this->motion->z * 0.15);
+		}
 	}
 
 	public function explode() : void{
@@ -169,9 +173,13 @@ class FireworkRocket extends Entity implements Explosive, NeverSavedWithChunkEnt
 				$height = $entity->getBoundingBox()->getYLength();
 				for($i = 0; $i < 2; $i++){
 					$target = $position->add(0, 0.5 * $i * $height, 0);
-					foreach(VoxelRayTrace::betweenPoints($this->location, $target) as $blockPos){
-						if($world->getBlock($blockPos)->calculateIntercept($this->location, $target) !== null){
-							continue 2; //obstruction, try another path
+					//a firework attached to a gliding player sits exactly on top of it, and there can't be any
+					//obstruction between two identical points anyway
+					if(!$target->equals($this->location)){
+						foreach(VoxelRayTrace::betweenPoints($this->location, $target) as $blockPos){
+							if($world->getBlock($blockPos)->calculateIntercept($this->location, $target) !== null){
+								continue 2; //obstruction, try another path
+							}
 						}
 					}
 

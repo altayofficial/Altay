@@ -28,6 +28,7 @@ namespace pocketmine\item;
 use pocketmine\block\Block;
 use pocketmine\data\SavedDataLoadingException;
 use pocketmine\entity\Location;
+use pocketmine\entity\object\ElytraFireworkRocket as ElytraFireworkEntity;
 use pocketmine\entity\object\FireworkRocket as FireworkEntity;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
@@ -42,6 +43,8 @@ class FireworkRocket extends Item{
 	public const TAG_FIREWORK_DATA = "Fireworks"; //TAG_Compound
 	protected const TAG_FLIGHT_TIME_MULTIPLIER = "Flight"; //TAG_Byte
 	public const TAG_EXPLOSIONS = "Explosions"; //TAG_List
+
+	private const ELYTRA_BOOST_FORCE = 2.0;
 
 	protected int $flightTimeMultiplier = 1;
 
@@ -92,6 +95,23 @@ class FireworkRocket extends Item{
 		$this->explosions = $explosions;
 
 		return $this;
+	}
+
+	public function onClickAir(Player $player, Vector3 $directionVector, array &$returnedItems) : ItemUseResult{
+		if(!$player->isGliding()){
+			return ItemUseResult::NONE;
+		}
+
+		$player->setMotion($directionVector->multiply(self::ELYTRA_BOOST_FORCE));
+
+		$location = $player->getLocation();
+		$entity = new ElytraFireworkEntity($location, 20 + mt_rand(0, 12), $this->explosions, $player);
+		$entity->setOwningEntity($player);
+		$entity->spawnToAll();
+
+		$this->pop();
+
+		return ItemUseResult::SUCCESS;
 	}
 
 	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{

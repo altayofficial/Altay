@@ -361,6 +361,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::GLOWSTONE(), Ids::GLOWSTONE);
 		$reg->mapSimple(Blocks::GOLD(), Ids::GOLD_BLOCK);
 		$reg->mapSimple(Blocks::GOLD_ORE(), Ids::GOLD_ORE);
+		$reg->mapSimple(Blocks::GOLDEN_DANDELION(), Ids::GOLDEN_DANDELION);
 		$reg->mapSimple(Blocks::GRANITE(), Ids::GRANITE);
 		$reg->mapSimple(Blocks::GRASS(), Ids::GRASS_BLOCK);
 		$reg->mapSimple(Blocks::GRASS_PATH(), Ids::GRASS_PATH);

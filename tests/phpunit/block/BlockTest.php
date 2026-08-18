@@ -115,6 +115,7 @@ class BlockTest extends TestCase{
 			BlockTypeNames::LAVA,
 			BlockTypeNames::FLOWING_LAVA,
 			BlockTypeNames::MANGROVE_LOG, //For some reason ONLY this wood block has blast resistance 2 instead of 10...
+			BlockTypeNames::BORDER_BLOCK, //the table claims it's breakable, but it's a creative-only block which can't be destroyed by any means
 		], true);
 
 		$serializer = GlobalBlockStateHandlers::getSerializer();

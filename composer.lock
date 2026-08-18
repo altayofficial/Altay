@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1e7f3993d094618b09d93351a742ad81",
+    "content-hash": "bf12e7c6056f02d7f81284a321b759d8",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -91,20 +91,20 @@
         },
         {
             "name": "altayofficial/bedrock-protocol",
-            "version": "dev-bedrock-1.26.40",
+            "version": "dev-bedrock-1.26.44",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "c5249acf05a27d0596ccd759b57aed5d201f3307"
+                "reference": "52c643229d342afc06c5db5984393bae39d5a4a9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/c5249acf05a27d0596ccd759b57aed5d201f3307",
-                "reference": "c5249acf05a27d0596ccd759b57aed5d201f3307",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/52c643229d342afc06c5db5984393bae39d5a4a9",
+                "reference": "52c643229d342afc06c5db5984393bae39d5a4a9",
                 "shasum": ""
             },
             "require": {
-                "altayofficial/nbt": "dev-stable",
+                "altayofficial/nbt": "~1.3.0",
                 "ext-encoding": "~1.0.0",
                 "ext-json": "*",
                 "php": "^8.1",
@@ -141,10 +141,10 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/59.0.0+bedrock-1.26.40",
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.44",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-08-09T19:23:28+00:00"
+            "time": "2026-08-14T20:09:29+00:00"
         },
         {
             "name": "altayofficial/nbt",
@@ -2743,7 +2743,14 @@
             "time": "2025-11-17T20:03:58+00:00"
         }
     ],
-    "aliases": [],
+    "aliases": [
+        {
+            "package": "altayofficial/nbt",
+            "version": "dev-stable",
+            "alias": "1.3.0",
+            "alias_normalized": "1.3.0.0"
+        }
+    ],
     "minimum-stability": "stable",
     "stability-flags": {
         "altayofficial/bedrock-data": 20,

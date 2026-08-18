@@ -216,6 +216,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("blue_torch", fn() => Blocks::BLUE_TORCH());
 		$result->registerBlock("bone_block", fn() => Blocks::BONE_BLOCK());
 		$result->registerBlock("bookshelf", fn() => Blocks::BOOKSHELF());
+		$result->registerBlock("border_block", fn() => Blocks::BORDER_BLOCK());
 		$result->registerBlock("brewing_stand", fn() => Blocks::BREWING_STAND());
 		$result->registerBlock("brewing_stand_block", fn() => Blocks::BREWING_STAND());
 		$result->registerBlock("brick_block", fn() => Blocks::BRICKS());
@@ -252,6 +253,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("cherry_log", fn() => Blocks::CHERRY_LOG());
 		$result->registerBlock("cherry_planks", fn() => Blocks::CHERRY_PLANKS());
 		$result->registerBlock("cherry_pressure_plate", fn() => Blocks::CHERRY_PRESSURE_PLATE());
+		$result->registerBlock("cherry_sapling", fn() => Blocks::CHERRY_SAPLING());
 		$result->registerBlock("cherry_sign", fn() => Blocks::CHERRY_SIGN());
 		$result->registerBlock("cherry_slab", fn() => Blocks::CHERRY_SLAB());
 		$result->registerBlock("cherry_stairs", fn() => Blocks::CHERRY_STAIRS());
@@ -1303,6 +1305,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("baked_potato", fn() => Items::BAKED_POTATO());
 		$result->register("baked_potatoes", fn() => Items::BAKED_POTATO());
 		$result->register("bamboo_hanging_sign", fn() => Items::BAMBOO_HANGING_SIGN());
+		$result->register("bamboo_raft", fn() => Items::BAMBOO_RAFT());
 		$result->register("beef", fn() => Items::RAW_BEEF());
 		$result->register("beetroot", fn() => Items::BEETROOT());
 		$result->register("beetroot_seed", fn() => Items::BEETROOT_SEEDS());
@@ -1427,6 +1430,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("echo_shard", fn() => Items::ECHO_SHARD());
 		$result->register("egg", fn() => Items::EGG());
 		$result->register("elixir", fn() => Items::MEDICINE()->setType(MedicineType::ELIXIR));
+		$result->register("elytra", fn() => Items::ELYTRA());
 		$result->register("emerald", fn() => Items::EMERALD());
 		$result->register("enchanted_book", fn() => Items::ENCHANTED_BOOK());
 		$result->register("enchanted_golden_apple", fn() => Items::ENCHANTED_GOLDEN_APPLE());

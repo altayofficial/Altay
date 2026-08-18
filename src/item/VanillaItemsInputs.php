@@ -338,6 +338,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("wheat", fn(IID $id) => new Item($id, "Wheat"));
 		self::register("wheat_seeds", fn(IID $id) => new WheatSeeds($id, "Wheat Seeds"));
 		self::register("wind_charge", fn(IID $id) => new WindCharge($id, "Wind Charge"));
+		self::register("wolf_armor", fn(IID $id) => new WolfArmor($id, "Wolf Armor"));
 		self::register("writable_book", fn(IID $id) => new WritableBook($id, "Book & Quill"));
 		self::register("written_book", fn(IID $id) => new WrittenBook($id, "Written Book"));
 

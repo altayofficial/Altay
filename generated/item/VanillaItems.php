@@ -363,6 +363,7 @@ final class VanillaItems{
 	private static WheatSeeds $_mWHEAT_SEEDS;
 	private static Item $_mWILD_ARMOR_TRIM_SMITHING_TEMPLATE;
 	private static WindCharge $_mWIND_CHARGE;
+	private static WolfArmor $_mWOLF_ARMOR;
 	private static Axe $_mWOODEN_AXE;
 	private static Hoe $_mWOODEN_HOE;
 	private static Pickaxe $_mWOODEN_PICKAXE;
@@ -728,6 +729,7 @@ final class VanillaItems{
 			"wheat_seeds" => fn(WheatSeeds $v) => self::$_mWHEAT_SEEDS = $v,
 			"wild_armor_trim_smithing_template" => fn(Item $v) => self::$_mWILD_ARMOR_TRIM_SMITHING_TEMPLATE = $v,
 			"wind_charge" => fn(WindCharge $v) => self::$_mWIND_CHARGE = $v,
+			"wolf_armor" => fn(WolfArmor $v) => self::$_mWOLF_ARMOR = $v,
 			"wooden_axe" => fn(Axe $v) => self::$_mWOODEN_AXE = $v,
 			"wooden_hoe" => fn(Hoe $v) => self::$_mWOODEN_HOE = $v,
 			"wooden_pickaxe" => fn(Pickaxe $v) => self::$_mWOODEN_PICKAXE = $v,
@@ -2387,6 +2389,11 @@ final class VanillaItems{
 	public static function WIND_CHARGE() : WindCharge{
 		if(!isset(self::$_mWIND_CHARGE)){ self::init(); }
 		return clone self::$_mWIND_CHARGE;
+	}
+
+	public static function WOLF_ARMOR() : WolfArmor{
+		if(!isset(self::$_mWOLF_ARMOR)){ self::init(); }
+		return clone self::$_mWOLF_ARMOR;
 	}
 
 	public static function WOODEN_AXE() : Axe{

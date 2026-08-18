@@ -445,6 +445,25 @@ abstract class Living extends Entity{
 	}
 
 	/**
+	 * Returns the fraction of this entity's armour which is effective against the given damage source, taking the
+	 * attacker's weapon into account. 1.0 means armour works as usual.
+	 */
+	private function getArmorEfficiencyAgainst(EntityDamageEvent $source) : float{
+		if(!$source instanceof EntityDamageByEntityEvent || $source->getCause() !== EntityDamageEvent::CAUSE_ENTITY_ATTACK){
+			return 1.0;
+		}
+
+		$damager = $source->getDamager();
+		if(!$damager instanceof Human){
+			return 1.0;
+		}
+
+		$weapon = $damager->getInventory()->getItemInHand();
+
+		return $weapon instanceof Mace ? $weapon->getArmorEfficiency() : 1.0;
+	}
+
+	/**
 	 * Called prior to EntityDamageEvent execution to apply modifications to the event's damage, such as reduction due
 	 * to effects or armour.
 	 */
@@ -455,9 +474,10 @@ abstract class Living extends Entity{
 			}
 			$source->setModifier(-$this->lastDamageCause->getBaseDamage(), EntityDamageEvent::MODIFIER_PREVIOUS_DAMAGE_COOLDOWN);
 		}
+		$armorEfficiency = $this->getArmorEfficiencyAgainst($source);
 		if($source->canBeReducedByArmor()){
 			//MCPE uses the same system as PC did pre-1.9
-			$source->setModifier(-$source->getFinalDamage() * $this->getArmorPoints() * 0.04, EntityDamageEvent::MODIFIER_ARMOR);
+			$source->setModifier(-$source->getFinalDamage() * $this->getArmorPoints() * 0.04 * $armorEfficiency, EntityDamageEvent::MODIFIER_ARMOR);
 		}
 
 		$cause = $source->getCause();
@@ -471,19 +491,7 @@ abstract class Living extends Entity{
 				$totalEpf += $item->getEnchantmentProtectionFactor($source);
 			}
 		}
-		$source->setModifier(-$source->getFinalDamage() * min(ceil(min($totalEpf, 25) * (mt_rand(50, 100) / 100)), 20) * 0.04, EntityDamageEvent::MODIFIER_ARMOR_ENCHANTMENTS);
-
-		if($source instanceof EntityDamageByEntityEvent){
-			$damager = $source->getDamager();
-			if($damager instanceof Human){
-				$weapon = $damager->getInventory()->getItemInHand();
-				if($weapon instanceof Mace){
-					$armorEfficiency = $weapon->getArmorEfficiency();
-					$source->setModifier($source->getModifier(EntityDamageEvent::MODIFIER_ARMOR) * $armorEfficiency, EntityDamageEvent::MODIFIER_ARMOR);
-					$source->setModifier($source->getModifier(EntityDamageEvent::MODIFIER_ARMOR_ENCHANTMENTS) * $armorEfficiency, EntityDamageEvent::MODIFIER_ARMOR_ENCHANTMENTS);
-				}
-			}
-		}
+		$source->setModifier(-$source->getFinalDamage() * min(ceil(min($totalEpf, 25) * (mt_rand(50, 100) / 100)), 20) * 0.04 * $armorEfficiency, EntityDamageEvent::MODIFIER_ARMOR_ENCHANTMENTS);
 
 		$source->setModifier(-min($this->getAbsorption(), $source->getFinalDamage()), EntityDamageEvent::MODIFIER_ABSORPTION);
 

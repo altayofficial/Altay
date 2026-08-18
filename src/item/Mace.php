@@ -28,18 +28,13 @@ namespace pocketmine\item;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\item\enchantment\VanillaEnchantments;
-use pocketmine\math\Vector3;
 use pocketmine\world\particle\MaceGroundSmashParticle;
 use pocketmine\world\particle\WindExplosionParticle;
 use pocketmine\world\sound\MaceHeavySmashGroundSound;
 use pocketmine\world\sound\MaceSmashAirSound;
 use pocketmine\world\sound\MaceSmashGroundSound;
-use function cos;
-use function deg2rad;
-use function floor;
 use function max;
 use function min;
-use function sin;
 
 class Mace extends Tool{
 
@@ -51,6 +46,8 @@ class Mace extends Tool{
 	public const HEAVY_SMASH_DAMAGE = 16.0;
 	/** Damage below which a smash is not loud enough to play any sound. */
 	public const SMASH_SOUND_DAMAGE = 7.0;
+	/** Fall distance beyond which Wind Burst stops gaining extra launch power. */
+	public const MAX_WIND_BURST_FALL_DISTANCE = 7.5;
 
 	public function getMaxDurability() : int{
 		return 500;
@@ -80,7 +77,7 @@ class Mace extends Tool{
 	 * Returns whether the attacker fell far enough for their attack to count as a smash.
 	 */
 	public function canSmash(Entity $attacker) : bool{
-		return $attacker->getFallDistance() >= self::MINIMUM_SMASH_FALL_DISTANCE;
+		return $attacker->getFallDistance() >= self::MINIMUM_SMASH_FALL_DISTANCE && !$attacker->isUnderwater();
 	}
 
 	/**
@@ -92,19 +89,14 @@ class Mace extends Tool{
 			return self::BASE_ATTACK_POINTS;
 		}
 
-		$blocks = (int) floor($fallDistance);
-		$damage = 0;
-		for($i = 0; $i <= $blocks; $i++){
-			if($i < 3){
-				$damage += 4;
-			}elseif($i < 8){
-				$damage += 2;
-			}else{
-				$damage++;
-			}
-		}
+		//the first 3 blocks of fall are worth 4 damage each, the next 5 are worth 2, the rest are worth 1
+		$bonus = match(true){
+			$fallDistance <= 3.0 => $fallDistance * 4,
+			$fallDistance <= 8.0 => 12 + ($fallDistance - 3) * 2,
+			default => 22 + ($fallDistance - 8)
+		};
 
-		return $damage;
+		return self::BASE_ATTACK_POINTS + $bonus;
 	}
 
 	/**
@@ -128,19 +120,22 @@ class Mace extends Tool{
 		return max(0.0, (100 - ($breachLevel * 15)) / 100);
 	}
 
-	public function playSmashSound(Entity $victim, float $damage) : void{
+	/**
+	 * Plays the impact sound and spawns the ground dust particles of a smash landed by the given attacker.
+	 */
+	public function playSmashEffects(Entity $attacker, float $damage) : void{
 		if($damage < self::SMASH_SOUND_DAMAGE){
 			return;
 		}
 
 		$sound = $damage >= self::HEAVY_SMASH_DAMAGE ? new MaceHeavySmashGroundSound() : new MaceSmashGroundSound();
-		$victim->getWorld()->addSound($victim->getPosition(), $sound);
-		$victim->getWorld()->addParticle($victim->getPosition(), new MaceGroundSmashParticle());
+		$world = $attacker->getWorld();
+		$world->addSound($attacker->getPosition(), $sound);
+		$world->addParticle($attacker->getPosition(), new MaceGroundSmashParticle());
 	}
 
 	/**
-	 * Applies the Wind Burst enchantment: launches the attacker upwards and forwards, pushes nearby
-	 * entities away and spawns wind explosion particles.
+	 * Applies the Wind Burst enchantment, launching the attacker back upwards.
 	 */
 	public function applyWindBurst(Entity $attacker) : void{
 		$level = $this->getEnchantmentLevel(VanillaEnchantments::WIND_BURST());
@@ -153,37 +148,16 @@ class Mace extends Tool{
 			return;
 		}
 
-		$clampedFall = min($fallDistance, 7.5);
-		$verticalBoost = 0.72 + $clampedFall * 0.10 + match($level){
+		$verticalBoost = 0.72 + min($fallDistance, self::MAX_WIND_BURST_FALL_DISTANCE) * 0.10 + match($level){
 			2 => 0.55,
 			3 => 1.3,
 			default => 0.0
 		};
 
-		$yaw = deg2rad($attacker->getLocation()->yaw);
-		$forward = (new Vector3(-sin($yaw), 0, cos($yaw)))->normalize();
-		$forwardBoost = 0.08 + 0.02 * $level;
-
-		$attacker->resetFallDistance();
-		$attacker->setMotion($forward->multiply($forwardBoost)->withComponents(null, $verticalBoost, null));
+		$attacker->setMotion($attacker->getMotion()->withComponents(null, $verticalBoost, null));
 
 		$world = $attacker->getWorld();
-		$searchBox = $attacker->getBoundingBox()->expandedCopy(2.5, 2.5, 2.5);
-		foreach($world->getNearbyEntities($searchBox, $attacker) as $entity){
-			$direction = $entity->getPosition()->subtractVector($attacker->getPosition());
-			if($direction->lengthSquared() <= 0){
-				continue;
-			}
-
-			$gust = $direction->normalize()->multiply(0.6 + 0.15 * $level);
-			$pushed = $entity->getMotion()->addVector($gust);
-			$entity->setMotion($pushed->withComponents(null, max($pushed->y, 0.4 + 0.1 * $level), null));
-
-			$world->addParticle($entity->getPosition()->add(0, $entity->getEyeHeight() * 0.6, 0), new WindExplosionParticle());
-		}
-
-		$eyePos = $attacker->getPosition()->add(0, $attacker->getEyeHeight() * 0.6, 0);
-		$world->addParticle($eyePos, new WindExplosionParticle());
+		$world->addParticle($attacker->getPosition(), new WindExplosionParticle());
 		$world->addSound($attacker->getPosition(), new MaceSmashAirSound());
 	}
 }

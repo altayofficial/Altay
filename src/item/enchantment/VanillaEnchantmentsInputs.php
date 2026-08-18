@@ -271,6 +271,36 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 			25
 		));
 
+		self::register("DENSITY", new Enchantment(
+			KnownTranslationFactory::enchantment_heavy_weapon_density(),
+			Rarity::COMMON,
+			0,
+			0,
+			5,
+			fn(int $level) : int => 8 * ($level - 1) + 5,
+			20
+		));
+
+		self::register("BREACH", new Enchantment(
+			KnownTranslationFactory::enchantment_heavy_weapon_breach(),
+			Rarity::RARE,
+			0,
+			0,
+			4,
+			fn(int $level) : int => 9 * ($level - 1) + 15,
+			20
+		));
+
+		self::register("WIND_BURST", new Enchantment(
+			KnownTranslationFactory::enchantment_heavy_weapon_windburst(),
+			Rarity::MYTHIC,
+			0,
+			0,
+			3,
+			fn(int $level) : int => 9 * ($level - 1) + 15,
+			20
+		));
+
 		self::register("SWIFT_SNEAK", new Enchantment(
 			KnownTranslationFactory::enchantment_swift_sneak(),
 			Rarity::MYTHIC,

@@ -106,6 +106,7 @@ use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\enchantment\MeleeWeaponEnchantment;
 use pocketmine\item\Item;
 use pocketmine\item\ItemUseResult;
+use pocketmine\item\Mace;
 use pocketmine\item\Releasable;
 use pocketmine\item\Spear;
 use pocketmine\lang\KnownTranslationFactory;
@@ -2067,7 +2068,12 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		}
 		$ev->setModifier($meleeEnchantmentDamage, EntityDamageEvent::MODIFIER_WEAPON_ENCHANTMENTS);
 
-		if(!$this->isSprinting() && !$this->isFlying() && $this->fallDistance > 0 && !$this->effectManager->has(VanillaEffects::BLINDNESS()) && !$this->isUnderwater()){
+		$isMaceSmash = $heldItem instanceof Mace && $heldItem->canSmash($this);
+		if($isMaceSmash){
+			$smashBonus = ($heldItem->getSmashDamage($this->fallDistance) - $heldItem->getAttackPoints()) + $heldItem->getDensityBonus($this->fallDistance);
+			$ev->setModifier($smashBonus, EntityDamageEvent::MODIFIER_MACE_SMASH);
+		}elseif(!$this->isSprinting() && !$this->isFlying() && $this->fallDistance > 0 && !$this->effectManager->has(VanillaEffects::BLINDNESS()) && !$this->isUnderwater()){
+			//a mace smash replaces the regular fall critical hit
 			$ev->setModifier($ev->getFinalDamage() / 2, EntityDamageEvent::MODIFIER_CRITICAL);
 		}
 
@@ -2097,6 +2103,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$type = $enchantment->getType();
 			assert($type instanceof MeleeWeaponEnchantment);
 			$type->onPostAttack($this, $entity, $enchantment->getLevel());
+		}
+
+		if($isMaceSmash && $heldItem instanceof Mace){
+			$heldItem->playSmashSound($entity, $ev->getFinalDamage());
+			$heldItem->applyWindBurst($this);
 		}
 
 		if($this->isAlive()){

@@ -71,6 +71,9 @@ final class EnchantmentIdMap{
 
 		$this->register(EnchantmentIds::FROST_WALKER, VanillaEnchantments::FROST_WALKER());
 
+		$this->register(EnchantmentIds::WIND_BURST, VanillaEnchantments::WIND_BURST());
+		$this->register(EnchantmentIds::DENSITY, VanillaEnchantments::DENSITY());
+		$this->register(EnchantmentIds::BREACH, VanillaEnchantments::BREACH());
 		$this->register(EnchantmentIds::LUNGE, VanillaEnchantments::LUNGE());
 	}
 }

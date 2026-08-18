@@ -49,6 +49,7 @@ use pocketmine\item\Durable;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\item\Item;
+use pocketmine\item\Mace;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\math\VoxelRayTrace;
@@ -471,6 +472,18 @@ abstract class Living extends Entity{
 			}
 		}
 		$source->setModifier(-$source->getFinalDamage() * min(ceil(min($totalEpf, 25) * (mt_rand(50, 100) / 100)), 20) * 0.04, EntityDamageEvent::MODIFIER_ARMOR_ENCHANTMENTS);
+
+		if($source instanceof EntityDamageByEntityEvent){
+			$damager = $source->getDamager();
+			if($damager instanceof Human){
+				$weapon = $damager->getInventory()->getItemInHand();
+				if($weapon instanceof Mace){
+					$armorEfficiency = $weapon->getArmorEfficiency();
+					$source->setModifier($source->getModifier(EntityDamageEvent::MODIFIER_ARMOR) * $armorEfficiency, EntityDamageEvent::MODIFIER_ARMOR);
+					$source->setModifier($source->getModifier(EntityDamageEvent::MODIFIER_ARMOR_ENCHANTMENTS) * $armorEfficiency, EntityDamageEvent::MODIFIER_ARMOR_ENCHANTMENTS);
+				}
+			}
+		}
 
 		$source->setModifier(-min($this->getAbsorption(), $source->getFinalDamage()), EntityDamageEvent::MODIFIER_ABSORPTION);
 

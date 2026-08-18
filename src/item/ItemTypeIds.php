@@ -379,8 +379,9 @@ final class ItemTypeIds{
 	public const NETHERITE_SPEAR = 20338;
 	public const STONE_SPEAR = 20339;
 	public const WOODEN_SPEAR = 20340;
+	public const MACE = 20341;
 
-	public const FIRST_UNUSED_ITEM_ID = 20341;
+	public const FIRST_UNUSED_ITEM_ID = 20342;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_ITEM_ID;
 

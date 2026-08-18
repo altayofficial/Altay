@@ -23,15 +23,16 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\item\enchantment;
+namespace pocketmine\world\particle;
 
-/**
- * Constants for groupings of incompatible enchantments.
- * Enchantments belonging to the same incompatibility group cannot be applied side-by-side on the same item.
- */
-final class IncompatibleEnchantmentGroups{
-	public const PROTECTION = "protection";
-	public const BOW_INFINITE = "bow_infinite";
-	public const BLOCK_DROPS = "block_drops";
-	public const HEAVY_WEAPON_DAMAGE = "heavy_weapon_damage";
+use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\LevelEventPacket;
+
+class MaceGroundSmashParticle implements Particle{
+
+	private const PARTICLE_SMASH_ATTACK_GROUND_DUST = 9815;
+
+	public function encode(Vector3 $pos) : array{
+		return [LevelEventPacket::create(self::PARTICLE_SMASH_ATTACK_GROUND_DUST, 0, $pos)];
+	}
 }

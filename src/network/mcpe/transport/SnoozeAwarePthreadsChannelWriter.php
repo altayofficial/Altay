@@ -23,18 +23,23 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\raklib;
+namespace pocketmine\network\mcpe\transport;
 
+use altay\network\ipc\InterThreadChannelWriter;
 use pmmp\thread\ThreadSafeArray;
-use raklib\server\ipc\InterThreadChannelReader;
+use pocketmine\snooze\SleeperNotifier;
 
-final class PthreadsChannelReader implements InterThreadChannelReader{
+final class SnoozeAwarePthreadsChannelWriter implements InterThreadChannelWriter{
 	/**
 	 * @phpstan-param ThreadSafeArray<int, string> $buffer
 	 */
-	public function __construct(private ThreadSafeArray $buffer){}
+	public function __construct(
+		private ThreadSafeArray $buffer,
+		private SleeperNotifier $notifier
+	){}
 
-	public function read() : ?string{
-		return $this->buffer->shift();
+	public function write(string $str) : void{
+		$this->buffer[] = $str;
+		$this->notifier->wakeupSleeper();
 	}
 }

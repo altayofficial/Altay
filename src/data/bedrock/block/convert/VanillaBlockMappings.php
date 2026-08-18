@@ -176,9 +176,6 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::BOOKSHELF(), Ids::BOOKSHELF);
 		$reg->mapSimple(Blocks::BRICKS(), Ids::BRICK_BLOCK);
 		$reg->mapSimple(Blocks::BROWN_MUSHROOM(), Ids::BROWN_MUSHROOM);
-		$reg->mapModel(Model::create(Blocks::BUBBLE_COLUMN(), Ids::BUBBLE_COLUMN)->properties([
-			new BoolProperty(StateNames::DRAG_DOWN, fn(BubbleColumn $b) => $b->isDragDown(), fn(BubbleColumn $b, bool $v) => $b->setDragDown($v))
-		]));
 		$reg->mapSimple(Blocks::BUDDING_AMETHYST(), Ids::BUDDING_AMETHYST);
 		$reg->mapSimple(Blocks::CALCITE(), Ids::CALCITE);
 		$reg->mapSimple(Blocks::CARTOGRAPHY_TABLE(), Ids::CARTOGRAPHY_TABLE);
@@ -1343,6 +1340,9 @@ final class VanillaBlockMappings{
 			BrewingStandSlot::SOUTHWEST => StateNames::BREWING_STAND_SLOT_B_BIT,
 			BrewingStandSlot::NORTHWEST => StateNames::BREWING_STAND_SLOT_C_BIT
 		}, fn(BrewingStand $b) => $b->hasSlot($slot), fn(BrewingStand $b, bool $v) => $b->setSlot($slot, $v)), BrewingStandSlot::cases())));
+		$reg->mapModel(Model::create(Blocks::BUBBLE_COLUMN(), Ids::BUBBLE_COLUMN)->properties([
+			new BoolProperty(StateNames::DRAG_DOWN, fn(BubbleColumn $b) => $b->isDragDown(), fn(BubbleColumn $b, bool $v) => $b->setDragDown($v))
+		]));
 
 		//C
 		$reg->mapModel(Model::create(Blocks::CACTUS(), Ids::CACTUS)->properties([

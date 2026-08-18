@@ -146,6 +146,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("air", fn() => Blocks::AIR());
 		$result->registerBlock("all_sided_mushroom_stem", fn() => Blocks::ALL_SIDED_MUSHROOM_STEM());
 		$result->registerBlock("allium", fn() => Blocks::ALLIUM());
+		$result->registerBlock("allow", fn() => Blocks::ALLOW());
 		$result->registerBlock("amethyst_block", fn() => Blocks::AMETHYST());
 		$result->registerBlock("amethyst_cluster", fn() => Blocks::AMETHYST_CLUSTER());
 		$result->registerBlock("ancient_debris", fn() => Blocks::ANCIENT_DEBRIS());
@@ -215,6 +216,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("blue_torch", fn() => Blocks::BLUE_TORCH());
 		$result->registerBlock("bone_block", fn() => Blocks::BONE_BLOCK());
 		$result->registerBlock("bookshelf", fn() => Blocks::BOOKSHELF());
+		$result->registerBlock("border_block", fn() => Blocks::BORDER_BLOCK());
 		$result->registerBlock("brewing_stand", fn() => Blocks::BREWING_STAND());
 		$result->registerBlock("brewing_stand_block", fn() => Blocks::BREWING_STAND());
 		$result->registerBlock("brick_block", fn() => Blocks::BRICKS());
@@ -251,6 +253,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("cherry_log", fn() => Blocks::CHERRY_LOG());
 		$result->registerBlock("cherry_planks", fn() => Blocks::CHERRY_PLANKS());
 		$result->registerBlock("cherry_pressure_plate", fn() => Blocks::CHERRY_PRESSURE_PLATE());
+		$result->registerBlock("cherry_sapling", fn() => Blocks::CHERRY_SAPLING());
 		$result->registerBlock("cherry_sign", fn() => Blocks::CHERRY_SIGN());
 		$result->registerBlock("cherry_slab", fn() => Blocks::CHERRY_SLAB());
 		$result->registerBlock("cherry_stairs", fn() => Blocks::CHERRY_STAIRS());
@@ -398,6 +401,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("deepslate_iron_ore", fn() => Blocks::DEEPSLATE_IRON_ORE());
 		$result->registerBlock("deepslate_lapis_lazuli_ore", fn() => Blocks::DEEPSLATE_LAPIS_LAZULI_ORE());
 		$result->registerBlock("deepslate_redstone_ore", fn() => Blocks::DEEPSLATE_REDSTONE_ORE());
+		$result->registerBlock("deny", fn() => Blocks::DENY());
 		$result->registerBlock("detector_rail", fn() => Blocks::DETECTOR_RAIL());
 		$result->registerBlock("diamond_block", fn() => Blocks::DIAMOND());
 		$result->registerBlock("diamond_ore", fn() => Blocks::DIAMOND_ORE());
@@ -1301,6 +1305,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("baked_potato", fn() => Items::BAKED_POTATO());
 		$result->register("baked_potatoes", fn() => Items::BAKED_POTATO());
 		$result->register("bamboo_hanging_sign", fn() => Items::BAMBOO_HANGING_SIGN());
+		$result->register("bamboo_raft", fn() => Items::BAMBOO_RAFT());
 		$result->register("beef", fn() => Items::RAW_BEEF());
 		$result->register("beetroot", fn() => Items::BEETROOT());
 		$result->register("beetroot_seed", fn() => Items::BEETROOT_SEEDS());
@@ -1425,6 +1430,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("echo_shard", fn() => Items::ECHO_SHARD());
 		$result->register("egg", fn() => Items::EGG());
 		$result->register("elixir", fn() => Items::MEDICINE()->setType(MedicineType::ELIXIR));
+		$result->register("elytra", fn() => Items::ELYTRA());
 		$result->register("emerald", fn() => Items::EMERALD());
 		$result->register("enchanted_book", fn() => Items::ENCHANTED_BOOK());
 		$result->register("enchanted_golden_apple", fn() => Items::ENCHANTED_GOLDEN_APPLE());
@@ -1648,6 +1654,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("wheat", fn() => Items::WHEAT());
 		$result->register("wheat_seeds", fn() => Items::WHEAT_SEEDS());
 		$result->register("wild_armor_trim_smithing_template", fn() => Items::WILD_ARMOR_TRIM_SMITHING_TEMPLATE());
+		$result->register("wind_charge", fn() => Items::WIND_CHARGE());
 		$result->register("wooden_axe", fn() => Items::WOODEN_AXE());
 		$result->register("wooden_hoe", fn() => Items::WOODEN_HOE());
 		$result->register("wooden_pickaxe", fn() => Items::WOODEN_PICKAXE());

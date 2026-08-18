@@ -25,24 +25,30 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
-/**
- * Tags used by items to determine their cooldown group.
- *
- * These tag values are not related to Minecraft internal IDs.
- * They only share a visual similarity because these are the most obvious values to use.
- * Any arbitrary string can be used.
- *
- * @see Item::getCooldownTag()
- */
-final class ItemCooldownTags{
+use pocketmine\entity\Location;
+use pocketmine\entity\projectile\Throwable;
+use pocketmine\entity\projectile\WindCharge as WindChargeEntity;
+use pocketmine\player\Player;
 
-	private function __construct(){
-		//NOOP
+class WindCharge extends ProjectileItem{
+
+	public function getMaxStackSize() : int{
+		return 64;
 	}
 
-	public const CHORUS_FRUIT = "chorus_fruit";
-	public const ENDER_PEARL = "ender_pearl";
-	public const SHIELD = "shield";
-	public const GOAT_HORN = "goat_horn";
-	public const WIND_CHARGE = "wind_charge";
+	protected function createEntity(Location $location, Player $thrower) : Throwable{
+		return new WindChargeEntity($location, $thrower);
+	}
+
+	public function getThrowForce() : float{
+		return 1.5;
+	}
+
+	public function getCooldownTicks() : int{
+		return 10;
+	}
+
+	public function getCooldownTag() : ?string{
+		return ItemCooldownTags::WIND_CHARGE;
+	}
 }

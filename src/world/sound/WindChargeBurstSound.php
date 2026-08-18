@@ -23,26 +23,15 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\item;
+namespace pocketmine\world\sound;
 
-/**
- * Tags used by items to determine their cooldown group.
- *
- * These tag values are not related to Minecraft internal IDs.
- * They only share a visual similarity because these are the most obvious values to use.
- * Any arbitrary string can be used.
- *
- * @see Item::getCooldownTag()
- */
-final class ItemCooldownTags{
+use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
 
-	private function __construct(){
-		//NOOP
+class WindChargeBurstSound implements Sound{
+
+	public function encode(Vector3 $pos) : array{
+		return [LevelSoundEventPacket::nonActorSound(LevelSoundEvent::WIND_CHARGE_BURST, $pos, false)];
 	}
-
-	public const CHORUS_FRUIT = "chorus_fruit";
-	public const ENDER_PEARL = "ender_pearl";
-	public const SHIELD = "shield";
-	public const GOAT_HORN = "goat_horn";
-	public const WIND_CHARGE = "wind_charge";
 }

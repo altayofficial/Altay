@@ -101,6 +101,7 @@ use pocketmine\inventory\transaction\TransactionCancelledException;
 use pocketmine\inventory\transaction\TransactionValidationException;
 use pocketmine\item\ConsumableItem;
 use pocketmine\item\Durable;
+use pocketmine\item\Elytra;
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\enchantment\MeleeWeaponEnchantment;
 use pocketmine\item\Item;
@@ -279,6 +280,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	protected ?float $lastMovementProcess = null;
 
 	protected int $inAirTicks = 0;
+	private int $glidingTicks = 0;
 
 	protected float $stepHeight = 0.6;
 
@@ -1502,6 +1504,15 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		return $this->flying ? 0 : parent::calculateFallDamage($fallDistance);
 	}
 
+	protected function updateFallState(float $distanceThisTick, bool $onGround) : ?float{
+		//gliding at a shallow angle and a low descent rate resets the fall height, so a controlled landing is harmless
+		if($this->gliding && $distanceThisTick > -0.5 && $this->location->pitch <= 40){
+			$this->setFallDistance(0.0);
+		}
+
+		return parent::updateFallState($distanceThisTick, $onGround);
+	}
+
 	public function jump() : void{
 		(new PlayerJumpEvent($this))->call();
 		parent::jump();
@@ -1561,6 +1572,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			Timings::$entityBaseTick->startTiming();
 			$this->entityBaseTick($tickDiff);
 			Timings::$entityBaseTick->stopTiming();
+
+			if($this->gliding){
+				$this->tickGliding($tickDiff);
+			}
 
 			if($this->isCreative() && $this->fireTicks > 1){
 				$this->fireTicks = 1;
@@ -2184,13 +2199,48 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if($glide === $this->gliding){
 			return true;
 		}
+		if($glide && $this->getGlidingElytra() === null){
+			return false;
+		}
 		$ev = new PlayerToggleGlideEvent($this, $glide);
 		$ev->call();
 		if($ev->isCancelled()){
 			return false;
 		}
 		$this->setGliding($glide);
+		$this->glidingTicks = 0;
 		return true;
+	}
+
+	private function getGlidingElytra() : ?Elytra{
+		$chestplate = $this->armorInventory->getChestplate();
+
+		return $chestplate instanceof Elytra && $chestplate->isFlyable() ? $chestplate : null;
+	}
+
+	private function tickGliding(int $tickDiff) : void{
+		$elytra = $this->getGlidingElytra();
+		if($elytra === null || $this->onGround){
+			$this->setGliding(false);
+			$this->glidingTicks = 0;
+			return;
+		}
+
+		if(!$this->hasFiniteResources()){
+			return;
+		}
+
+		$this->glidingTicks += $tickDiff;
+		if($this->glidingTicks < 20){
+			return;
+		}
+		$this->glidingTicks = 0;
+
+		$elytra->applyDamage(1);
+		$this->armorInventory->setChestplate($elytra);
+		if(!$elytra->isFlyable()){
+			$this->setGliding(false);
+		}
 	}
 
 	public function toggleSwim(bool $swim) : bool{

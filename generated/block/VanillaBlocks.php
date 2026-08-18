@@ -488,6 +488,7 @@ final class VanillaBlocks{
 	private static HardenedGlassPane $_mHARDENED_GLASS_PANE;
 	private static HayBale $_mHAY_BALE;
 	private static Opaque $_mHONEYCOMB;
+	private static HoneyBlock $_mHONEY_BLOCK;
 	private static Hopper $_mHOPPER;
 	private static Ice $_mICE;
 	private static InfestedStone $_mINFESTED_CHISELED_STONE_BRICK;
@@ -1354,6 +1355,7 @@ final class VanillaBlocks{
 			"hardened_glass_pane" => fn(HardenedGlassPane $v) => self::$_mHARDENED_GLASS_PANE = $v,
 			"hay_bale" => fn(HayBale $v) => self::$_mHAY_BALE = $v,
 			"honeycomb" => fn(Opaque $v) => self::$_mHONEYCOMB = $v,
+			"honey_block" => fn(HoneyBlock $v) => self::$_mHONEY_BLOCK = $v,
 			"hopper" => fn(Hopper $v) => self::$_mHOPPER = $v,
 			"ice" => fn(Ice $v) => self::$_mICE = $v,
 			"infested_chiseled_stone_brick" => fn(InfestedStone $v) => self::$_mINFESTED_CHISELED_STONE_BRICK = $v,
@@ -4014,6 +4016,11 @@ final class VanillaBlocks{
 	public static function HONEYCOMB() : Opaque{
 		if(!isset(self::$_mHONEYCOMB)){ self::init(); }
 		return clone self::$_mHONEYCOMB;
+	}
+
+	public static function HONEY_BLOCK() : HoneyBlock{
+		if(!isset(self::$_mHONEY_BLOCK)){ self::init(); }
+		return clone self::$_mHONEY_BLOCK;
 	}
 
 	public static function HOPPER() : Hopper{

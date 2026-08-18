@@ -100,7 +100,7 @@ class Cushion extends Living{
 	 * cushion sitting almost flat on the floor wants a touch less than that.
 	 */
 	public function getSeatPosition(?Entity $passenger = null) : Vector3{
-		return new Vector3(0, 1.0, 0);
+		return new Vector3(0, 1.25, 0);
 	}
 
 	protected function syncNetworkData(EntityMetadataCollection $properties) : void{

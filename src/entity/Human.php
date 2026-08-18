@@ -132,6 +132,7 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 	private int $shieldTransitionTicks = 0;
 	private int $shieldAttackInterruptTicks = 0;
 	private bool $shieldReblockAfterAttack = false;
+	private bool $shieldBlockPending = false;
 
 	public function __construct(Location $location, Skin $skin, ?CompoundTag $nbt = null){
 		$this->skin = $skin;
@@ -409,12 +410,19 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 		return $this->blocking && $this->getShieldInHand() !== null;
 	}
 
-	public function setBlocking(bool $blocking = true) : void{
-		$this->shieldTransitionTicks = self::SHIELD_TRANSITION_TICKS;
+	/**
+	 * Raises or lowers the shield. The state is recalculated every tick from the human's sneaking state and held
+	 * items, so this only takes effect until the next recalculation.
+	 */
+	protected function setBlocking(bool $blocking = true) : void{
 		$this->setBlockingFlags($blocking, true);
 	}
 
 	private function setBlockingFlags(bool $blocking, bool $transitionBlocking) : void{
+		if($transitionBlocking){
+			$this->shieldTransitionTicks = self::SHIELD_TRANSITION_TICKS;
+		}
+
 		if($this->blocking === $blocking && $this->transitionBlocking === $transitionBlocking){
 			return;
 		}
@@ -428,7 +436,7 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 		return $this->shieldAttackInterruptTicks <= 0 && $this->isSneaking() && $this->getShieldInHand() !== null;
 	}
 
-	public function updateShieldBlockingState() : void{
+	protected function updateShieldBlockingState() : void{
 		$shouldBlock = $this->shouldBlockWithShield();
 		if($shouldBlock !== $this->blocking){
 			$this->setBlocking($shouldBlock);
@@ -492,14 +500,9 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 		}
 
 		$delta = $this->location->subtractVector($damager->getPosition());
-		if($delta->lengthSquared() <= 0){
-			return false;
-		}
-
-		$normal = $delta->normalize();
 		$direction = $this->getDirectionVector();
 
-		return ($normal->x * $direction->x) + ($normal->z * $direction->z) < 0;
+		return ($delta->x * $direction->x) + ($delta->z * $direction->z) < 0;
 	}
 
 	/**
@@ -544,13 +547,10 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 	}
 
 	public function attack(EntityDamageEvent $source) : void{
-		$blocked = $this->blockedByShield($source);
-		if($blocked){
-			$source->cancel();
-		}
-
 		parent::attack($source);
 
+		$blocked = $this->shieldBlockPending;
+		$this->shieldBlockPending = false;
 		if($blocked && $source->isCancelled()){
 			$this->onShieldBlock($source);
 		}
@@ -562,6 +562,13 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 
 	public function applyDamageModifiers(EntityDamageEvent $source) : void{
 		parent::applyDamageModifiers($source);
+
+		//if the damage was already negated by something else (invulnerability ticks, fire resistance, ...) the shield
+		//took no hit and must not be worn out
+		$this->shieldBlockPending = !$source->isCancelled() && $this->blockedByShield($source);
+		if($this->shieldBlockPending){
+			$source->cancel();
+		}
 
 		$type = $source->getCause();
 		if($type !== EntityDamageEvent::CAUSE_SUICIDE && $type !== EntityDamageEvent::CAUSE_VOID

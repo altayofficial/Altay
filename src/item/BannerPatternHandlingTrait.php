@@ -1,0 +1,101 @@
+<?php
+
+/*
+ *
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
+ *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
+ */
+
+declare(strict_types=1);
+
+namespace pocketmine\item;
+
+use pocketmine\block\utils\BannerPatternLayer;
+use pocketmine\block\utils\DyeColor;
+use pocketmine\data\bedrock\BannerPatternTypeIdMap;
+use pocketmine\data\bedrock\DyeColorIdMap;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ListTag;
+use function count;
+
+/**
+ * Handles the pattern layers stored in the NBT of items which can carry a banner design.
+ */
+trait BannerPatternHandlingTrait{
+	/**
+	 * @var BannerPatternLayer[]
+	 * @phpstan-var list<BannerPatternLayer>
+	 */
+	private array $patterns = [];
+
+	/**
+	 * @return BannerPatternLayer[]
+	 * @phpstan-return list<BannerPatternLayer>
+	 */
+	public function getPatterns() : array{
+		return $this->patterns;
+	}
+
+	/**
+	 * @param BannerPatternLayer[] $patterns
+	 *
+	 * @phpstan-param list<BannerPatternLayer> $patterns
+	 *
+	 * @return $this
+	 */
+	public function setPatterns(array $patterns) : self{
+		$this->patterns = $patterns;
+		return $this;
+	}
+
+	protected function deserializePatterns(CompoundTag $tag) : void{
+		$this->patterns = [];
+
+		$colorIdMap = DyeColorIdMap::getInstance();
+		$patternIdMap = BannerPatternTypeIdMap::getInstance();
+		$patterns = $tag->getListTag(Banner::TAG_PATTERNS, CompoundTag::class);
+		if($patterns !== null){
+			foreach($patterns as $t){
+				$patternColor = $colorIdMap->fromInvertedId($t->getInt(Banner::TAG_PATTERN_COLOR)) ?? DyeColor::BLACK; //TODO: missing pattern colour should be an error
+				$patternType = $patternIdMap->fromId($t->getString(Banner::TAG_PATTERN_NAME));
+				if($patternType === null){
+					continue; //TODO: this should be an error
+				}
+				$this->patterns[] = new BannerPatternLayer($patternType, $patternColor);
+			}
+		}
+	}
+
+	protected function serializePatterns(CompoundTag $tag) : void{
+		if(count($this->patterns) > 0){
+			$patterns = new ListTag();
+			$colorIdMap = DyeColorIdMap::getInstance();
+			$patternIdMap = BannerPatternTypeIdMap::getInstance();
+			foreach($this->patterns as $pattern){
+				$patterns->push(CompoundTag::create()
+					->setString(Banner::TAG_PATTERN_NAME, $patternIdMap->toId($pattern->getType()))
+					->setInt(Banner::TAG_PATTERN_COLOR, $colorIdMap->toInvertedId($pattern->getColor()))
+				);
+			}
+
+			$tag->setTag(Banner::TAG_PATTERNS, $patterns);
+		}else{
+			$tag->removeTag(Banner::TAG_PATTERNS);
+		}
+	}
+}

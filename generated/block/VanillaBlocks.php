@@ -141,6 +141,7 @@ final class VanillaBlocks{
 	private static Wall $_mBRICK_WALL;
 	private static BrownMushroom $_mBROWN_MUSHROOM;
 	private static BrownMushroomBlock $_mBROWN_MUSHROOM_BLOCK;
+	private static BubbleColumn $_mBUBBLE_COLUMN;
 	private static BuddingAmethyst $_mBUDDING_AMETHYST;
 	private static Cactus $_mCACTUS;
 	private static CactusFlower $_mCACTUS_FLOWER;
@@ -1006,6 +1007,7 @@ final class VanillaBlocks{
 			"brick_wall" => fn(Wall $v) => self::$_mBRICK_WALL = $v,
 			"brown_mushroom" => fn(BrownMushroom $v) => self::$_mBROWN_MUSHROOM = $v,
 			"brown_mushroom_block" => fn(BrownMushroomBlock $v) => self::$_mBROWN_MUSHROOM_BLOCK = $v,
+			"bubble_column" => fn(BubbleColumn $v) => self::$_mBUBBLE_COLUMN = $v,
 			"budding_amethyst" => fn(BuddingAmethyst $v) => self::$_mBUDDING_AMETHYST = $v,
 			"cactus" => fn(Cactus $v) => self::$_mCACTUS = $v,
 			"cactus_flower" => fn(CactusFlower $v) => self::$_mCACTUS_FLOWER = $v,
@@ -2277,6 +2279,11 @@ final class VanillaBlocks{
 	public static function BROWN_MUSHROOM_BLOCK() : BrownMushroomBlock{
 		if(!isset(self::$_mBROWN_MUSHROOM_BLOCK)){ self::init(); }
 		return clone self::$_mBROWN_MUSHROOM_BLOCK;
+	}
+
+	public static function BUBBLE_COLUMN() : BubbleColumn{
+		if(!isset(self::$_mBUBBLE_COLUMN)){ self::init(); }
+		return clone self::$_mBUBBLE_COLUMN;
 	}
 
 	public static function BUDDING_AMETHYST() : BuddingAmethyst{

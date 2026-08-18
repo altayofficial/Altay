@@ -43,8 +43,7 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private int $maxPlayerCount,
 		private string $bindAddress = "0.0.0.0",
 		private int $port = NetherNetTransport::DISCOVERY_PORT,
-		private bool $onlineMode = false,
-		private ?string $endpointAddress = null
+		private bool $onlineMode = false
 	){}
 
 	public function getName() : string{
@@ -73,9 +72,7 @@ final class NetherNetTransportFactory implements TransportFactory{
 			$this->port,
 			//vanilla clients do not attach identity assertions to LAN offers, they only do so
 			//for Xbox Live session signaling so that means assertions are still verified when present
-			false,
-			null,
-			$this->endpointAddress
+			false
 		);
 	}
 

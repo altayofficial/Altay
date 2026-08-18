@@ -1289,10 +1289,9 @@ class Server {
 				}
 			}
 			if($useNetherNet){
-				$endpointAddress = trim($this->configGroup->getPropertyString(Yml::NETWORK_NETHERNET_ENDPOINT, ""));
 				$transport = new ThreadedTransport(
 					$this->logger,
-					new NetherNetTransportFactory(Binary::readLLong(substr(hash("sha256", $this->getServerUniqueId()->getBytes(), true), 0, 8)), $this->getMotd(), $this->getName(), $this->getMaxPlayers(), $ip, NetherNetTransport::DISCOVERY_PORT, $this->getOnlineMode(), $endpointAddress !== "" ? $endpointAddress : null),
+					new NetherNetTransportFactory(Binary::readLLong(substr(hash("sha256", $this->getServerUniqueId()->getBytes(), true), 0, 8)), $this->getMotd(), $this->getName(), $this->getMaxPlayers(), $ip, NetherNetTransport::DISCOVERY_PORT, $this->getOnlineMode()),
 					$this->tickSleeper
 				);
 				if($this->network->registerInterface(new TransportNetworkInterface($this, $transport, $packetBroadcaster, $entityEventBroadcaster, $typeConverter))){

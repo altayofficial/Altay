@@ -92,7 +92,6 @@ final class YmlServerProperties{
 	public const NETWORK_COMPRESSION_LEVEL = 'network.compression-level';
 	public const NETWORK_ENABLE_ENCRYPTION = 'network.enable-encryption';
 	public const NETWORK_MAX_MTU_SIZE = 'network.max-mtu-size';
-	public const NETWORK_NETHERNET_ENDPOINT = 'network.nethernet-endpoint';
 	public const NETWORK_TRANSPORT = 'network.transport';
 	public const NETWORK_UPNP_FORWARDING = 'network.upnp-forwarding';
 	public const PLAYER = 'player';

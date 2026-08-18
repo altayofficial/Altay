@@ -67,9 +67,6 @@ network:
   # Network transport, just to note that RakNet is deprecated
   # Options: nethernet (recommended), raknet or both
   transport: nethernet
-  # Address the NetherNet HTTP signalling endpoint listens on, for peers that can't reach the LAN
-  # discovery broadcast. Leave empty to disable.
-  nethernet-endpoint: ""
   #Threshold for batching packets, in bytes. Only these packets will be compressed
   #Set to 0 to compress everything, -1 to disable.
   batch-threshold: 256

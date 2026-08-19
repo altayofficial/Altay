@@ -159,7 +159,7 @@ function main() : void{
 		}
 		$pharPath = $opts["out"];
 	}else{
-		$pharPath = getcwd() . DIRECTORY_SEPARATOR . "Altay.phar";
+		$pharPath = getcwd() . DIRECTORY_SEPARATOR . "PocketMine-MP.phar";
 	}
 	foreach(buildPhar(
 		$pharPath,

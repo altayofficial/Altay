@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bf12e7c6056f02d7f81284a321b759d8",
+    "content-hash": "f7b448397dd9d08cbc92298dc1b892d9",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -67,7 +67,7 @@
         },
         {
             "name": "altayofficial/bedrock-data",
-            "version": "dev-bedrock-1.26.40",
+            "version": "6.8.0+bedrock-1.26.40",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
@@ -80,6 +80,7 @@
                 "shasum": ""
             },
             "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "CC0-1.0"
             ],
@@ -91,16 +92,16 @@
         },
         {
             "name": "altayofficial/bedrock-protocol",
-            "version": "dev-bedrock-1.26.44",
+            "version": "59.0.3+bedrock-1.26.40",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "52c643229d342afc06c5db5984393bae39d5a4a9"
+                "reference": "2630f547e589f3883b655a1806787c6346108bb1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/52c643229d342afc06c5db5984393bae39d5a4a9",
-                "reference": "52c643229d342afc06c5db5984393bae39d5a4a9",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/2630f547e589f3883b655a1806787c6346108bb1",
+                "reference": "2630f547e589f3883b655a1806787c6346108bb1",
                 "shasum": ""
             },
             "require": {
@@ -126,29 +127,20 @@
                     "pocketmine\\network\\mcpe\\protocol\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "pocketmine\\network\\mcpe\\protocol\\": "tests/phpunit/"
-                }
-            },
-            "scripts": {
-                "update-create-methods": [
-                    "@php tools/generate-create-static-methods.php"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "LGPL-3.0"
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.44",
-                "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
+                "issues": "https://github.com/altayofficial/BedrockProtocol/issues",
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/59.0.3+bedrock-1.26.40"
             },
-            "time": "2026-08-14T20:09:29+00:00"
+            "time": "2026-08-18T16:18:11+00:00"
         },
         {
             "name": "altayofficial/nbt",
-            "version": "dev-stable",
+            "version": "1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/NBT.git",
@@ -172,18 +164,13 @@
                 "phpstan/phpstan-strict-rules": "^2.0",
                 "phpunit/phpunit": "^9.5"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
                     "pocketmine\\nbt\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "pocketmine\\nbt\\": "tests/phpunit/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "LGPL-3.0"
             ],
@@ -195,7 +182,7 @@
         },
         {
             "name": "altayofficial/worldupgraderschemas",
-            "version": "dev-bedrock-1.26.20",
+            "version": "1.17.0+bedrock-1.26.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/WorldUpgraderSchemas.git",
@@ -208,13 +195,14 @@
                 "shasum": ""
             },
             "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "CC0-1.0"
             ],
             "description": "JSON schemas for upgrading worlds",
             "support": {
-                "source": "https://github.com/altayofficial/WorldUpgraderSchemas/tree/1.17.0+bedrock-1.26.20",
-                "issues": "https://github.com/altayofficial/WorldUpgraderSchemas/issues"
+                "issues": "https://github.com/altayofficial/WorldUpgraderSchemas/issues",
+                "source": "https://github.com/altayofficial/WorldUpgraderSchemas/tree/1.17.0+bedrock-1.26.20"
             },
             "time": "2026-07-10T19:21:13+00:00"
         },
@@ -2743,21 +2731,9 @@
             "time": "2025-11-17T20:03:58+00:00"
         }
     ],
-    "aliases": [
-        {
-            "package": "altayofficial/nbt",
-            "version": "dev-stable",
-            "alias": "1.3.0",
-            "alias_normalized": "1.3.0.0"
-        }
-    ],
+    "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "altayofficial/bedrock-data": 20,
-        "altayofficial/bedrock-protocol": 20,
-        "altayofficial/nbt": 20,
-        "altayofficial/worldupgraderschemas": 20
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

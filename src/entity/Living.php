@@ -395,7 +395,8 @@ abstract class Living extends Entity{
 		}
 		$newVerticalVelocity = $fallBlock->onEntityLand($this);
 
-		$damage = $this->calculateFallDamage($this->fallDistance) * $fallBlock->getFallDamageMultiplier();
+		$jumpBoostLevel = ($jumpBoost = $this->effectManager->get(VanillaEffects::JUMP_BOOST())) !== null ? $jumpBoost->getEffectLevel() : 0;
+		$damage = $fallBlock->getFallDamage($this->calculateFallDamage($this->fallDistance), $this->fallDistance, $jumpBoostLevel);
 		if($damage > 0){
 			$ev = new EntityDamageEvent($this, EntityDamageEvent::CAUSE_FALL, $damage);
 			$this->attack($ev);

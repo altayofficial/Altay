@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\inventory\transaction;
 
-use pocketmine\data\bedrock\item\ArmorTrimRegistry;
+use pocketmine\data\bedrock\item\ArmorTrimIdMap;
 use pocketmine\item\Armor;
 use pocketmine\item\ArmorTrim;
 use pocketmine\item\Item;
@@ -62,7 +62,7 @@ class SmithingTrimTransaction extends InventoryTransaction{
 			throw new TransactionValidationException("Expected exactly 3 input items (equipment, material and template), got " . count($inputs));
 		}
 
-		$registry = ArmorTrimRegistry::getInstance();
+		$registry = ArmorTrimIdMap::getInstance();
 		$patternId = null;
 		$materialId = null;
 		foreach($inputs as $input){

@@ -29,7 +29,7 @@ use pocketmine\block\inventory\EnchantInventory;
 use pocketmine\block\inventory\SmithingTableInventory;
 use pocketmine\crafting\CraftingResultTransfer;
 use pocketmine\crafting\SmithingTrimRecipe;
-use pocketmine\data\bedrock\item\ArmorTrimRegistry;
+use pocketmine\data\bedrock\item\ArmorTrimIdMap;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\CreateItemAction;
 use pocketmine\inventory\transaction\action\DestroyItemAction;
@@ -285,7 +285,7 @@ class ItemStackRequestExecutor{
 			throw new ItemStackRequestProcessException("The armor trim recipe requires an open smithing table");
 		}
 
-		$registry = ArmorTrimRegistry::getInstance();
+		$registry = ArmorTrimIdMap::getInstance();
 		$equipment = null;
 		$patternId = null;
 		$materialId = null;

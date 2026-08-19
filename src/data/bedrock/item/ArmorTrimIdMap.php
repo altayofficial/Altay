@@ -39,7 +39,7 @@ use function json_decode;
  * Maps smithing templates to trim pattern IDs, and trim-eligible ingredients (ingots, crystals, etc.) to trim material
  * IDs, as used by the smithing table's armor trim recipe.
  */
-final class ArmorTrimRegistry{
+final class ArmorTrimIdMap{
 	use SingletonTrait;
 
 	/** @var array<int, string> typeId => patternId */

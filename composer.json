@@ -34,7 +34,7 @@
       "adhocore/json-comment": "~1.2.0",
       "netresearch/jsonmapper": "~v5.0.0",
       "altayofficial/bedrock-data": "~6.8.0+bedrock-1.26.40",
-      "altayofficial/bedrock-protocol": "~59.0.0+bedrock-1.26.40",
+      "altayofficial/bedrock-protocol": "~59.0.3+bedrock-1.26.40",
       "altayofficial/worldupgraderschemas": "~1.17.0+bedrock-1.26.20",
       "pocketmine/binaryutils": "^0.2.1",
       "pocketmine/callback-validator": "~1.0.4",

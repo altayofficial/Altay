@@ -56,7 +56,6 @@ final class NetherNetTransportFactory implements TransportFactory{
 	}
 
 	public function make(\Logger $logger) : Transport{
-		self::exportNativeLibraryPaths();
 		return new NetherNetTransport(
 			$logger,
 			$this->networkId,
@@ -79,28 +78,5 @@ final class NetherNetTransportFactory implements TransportFactory{
 			//vanilla does it: the entry's MOTD comes from a GET and the join posts its offer there
 			"$this->bindAddress:$this->signallingPort"
 		);
-	}
-
-	private static function exportNativeLibraryPaths() : void{
-		$libDir = dirname(PHP_BINARY, 2) . "/lib";
-		//MacOS builds ship .dylib instead of .so
-		$extensions = PHP_OS_FAMILY === "Darwin" ? ["dylib", "so"] : ["so"];
-		foreach([
-			"LIBSSL_PATH" => "libssl",
-			"LIB_SRTP_PATH" => "libsrtp2",
-			"LIB_OPUS_PATH" => "libopus",
-			"LIBVPX_PATH" => "libvpx"
-		] as $env => $name){
-			if(getenv($env) !== false){
-				continue;
-			}
-			foreach($extensions as $extension){
-				$path = "$libDir/$name.$extension";
-				if(file_exists($path)){
-					putenv("$env=$path");
-					break;
-				}
-			}
-		}
 	}
 }

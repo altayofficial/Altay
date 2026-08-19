@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8e70cfb60ee0d7bed2a014ee4dd97407",
+    "content-hash": "4e77d301ba26f8a41eb7839df44b64d5",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -147,6 +147,58 @@
             "time": "2026-08-18T16:19:55+00:00"
         },
         {
+            "name": "altayofficial/dtls",
+            "version": "1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/altayofficial/dtls.git",
+                "reference": "d95b7788abc8b84e2df7a069e183eb63bf16a48a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/altayofficial/dtls/zipball/d95b7788abc8b84e2df7a069e183eb63bf16a48a",
+                "reference": "d95b7788abc8b84e2df7a069e183eb63bf16a48a",
+                "shasum": ""
+            },
+            "require": {
+                "ext-hash": "*",
+                "ext-openssl": "*",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.0",
+                "phpunit/phpunit": "^10.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "altay\\dtls\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "altay\\dtls\\tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ],
+                "analyse": [
+                    "phpstan analyse"
+                ]
+            },
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "description": "Pure PHP DTLS 1.2 - no FFI, no native libraries",
+            "support": {
+                "source": "https://github.com/altayofficial/dtls/tree/1.0.0",
+                "issues": "https://github.com/altayofficial/dtls/issues"
+            },
+            "time": "2026-08-19T09:57:18+00:00"
+        },
+        {
             "name": "altayofficial/nbt",
             "version": "dev-stable",
             "source": {
@@ -199,12 +251,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/Network.git",
-                "reference": "f810583419bdb852c8a723116bf031199732d29d"
+                "reference": "4fd46f272faf1d045c845f345f5fd9f9ec381e84"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/Network/zipball/f810583419bdb852c8a723116bf031199732d29d",
-                "reference": "f810583419bdb852c8a723116bf031199732d29d",
+                "url": "https://api.github.com/repos/altayofficial/Network/zipball/4fd46f272faf1d045c845f345f5fd9f9ec381e84",
+                "reference": "4fd46f272faf1d045c845f345f5fd9f9ec381e84",
                 "shasum": ""
             },
             "require": {
@@ -217,7 +269,7 @@
                 "react/event-loop": "^1.5"
             },
             "require-dev": {
-                "altayofficial/webrtc": "^1.0",
+                "altayofficial/webrtc": "^1.2.0",
                 "phpstan/phpstan": "^2.0",
                 "phpunit/phpunit": "^10.5",
                 "react/http": "^1.11"
@@ -249,30 +301,30 @@
             "license": [
                 "GPL-3.0-or-later"
             ],
-            "description": "Central network library for Altay written in PHP",
+            "description": "Central network library for Altay family written in PHP",
             "support": {
                 "source": "https://github.com/altayofficial/Network/tree/main",
                 "issues": "https://github.com/altayofficial/Network/issues"
             },
-            "time": "2026-08-18T13:16:15+00:00"
+            "time": "2026-08-19T10:23:14+00:00"
         },
         {
             "name": "altayofficial/webrtc",
-            "version": "v1.0.1",
+            "version": "1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/webrtc.git",
-                "reference": "6650b6c74d5384c06677b8156d1b2c335f2ba46a"
+                "reference": "7ec335e376e853d38b9c5efd69997d50b01559de"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/6650b6c74d5384c06677b8156d1b2c335f2ba46a",
-                "reference": "6650b6c74d5384c06677b8156d1b2c335f2ba46a",
+                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/7ec335e376e853d38b9c5efd69997d50b01559de",
+                "reference": "7ec335e376e853d38b9c5efd69997d50b01559de",
                 "shasum": ""
             },
             "require": {
+                "altayofficial/dtls": "^1.0",
                 "evenement/evenement": "^3.0",
-                "ext-ffi": "*",
                 "ext-gmp": "*",
                 "php": "^8.1",
                 "psr/log": "^3.0",
@@ -286,8 +338,6 @@
                 "symfony/polyfill-php84": "^1.31"
             },
             "replace": {
-                "quasarstream/av": "v1.0.0",
-                "quasarstream/codecs": "v1.0.0",
                 "quasarstream/datachannel": "v1.0.0",
                 "quasarstream/dtls": "v1.0.0",
                 "quasarstream/exception": "v1.0.0",
@@ -295,25 +345,17 @@
                 "quasarstream/mdns": "v1.0.0",
                 "quasarstream/mixin": "v1.0.0",
                 "quasarstream/ntp": "v1.0.0",
-                "quasarstream/opus": "v1.0.0",
-                "quasarstream/rtcp": "v1.0.0",
-                "quasarstream/rtp": "v1.0.0",
                 "quasarstream/rtp-parameter": "v1.0.0",
                 "quasarstream/sctp": "v1.0.0",
                 "quasarstream/sdp": "v1.0.0",
-                "quasarstream/srtp": "v1.0.0",
-                "quasarstream/ssl": "v1.0.0",
                 "quasarstream/stats": "v1.0.0",
                 "quasarstream/stun": "v1.0.1",
                 "quasarstream/turn": "v1.0.0",
-                "quasarstream/vpx": "v1.0.0",
                 "quasarstream/webrtc": "v1.0.3"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "Webrtc\\AVCodec\\": "src/av/src/",
-                    "Webrtc\\Codecs\\": "src/codecs/src/",
                     "Webrtc\\DTLS\\": "src/dtls/src/",
                     "Webrtc\\DataChannel\\": "src/datachannel/src/",
                     "Webrtc\\Exception\\": "src/exception/src/",
@@ -321,18 +363,12 @@
                     "Webrtc\\MDNS\\": "src/mdns/src/",
                     "Webrtc\\Mixin\\": "src/mixin/src/",
                     "Webrtc\\NTP\\": "src/ntp/src/",
-                    "Webrtc\\Opus\\": "src/opus/src/",
-                    "Webrtc\\RTCP\\": "src/rtcp/src/",
                     "Webrtc\\RTPParameter\\": "src/rtp-parameter/src/",
-                    "Webrtc\\RTP\\": "src/rtp/src/",
                     "Webrtc\\SCTP\\": "src/sctp/src/",
                     "Webrtc\\SDP\\": "src/sdp/src/",
-                    "Webrtc\\SSL\\": "src/ssl/src/",
                     "Webrtc\\STUN\\": "src/stun/src/",
-                    "Webrtc\\Srtp\\": "src/srtp/src/",
                     "Webrtc\\Stats\\": "src/stats/src/",
                     "Webrtc\\TURN\\": "src/turn/src/",
-                    "Webrtc\\VPX\\": "src/vpx/src/",
                     "Webrtc\\Webrtc\\": "src/webrtc/src/"
                 },
                 "classmap": [
@@ -340,15 +376,14 @@
                 ]
             },
             "license": [
-                "BSD-3-Clause",
-                "MIT"
+                "BSD-3-Clause"
             ],
-            "description": "PHP-WebRTC downgraded to run on PHP 8.1 and later. Generated - see tools/build.php.",
+            "description": "A WebRTC library designed special for Altay family",
             "support": {
-                "source": "https://github.com/altayofficial/webrtc/tree/v1.0.1",
+                "source": "https://github.com/altayofficial/webrtc/tree/1.2.0",
                 "issues": "https://github.com/altayofficial/webrtc/issues"
             },
-            "time": "2026-08-17T20:46:20+00:00"
+            "time": "2026-08-19T10:21:44+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",

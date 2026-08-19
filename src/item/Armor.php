@@ -40,7 +40,12 @@ class Armor extends Durable implements DyeableItem{
 
 	public const TAG_CUSTOM_COLOR = DyeableItem::TAG_CUSTOM_COLOR; // TODO: remove this, this is here for BC compatibility
 
+	public const TAG_TRIM = "Trim"; //TAG_Compound
+	public const TAG_TRIM_PATTERN = "Pattern"; //TAG_String
+	public const TAG_TRIM_MATERIAL = "Material"; //TAG_String
+
 	private ArmorTypeInfo $armorInfo;
+	private ?ArmorTrim $trim = null;
 
 	/**
 	 * @param string[] $enchantmentTags
@@ -75,6 +80,16 @@ class Armor extends Durable implements DyeableItem{
 
 	public function getMaterial() : ArmorMaterial{
 		return $this->armorInfo->getMaterial();
+	}
+
+	public function getTrim() : ?ArmorTrim{
+		return $this->trim;
+	}
+
+	/** @return $this */
+	public function setTrim(?ArmorTrim $trim) : self{
+		$this->trim = $trim;
+		return $this;
 	}
 
 	public function getEnchantability() : int{
@@ -135,10 +150,23 @@ class Armor extends Durable implements DyeableItem{
 	protected function deserializeCompoundTag(CompoundTag $tag) : void{
 		parent::deserializeCompoundTag($tag);
 		$this->deserializeCustomColor($tag);
+
+		$trimTag = $tag->getCompoundTag(self::TAG_TRIM);
+		$this->trim = $trimTag !== null ?
+			new ArmorTrim($trimTag->getString(self::TAG_TRIM_PATTERN, ""), $trimTag->getString(self::TAG_TRIM_MATERIAL, "")) :
+			null;
 	}
 
 	protected function serializeCompoundTag(CompoundTag $tag) : void{
 		parent::serializeCompoundTag($tag);
 		$this->serializeCustomColor($tag);
+
+		if($this->trim !== null){
+			$tag->setTag(self::TAG_TRIM, CompoundTag::create()
+				->setString(self::TAG_TRIM_PATTERN, $this->trim->getPatternId())
+				->setString(self::TAG_TRIM_MATERIAL, $this->trim->getMaterialId()));
+		}else{
+			$tag->removeTag(self::TAG_TRIM);
+		}
 	}
 }

@@ -63,6 +63,7 @@ final class VanillaItems{
 	private static Item $_mBLAZE_POWDER;
 	private static BlazeRod $_mBLAZE_ROD;
 	private static Item $_mBLEACH;
+	private static Item $_mBOLT_ARMOR_TRIM_SMITHING_TEMPLATE;
 	private static Item $_mBONE;
 	private static Fertilizer $_mBONE_MEAL;
 	private static Book $_mBOOK;
@@ -184,6 +185,7 @@ final class VanillaItems{
 	private static FishingRod $_mFISHING_ROD;
 	private static Item $_mFLINT;
 	private static FlintSteel $_mFLINT_AND_STEEL;
+	private static Item $_mFLOW_ARMOR_TRIM_SMITHING_TEMPLATE;
 	private static Item $_mGHAST_TEAR;
 	private static GlassBottle $_mGLASS_BOTTLE;
 	private static Item $_mGLISTERING_MELON;
@@ -437,6 +439,7 @@ final class VanillaItems{
 			"blaze_powder" => fn(Item $v) => self::$_mBLAZE_POWDER = $v,
 			"blaze_rod" => fn(BlazeRod $v) => self::$_mBLAZE_ROD = $v,
 			"bleach" => fn(Item $v) => self::$_mBLEACH = $v,
+			"bolt_armor_trim_smithing_template" => fn(Item $v) => self::$_mBOLT_ARMOR_TRIM_SMITHING_TEMPLATE = $v,
 			"bone" => fn(Item $v) => self::$_mBONE = $v,
 			"bone_meal" => fn(Fertilizer $v) => self::$_mBONE_MEAL = $v,
 			"book" => fn(Book $v) => self::$_mBOOK = $v,
@@ -558,6 +561,7 @@ final class VanillaItems{
 			"fishing_rod" => fn(FishingRod $v) => self::$_mFISHING_ROD = $v,
 			"flint" => fn(Item $v) => self::$_mFLINT = $v,
 			"flint_and_steel" => fn(FlintSteel $v) => self::$_mFLINT_AND_STEEL = $v,
+			"flow_armor_trim_smithing_template" => fn(Item $v) => self::$_mFLOW_ARMOR_TRIM_SMITHING_TEMPLATE = $v,
 			"ghast_tear" => fn(Item $v) => self::$_mGHAST_TEAR = $v,
 			"glass_bottle" => fn(GlassBottle $v) => self::$_mGLASS_BOTTLE = $v,
 			"glistering_melon" => fn(Item $v) => self::$_mGLISTERING_MELON = $v,
@@ -905,6 +909,11 @@ final class VanillaItems{
 	public static function BLEACH() : Item{
 		if(!isset(self::$_mBLEACH)){ self::init(); }
 		return clone self::$_mBLEACH;
+	}
+
+	public static function BOLT_ARMOR_TRIM_SMITHING_TEMPLATE() : Item{
+		if(!isset(self::$_mBOLT_ARMOR_TRIM_SMITHING_TEMPLATE)){ self::init(); }
+		return clone self::$_mBOLT_ARMOR_TRIM_SMITHING_TEMPLATE;
 	}
 
 	public static function BONE() : Item{
@@ -1510,6 +1519,11 @@ final class VanillaItems{
 	public static function FLINT_AND_STEEL() : FlintSteel{
 		if(!isset(self::$_mFLINT_AND_STEEL)){ self::init(); }
 		return clone self::$_mFLINT_AND_STEEL;
+	}
+
+	public static function FLOW_ARMOR_TRIM_SMITHING_TEMPLATE() : Item{
+		if(!isset(self::$_mFLOW_ARMOR_TRIM_SMITHING_TEMPLATE)){ self::init(); }
+		return clone self::$_mFLOW_ARMOR_TRIM_SMITHING_TEMPLATE;
 	}
 
 	public static function GHAST_TEAR() : Item{

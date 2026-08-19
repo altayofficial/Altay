@@ -441,6 +441,8 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("ward_armor_trim_smithing_template", fn(IID $id) => new Item($id, "Ward Armor Trim Smithing Template"));
 		self::register("wayfinder_armor_trim_smithing_template", fn(IID $id) => new Item($id, "Wayfinder Armor Trim Smithing Template"));
 		self::register("wild_armor_trim_smithing_template", fn(IID $id) => new Item($id, "Wild Armor Trim Smithing Template"));
+		self::register("bolt_armor_trim_smithing_template", fn(IID $id) => new Item($id, "Bolt Armor Trim Smithing Template"));
+		self::register("flow_armor_trim_smithing_template", fn(IID $id) => new Item($id, "Flow Armor Trim Smithing Template"));
 	}
 
 }

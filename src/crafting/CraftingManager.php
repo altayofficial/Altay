@@ -210,6 +210,19 @@ class CraftingManager{
 		}
 	}
 
+	/**
+	 * Registers a smithing trim recipe. Unlike shaped/shapeless recipes, this isn't indexed by its results, since
+	 * the actual output depends on which specific pattern and material items are provided - it's not something that
+	 * can be matched generically, so it's handled as a special case in {@link SmithingTrimRecipe}'s consumer.
+	 */
+	public function registerSmithingTrimRecipe(SmithingTrimRecipe $recipe) : void{
+		$this->craftingRecipeIndex[] = $recipe;
+
+		foreach($this->recipeRegisteredCallbacks as $callback){
+			$callback();
+		}
+	}
+
 	public function registerPotionTypeRecipe(PotionTypeRecipe $recipe) : void{
 		$this->potionTypeRecipes[] = $recipe;
 

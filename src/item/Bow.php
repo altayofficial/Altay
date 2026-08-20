@@ -30,7 +30,7 @@ use pocketmine\entity\projectile\Arrow as ArrowEntity;
 use pocketmine\entity\projectile\Projectile;
 use pocketmine\event\entity\EntityShootBowEvent;
 use pocketmine\event\entity\ProjectileLaunchEvent;
-use pocketmine\event\inventory\ItemDamageEvent;
+use pocketmine\event\item\ItemDamageEvent;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\player\Player;
 use pocketmine\world\sound\BowShootSound;
@@ -49,7 +49,7 @@ class Bow extends Tool implements Releasable{
 
 	public function onReleaseUsing(Player $player, array &$returnedItems) : ItemUseResult{
 		$arrow = VanillaItems::ARROW();
-		$inventory = match (true) {
+		$inventory = match(true){
 			$player->getOffHandInventory()->contains($arrow) => $player->getOffHandInventory(),
 			$player->getInventory()->contains($arrow) => $player->getInventory(),
 			default => null
@@ -121,7 +121,7 @@ class Bow extends Tool implements Releasable{
 			if(!$infinity){ //TODO: tipped arrows are still consumed when Infinity is applied
 				$inventory?->removeItem($arrow);
 			}
-			$this->applyDamageWithContext(1, ItemDamageEvent::CAUSE_PROJECTILE, $player, null, $player->getInventory(), $player->getInventory()->getHeldItemIndex());
+			$this->applyDamageWithContext(1, new ItemDamageContext(ItemDamageEvent::CAUSE_PROJECTILE, $player, null, $player->getInventory(), $player->getInventory()->getHeldItemIndex()));
 		}
 
 		return ItemUseResult::SUCCESS;

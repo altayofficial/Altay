@@ -44,7 +44,10 @@ use pocketmine\item\enchantment\AvailableEnchantmentRegistry;
 use pocketmine\item\enchantment\ItemEnchantmentTagRegistry;
 use pocketmine\item\enchantment\ItemEnchantmentTags;
 use pocketmine\item\enchantment\VanillaEnchantments;
+use pocketmine\event\item\ItemDamageEvent;
+use pocketmine\item\Durable;
 use pocketmine\item\Item;
+use pocketmine\item\ItemDamageContext;
 use pocketmine\item\ItemBlock;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
@@ -528,6 +531,18 @@ class Block{
 	 * @param Vector3 $clickVector    Exact position where the click occurred, relative to the block's integer position
 	 * @param Item[]  &$returnedItems Items to be added to the target's inventory (or dropped, if the inventory is full)
 	 */
+	protected function damageHeldItem(Durable $item, ?Player $player) : void{
+		$item->applyDamageWithContext(
+			1,
+			new ItemDamageContext(
+				ItemDamageEvent::CAUSE_BLOCK_INTERACT,
+				$player,
+				$this,
+				$player?->getInventory(),
+				$player?->getInventory()?->getHeldItemIndex()
+			)
+		);
+	}
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		return false;
 	}

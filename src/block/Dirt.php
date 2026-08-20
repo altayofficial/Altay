@@ -27,7 +27,6 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\DirtType;
 use pocketmine\data\runtime\RuntimeDataDescriber;
-use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\Fertilizer;
 use pocketmine\item\Hoe;
 use pocketmine\item\Item;
@@ -63,7 +62,7 @@ class Dirt extends Opaque{
 				return true;
 			}
 
-			$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
+			$this->damageHeldItem($item, $player);
 
 			$newBlock = $this->dirtType === DirtType::NORMAL ? VanillaBlocks::FARMLAND() : VanillaBlocks::DIRT();
 			$center = $this->position->add(0.5, 0.5, 0.5);

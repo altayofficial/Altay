@@ -30,7 +30,6 @@ use pocketmine\block\utils\PillarRotationTrait;
 use pocketmine\block\utils\WoodMaterial;
 use pocketmine\block\utils\WoodTypeTrait;
 use pocketmine\data\runtime\RuntimeDataDescriber;
-use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\Axe;
 use pocketmine\item\Item;
 use pocketmine\math\Vector3;
@@ -69,7 +68,7 @@ class Wood extends Opaque implements PillarRotation, WoodMaterial{
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if(!$this->stripped && $item instanceof Axe){
-			$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
+			$this->damageHeldItem($item, $player);
 			$this->stripped = true;
 			$this->position->getWorld()->setBlock($this->position, $this);
 			$this->position->getWorld()->addSound($this->position, new ItemUseOnBlockSound($this));

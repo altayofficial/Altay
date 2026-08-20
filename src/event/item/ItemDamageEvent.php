@@ -23,7 +23,7 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\event\inventory;
+namespace pocketmine\event\item;
 
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;

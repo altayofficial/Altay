@@ -28,22 +28,19 @@ namespace pocketmine\item;
 use pocketmine\block\Block;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
+use pocketmine\event\item\ItemDamageEvent;
 use pocketmine\inventory\Inventory;
-use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\utils\Utils;
+use function max;
 use function min;
 
 abstract class Durable extends Item{
 	protected int $damage = 0;
 	private bool $unbreakable = false;
 
-	private ?int $damageContextCause = null;
-	private ?Living $damageContextEntity = null;
-	private Block|Entity|null $damageContextTarget = null;
-	private ?Inventory $damageContextInventory = null;
-	private ?int $damageContextSlot = null;
+	private ?ItemDamageContext $damageContext = null;
 
 	/**
 	 * Returns whether this item will take damage when used.
@@ -68,20 +65,9 @@ abstract class Durable extends Item{
 	 * @return bool if any damage was applied to the item
 	 */
 	public function applyDamage(int $amount) : bool{
-		if($this->damageContextCause !== null){
-			return $this->applyDamageWithContext(
-				$amount,
-				$this->damageContextCause,
-				$this->damageContextEntity,
-				$this->damageContextTarget,
-				$this->damageContextInventory,
-				$this->damageContextSlot
-			);
-		}
-
 		return $this->applyDamageWithContext(
 			$amount,
-			ItemDamageEvent::CAUSE_PLUGIN
+			$this->damageContext ?? new ItemDamageContext(ItemDamageEvent::CAUSE_PLUGIN)
 		);
 	}
 
@@ -93,27 +79,26 @@ abstract class Durable extends Item{
 	 */
 	public function applyDamageWithContext(
 		int $amount,
-		int $cause,
-		?Living $entity = null,
-		Block|Entity|null $target = null,
-		?Inventory $inventory = null,
-		?int $slot = null
+		ItemDamageContext $context
 	) : bool{
 		if($this->isUnbreakable() || $this->isBroken()){
 			return false;
 		}
 
 		$unbreakingDamageReduction = $this->getUnbreakingDamageReduction($amount);
+		if(!ItemDamageEvent::hasHandlers()){
+			return $this->applyRawDamage(max(0, $amount - $unbreakingDamageReduction));
+		}
 
 		$event = new ItemDamageEvent(
 			$this,
 			$amount,
 			$unbreakingDamageReduction,
-			$cause,
-			$entity,
-			$target,
-			$inventory,
-			$slot
+			$context->getCause(),
+			$context->getEntity(),
+			$context->getTarget(),
+			$context->getInventory(),
+			$context->getSlot()
 		);
 		$event->call();
 
@@ -121,10 +106,13 @@ abstract class Durable extends Item{
 			return false;
 		}
 
-		$finalDamage = max(
-			0,
-			$event->getDamage() - $event->getUnbreakingDamageReduction()
-		);
+		$finalDamage = $event->getDamage();
+		if($finalDamage !== $amount){
+			$unbreakingDamageReduction = $this->getUnbreakingDamageReduction($finalDamage);
+		}else{
+			$unbreakingDamageReduction = $event->getUnbreakingDamageReduction();
+		}
+		$finalDamage = max(0, $finalDamage - $unbreakingDamageReduction);
 
 		return $this->applyRawDamage($finalDamage);
 	}
@@ -214,12 +202,8 @@ abstract class Durable extends Item{
 	/**
 	 * @param Item[] $returnedItems
 	 */
-	public function onAttackEntityWithContext(Entity $victim, Living $entity, ?Inventory $inventory, ?int $slot, array &$returnedItems) : bool{
-		$this->damageContextCause = ItemDamageEvent::CAUSE_ENTITY_ATTACK;
-		$this->damageContextEntity = $entity;
-		$this->damageContextTarget = $victim;
-		$this->damageContextInventory = $inventory;
-		$this->damageContextSlot = $slot;
+	public function onAttackEntityWithContext(Entity $victim, ItemDamageContext $context, array &$returnedItems) : bool{
+		$this->damageContext = $context;
 
 		try{
 			return $this->onAttackEntity($victim, $returnedItems);
@@ -231,12 +215,8 @@ abstract class Durable extends Item{
 	/**
 	 * @param Item[] $returnedItems
 	 */
-	public function onDestroyBlockWithContext(Block $block, ?Living $entity, ?Inventory $inventory, ?int $slot, array &$returnedItems) : bool{
-		$this->damageContextCause = ItemDamageEvent::CAUSE_BLOCK_BREAK;
-		$this->damageContextEntity = $entity;
-		$this->damageContextTarget = $block;
-		$this->damageContextInventory = $inventory;
-		$this->damageContextSlot = $slot;
+	public function onDestroyBlockWithContext(Block $block, ItemDamageContext $context, array &$returnedItems) : bool{
+		$this->damageContext = $context;
 
 		try{
 			return $this->onDestroyBlock($block, $returnedItems);
@@ -246,10 +226,6 @@ abstract class Durable extends Item{
 	}
 
 	private function clearDamageContext() : void{
-		$this->damageContextCause = null;
-		$this->damageContextEntity = null;
-		$this->damageContextTarget = null;
-		$this->damageContextInventory = null;
-		$this->damageContextSlot = null;
+		$this->damageContext = null;
 	}
 }

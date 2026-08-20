@@ -50,6 +50,7 @@ use pocketmine\entity\object\ItemEntity;
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\block\BlockUpdateEvent;
+use pocketmine\event\item\ItemDamageEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\world\ChunkLoadEvent;
 use pocketmine\event\world\ChunkPopulateEvent;
@@ -61,6 +62,7 @@ use pocketmine\event\world\WorldParticleEvent;
 use pocketmine\event\world\WorldSaveEvent;
 use pocketmine\event\world\WorldSoundEvent;
 use pocketmine\item\Durable;
+use pocketmine\item\ItemDamageContext;
 use pocketmine\item\Item;
 use pocketmine\item\ItemUseResult;
 use pocketmine\item\LegacyStringToItemParser;
@@ -2201,12 +2203,10 @@ class World implements ChunkManager{
 			$this->destroyBlockInternal($t, $item, $player, $createParticles, $returnedItems);
 		}
 
-		if($item instanceof Durable && $player !== null){
+		if($item instanceof Durable){
 			$item->onDestroyBlockWithContext(
 				$target,
-				$player,
-				$player->getInventory(),
-				$player->getInventory()->getHeldItemIndex(),
+				new ItemDamageContext(ItemDamageEvent::CAUSE_BLOCK_BREAK, $player, $target, $player?->getInventory(), $player?->getInventory()?->getHeldItemIndex()),
 				$returnedItems
 			);
 		}else{

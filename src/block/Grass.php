@@ -27,7 +27,6 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\BlockEventHelper;
 use pocketmine\block\utils\DirtType;
-use pocketmine\event\inventory\ItemDamageEvent;
 use pocketmine\item\Fertilizer;
 use pocketmine\item\Hoe;
 use pocketmine\item\Item;
@@ -97,14 +96,14 @@ class Grass extends Opaque{
 		}
 		if($face !== Facing::DOWN){
 			if($item instanceof Hoe){
-				$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
+				$this->damageHeldItem($item, $player);
 				$newBlock = VanillaBlocks::FARMLAND();
 				$world->addSound($this->position->add(0.5, 0.5, 0.5), new ItemUseOnBlockSound($newBlock));
 				$world->setBlock($this->position, $newBlock);
 
 				return true;
 			}elseif($item instanceof Shovel){
-				$item->applyDamageWithContext(1, ItemDamageEvent::CAUSE_BLOCK_INTERACT, $player, $this, $player?->getInventory(), $player?->getInventory()->getHeldItemIndex());
+				$this->damageHeldItem($item, $player);
 				$newBlock = VanillaBlocks::GRASS_PATH();
 				$world->addSound($this->position->add(0.5, 0.5, 0.5), new ItemUseOnBlockSound($newBlock));
 				$world->setBlock($this->position, $newBlock);

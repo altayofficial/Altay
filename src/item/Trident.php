@@ -30,7 +30,7 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Location;
 use pocketmine\entity\projectile\Trident as TridentEntity;
 use pocketmine\event\entity\ProjectileLaunchEvent;
-use pocketmine\event\inventory\ItemDamageEvent;
+use pocketmine\event\item\ItemDamageEvent;
 use pocketmine\player\Player;
 use pocketmine\world\sound\TridentThrowSound;
 use function min;
@@ -52,7 +52,7 @@ class Trident extends Tool implements Releasable{
 
 		$item = $this->pop();
 		if($player->hasFiniteResources()){
-			$item->applyDamageWithContext(self::DAMAGE_ON_THROW, ItemDamageEvent::CAUSE_PROJECTILE, $player, null, $player->getInventory(), $player->getInventory()->getHeldItemIndex());
+			$item->applyDamageWithContext(self::DAMAGE_ON_THROW, new ItemDamageContext(ItemDamageEvent::CAUSE_PROJECTILE, $player, null, $player->getInventory(), $player->getInventory()->getHeldItemIndex()));
 		}
 		if($item->isNull()){
 			//canStartUsingItem() will normally prevent this, but it's possible the item might've been modified between

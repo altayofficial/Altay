@@ -215,6 +215,7 @@ final class VanillaBlocks{
 	private static Wall $_mCOBBLESTONE_WALL;
 	private static Cobweb $_mCOBWEB;
 	private static CocoaBlock $_mCOCOA_POD;
+	private static Composter $_mCOMPOSTER;
 	private static ChemistryTable $_mCOMPOUND_CREATOR;
 	private static Concrete $_mCONCRETE;
 	private static ConcretePowder $_mCONCRETE_POWDER;
@@ -749,6 +750,7 @@ final class VanillaBlocks{
 	private static Slab $_mSANDSTONE_SLAB;
 	private static Stair $_mSANDSTONE_STAIRS;
 	private static Wall $_mSANDSTONE_WALL;
+	private static Scaffolding $_mSCAFFOLDING;
 	private static Sculk $_mSCULK;
 	private static Seagrass $_mSEAGRASS;
 	private static SeaLantern $_mSEA_LANTERN;
@@ -1086,6 +1088,7 @@ final class VanillaBlocks{
 			"cobblestone_wall" => fn(Wall $v) => self::$_mCOBBLESTONE_WALL = $v,
 			"cobweb" => fn(Cobweb $v) => self::$_mCOBWEB = $v,
 			"cocoa_pod" => fn(CocoaBlock $v) => self::$_mCOCOA_POD = $v,
+			"composter" => fn(Composter $v) => self::$_mCOMPOSTER = $v,
 			"compound_creator" => fn(ChemistryTable $v) => self::$_mCOMPOUND_CREATOR = $v,
 			"concrete" => fn(Concrete $v) => self::$_mCONCRETE = $v,
 			"concrete_powder" => fn(ConcretePowder $v) => self::$_mCONCRETE_POWDER = $v,
@@ -1620,6 +1623,7 @@ final class VanillaBlocks{
 			"sandstone_slab" => fn(Slab $v) => self::$_mSANDSTONE_SLAB = $v,
 			"sandstone_stairs" => fn(Stair $v) => self::$_mSANDSTONE_STAIRS = $v,
 			"sandstone_wall" => fn(Wall $v) => self::$_mSANDSTONE_WALL = $v,
+			"scaffolding" => fn(Scaffolding $v) => self::$_mSCAFFOLDING = $v,
 			"sculk" => fn(Sculk $v) => self::$_mSCULK = $v,
 			"seagrass" => fn(Seagrass $v) => self::$_mSEAGRASS = $v,
 			"sea_lantern" => fn(SeaLantern $v) => self::$_mSEA_LANTERN = $v,
@@ -2659,6 +2663,11 @@ final class VanillaBlocks{
 	public static function COCOA_POD() : CocoaBlock{
 		if(!isset(self::$_mCOCOA_POD)){ self::init(); }
 		return clone self::$_mCOCOA_POD;
+	}
+
+	public static function COMPOSTER() : Composter{
+		if(!isset(self::$_mCOMPOSTER)){ self::init(); }
+		return clone self::$_mCOMPOSTER;
 	}
 
 	public static function COMPOUND_CREATOR() : ChemistryTable{
@@ -5329,6 +5338,11 @@ final class VanillaBlocks{
 	public static function SANDSTONE_WALL() : Wall{
 		if(!isset(self::$_mSANDSTONE_WALL)){ self::init(); }
 		return clone self::$_mSANDSTONE_WALL;
+	}
+
+	public static function SCAFFOLDING() : Scaffolding{
+		if(!isset(self::$_mSCAFFOLDING)){ self::init(); }
+		return clone self::$_mSCAFFOLDING;
 	}
 
 	public static function SCULK() : Sculk{

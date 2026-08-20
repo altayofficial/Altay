@@ -31,7 +31,6 @@ use pocketmine\entity\Living;
 use pocketmine\inventory\Inventory;
 
 final class ItemDamageContext{
-
 	public function __construct(
 		private int $cause,
 		private ?Living $entity = null,

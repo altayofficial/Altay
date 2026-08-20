@@ -310,6 +310,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("colored_torch_rg", fn() => Blocks::RED_TORCH());
 		$result->registerBlock("comparator", fn() => Blocks::REDSTONE_COMPARATOR());
 		$result->registerBlock("comparator_block", fn() => Blocks::REDSTONE_COMPARATOR());
+		$result->registerBlock("composter", fn() => Blocks::COMPOSTER());
 		$result->registerBlock("compound_creator", fn() => Blocks::COMPOUND_CREATOR());
 		$result->registerBlock("concrete", fn() => Blocks::CONCRETE());
 		$result->registerBlock("concrete_powder", fn() => Blocks::CONCRETE_POWDER());
@@ -1059,6 +1060,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("sandstone_stairs", fn() => Blocks::SANDSTONE_STAIRS());
 		$result->registerBlock("sandstone_wall", fn() => Blocks::SANDSTONE_WALL());
 		$result->registerBlock("sapling", fn() => Blocks::OAK_SAPLING());
+		$result->registerBlock("scaffolding", fn() => Blocks::SCAFFOLDING());
 		$result->registerBlock("sculk", fn() => Blocks::SCULK());
 		$result->registerBlock("sea_lantern", fn() => Blocks::SEA_LANTERN());
 		$result->registerBlock("sea_pickle", fn() => Blocks::SEA_PICKLE());

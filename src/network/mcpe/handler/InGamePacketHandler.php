@@ -333,9 +333,6 @@ class InGamePacketHandler extends PacketHandler{
 		$result = true;
 
 		$trData = $packet->trData;
-		if($trData === null){
-			throw new PacketHandlingException("Inventory transaction data is missing");
-		}
 
 		if(count($trData->getActions()) > 50){
 			throw new PacketHandlingException("Too many actions in inventory transaction");

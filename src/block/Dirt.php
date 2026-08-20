@@ -62,7 +62,7 @@ class Dirt extends Opaque{
 				return true;
 			}
 
-			$item->applyDamage(1);
+			$this->damageHeldItem($item, $player);
 
 			$newBlock = $this->dirtType === DirtType::NORMAL ? VanillaBlocks::FARMLAND() : VanillaBlocks::DIRT();
 			$center = $this->position->add(0.5, 0.5, 0.5);

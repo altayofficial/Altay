@@ -25,14 +25,22 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use pocketmine\block\Block;
+use pocketmine\entity\Entity;
+use pocketmine\entity\Living;
+use pocketmine\event\item\ItemDamageEvent;
+use pocketmine\inventory\Inventory;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\utils\Utils;
+use function max;
 use function min;
 
 abstract class Durable extends Item{
 	protected int $damage = 0;
 	private bool $unbreakable = false;
+
+	private ?ItemDamageContext $damageContext = null;
 
 	/**
 	 * Returns whether this item will take damage when used.
@@ -52,18 +60,72 @@ abstract class Durable extends Item{
 	}
 
 	/**
-	 * Applies damage to the item.
+	 * Applies damage to the item without any specific usage context.
 	 *
 	 * @return bool if any damage was applied to the item
 	 */
 	public function applyDamage(int $amount) : bool{
+		return $this->applyDamageWithContext(
+			$amount,
+			$this->damageContext ?? new ItemDamageContext(ItemDamageEvent::CAUSE_PLUGIN)
+		);
+	}
+
+	/**
+	 * Applies damage to the item with information about how and where
+	 * the item was damaged.
+	 *
+	 * @return bool if any damage was applied to the item
+	 */
+	public function applyDamageWithContext(
+		int $amount,
+		ItemDamageContext $context
+	) : bool{
 		if($this->isUnbreakable() || $this->isBroken()){
 			return false;
 		}
 
-		$amount -= $this->getUnbreakingDamageReduction($amount);
+		$unbreakingDamageReduction = $this->getUnbreakingDamageReduction($amount);
+		if(!ItemDamageEvent::hasHandlers()){
+			return $this->applyRawDamage(max(0, $amount - $unbreakingDamageReduction));
+		}
 
-		$this->damage = min($this->damage + $amount, $this->getMaxDurability());
+		$event = new ItemDamageEvent(
+			$this,
+			$amount,
+			$unbreakingDamageReduction,
+			$context->getCause(),
+			$context->getEntity(),
+			$context->getTarget(),
+			$context->getInventory(),
+			$context->getSlot()
+		);
+		$event->call();
+
+		if($event->isCancelled()){
+			return false;
+		}
+
+		$finalDamage = $event->getDamage();
+		if($finalDamage !== $amount){
+			$unbreakingDamageReduction = $this->getUnbreakingDamageReduction($finalDamage);
+		}else{
+			$unbreakingDamageReduction = $event->getUnbreakingDamageReduction();
+		}
+		$finalDamage = max(0, $finalDamage - $unbreakingDamageReduction);
+
+		return $this->applyRawDamage($finalDamage);
+	}
+
+	/**
+	 * Applies already calculated durability damage.
+	 */
+	private function applyRawDamage(int $amount) : bool{
+		$this->damage = min(
+			$this->damage + $amount,
+			$this->getMaxDurability()
+		);
+
 		if($this->isBroken()){
 			$this->onBroken();
 		}
@@ -135,5 +197,35 @@ abstract class Durable extends Item{
 		parent::serializeCompoundTag($tag);
 		$this->unbreakable ? $tag->setByte("Unbreakable", 1) : $tag->removeTag("Unbreakable");
 		$this->damage !== 0 ? $tag->setInt("Damage", $this->damage) : $tag->removeTag("Damage");
+	}
+
+	/**
+	 * @param Item[] $returnedItems
+	 */
+	public function onAttackEntityWithContext(Entity $victim, ItemDamageContext $context, array &$returnedItems) : bool{
+		$this->damageContext = $context;
+
+		try{
+			return $this->onAttackEntity($victim, $returnedItems);
+		}finally{
+			$this->clearDamageContext();
+		}
+	}
+
+	/**
+	 * @param Item[] $returnedItems
+	 */
+	public function onDestroyBlockWithContext(Block $block, ItemDamageContext $context, array &$returnedItems) : bool{
+		$this->damageContext = $context;
+
+		try{
+			return $this->onDestroyBlock($block, $returnedItems);
+		}finally{
+			$this->clearDamageContext();
+		}
+	}
+
+	private function clearDamageContext() : void{
+		$this->damageContext = null;
 	}
 }

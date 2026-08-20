@@ -52,6 +52,7 @@ use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityExtinguishEvent;
+use pocketmine\event\item\ItemDamageEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
 use pocketmine\event\player\PlayerBedEnterEvent;
@@ -101,6 +102,7 @@ use pocketmine\inventory\transaction\TransactionCancelledException;
 use pocketmine\inventory\transaction\TransactionValidationException;
 use pocketmine\item\ConsumableItem;
 use pocketmine\item\Durable;
+use pocketmine\item\ItemDamageContext;
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\enchantment\MeleeWeaponEnchantment;
 use pocketmine\item\Item;
@@ -2079,7 +2081,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			//reactive damage like thorns might cause us to be killed by attacking another mob, which
 			//would mean we'd already have dropped the inventory by the time we reached here
 			$returnedItems = [];
-			$heldItem->onAttackEntity($entity, $returnedItems);
+			if($heldItem instanceof Durable){
+				$heldItem->onAttackEntityWithContext($entity, new ItemDamageContext(ItemDamageEvent::CAUSE_ENTITY_ATTACK, $this, $entity, $this->inventory, $this->inventory->getHeldItemIndex()), $returnedItems);
+			}else{
+				$heldItem->onAttackEntity($entity, $returnedItems);
+			}
 			$this->returnItemsFromAction($oldItem, $heldItem, $returnedItems);
 
 			$this->hungerManager->exhaust(0.1, PlayerExhaustEvent::CAUSE_ATTACK);

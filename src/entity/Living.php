@@ -529,8 +529,6 @@ abstract class Living extends Entity{
 	public function damageArmor(float $damage) : void{
 		$durabilityRemoved = (int) max(floor($damage / 4), 1);
 
-		$target = null;
-
 		$armor = $this->armorInventory->getContents();
 		foreach($armor as $slotId => $item){
 			if($item instanceof Armor){

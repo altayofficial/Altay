@@ -525,12 +525,6 @@ class Block{
 
 	}
 
-	/**
-	 * Do actions when interacted by Item. Returns if it has done anything
-	 *
-	 * @param Vector3 $clickVector    Exact position where the click occurred, relative to the block's integer position
-	 * @param Item[]  &$returnedItems Items to be added to the target's inventory (or dropped, if the inventory is full)
-	 */
 	protected function damageHeldItem(Durable $item, ?Player $player) : void{
 		$item->applyDamageWithContext(
 			1,
@@ -543,6 +537,13 @@ class Block{
 			)
 		);
 	}
+
+	/**
+	 * Do actions when interacted by Item. Returns if it has done anything
+	 *
+	 * @param Vector3 $clickVector    Exact position where the click occurred, relative to the block's integer position
+	 * @param Item[]  &$returnedItems Items to be added to the target's inventory (or dropped, if the inventory is full)
+	 */
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		return false;
 	}

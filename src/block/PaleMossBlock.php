@@ -32,7 +32,7 @@ class PaleMossBlock extends MossBlock{
 	}
 
 	protected function getMossCarpet() : ?Block{
-		//pale moss carpet is a multi-state block Altay does not implement yet
+		//TODO: pale moss carpet.
 		return null;
 	}
 }

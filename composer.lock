@@ -71,12 +71,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "31a55044ba106b61c593d4bca8e3fc9e0d437371"
+                "reference": "b5cb986a919de321e1f5330f8e1ea18bcabbda98"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/31a55044ba106b61c593d4bca8e3fc9e0d437371",
-                "reference": "31a55044ba106b61c593d4bca8e3fc9e0d437371",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/b5cb986a919de321e1f5330f8e1ea18bcabbda98",
+                "reference": "b5cb986a919de321e1f5330f8e1ea18bcabbda98",
                 "shasum": ""
             },
             "type": "library",
@@ -87,7 +87,7 @@
             "support": {
                 "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.50"
             },
-            "time": "2026-08-18T16:33:51+00:00"
+            "time": "2026-08-28T08:50:48+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
@@ -95,12 +95,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "10113fb0da5ae22bee9a88444e97cbd17eac3654"
+                "reference": "ba2704dc3c3b0520a807b279a5881ddfb2bb4b10"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/10113fb0da5ae22bee9a88444e97cbd17eac3654",
-                "reference": "10113fb0da5ae22bee9a88444e97cbd17eac3654",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/ba2704dc3c3b0520a807b279a5881ddfb2bb4b10",
+                "reference": "ba2704dc3c3b0520a807b279a5881ddfb2bb4b10",
                 "shasum": ""
             },
             "require": {
@@ -144,7 +144,7 @@
                 "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.50",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-08-18T16:19:55+00:00"
+            "time": "2026-08-28T09:26:42+00:00"
         },
         {
             "name": "altayofficial/dtls",
@@ -251,12 +251,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/Network.git",
-                "reference": "4fd46f272faf1d045c845f345f5fd9f9ec381e84"
+                "reference": "685fa5e7f43fe8d5b92496eb5f6c43c1efd8b028"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/Network/zipball/4fd46f272faf1d045c845f345f5fd9f9ec381e84",
-                "reference": "4fd46f272faf1d045c845f345f5fd9f9ec381e84",
+                "url": "https://api.github.com/repos/altayofficial/Network/zipball/685fa5e7f43fe8d5b92496eb5f6c43c1efd8b028",
+                "reference": "685fa5e7f43fe8d5b92496eb5f6c43c1efd8b028",
                 "shasum": ""
             },
             "require": {
@@ -303,10 +303,10 @@
             ],
             "description": "Central network library for Altay family written in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/Network/tree/main",
+                "source": "https://github.com/altayofficial/Network/tree/1.1.0",
                 "issues": "https://github.com/altayofficial/Network/issues"
             },
-            "time": "2026-08-19T10:23:14+00:00"
+            "time": "2026-08-24T11:49:58+00:00"
         },
         {
             "name": "altayofficial/webrtc",
@@ -314,12 +314,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/webrtc.git",
-                "reference": "7ec335e376e853d38b9c5efd69997d50b01559de"
+                "reference": "1ca770700a85dc67b5bc0eb028269c179bcaae6e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/7ec335e376e853d38b9c5efd69997d50b01559de",
-                "reference": "7ec335e376e853d38b9c5efd69997d50b01559de",
+                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/1ca770700a85dc67b5bc0eb028269c179bcaae6e",
+                "reference": "1ca770700a85dc67b5bc0eb028269c179bcaae6e",
                 "shasum": ""
             },
             "require": {
@@ -383,7 +383,7 @@
                 "source": "https://github.com/altayofficial/webrtc/tree/1.2.0",
                 "issues": "https://github.com/altayofficial/webrtc/issues"
             },
-            "time": "2026-08-19T10:21:44+00:00"
+            "time": "2026-08-28T11:46:28+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",
@@ -664,6 +664,7 @@
                 "issues": "https://github.com/pmmp/BinaryUtils/issues",
                 "source": "https://github.com/pmmp/BinaryUtils/tree/0.2.7"
             },
+            "abandoned": true,
             "time": "2025-12-24T04:20:35+00:00"
         },
         {
@@ -714,6 +715,7 @@
                 "issues": "https://github.com/pmmp/CallbackValidator/issues",
                 "source": "https://github.com/pmmp/CallbackValidator/tree/1.0.4"
             },
+            "abandoned": true,
             "time": "2025-12-24T01:25:05+00:00"
         },
         {
@@ -752,6 +754,7 @@
                 "issues": "https://github.com/pmmp/Color/issues",
                 "source": "https://github.com/pmmp/Color/tree/0.3.1"
             },
+            "abandoned": true,
             "time": "2023-04-10T11:38:05+00:00"
         },
         {
@@ -791,6 +794,7 @@
                 "issues": "https://github.com/pmmp/ErrorHandler/issues",
                 "source": "https://github.com/pmmp/ErrorHandler/tree/0.7.1"
             },
+            "abandoned": true,
             "time": "2025-12-24T02:26:52+00:00"
         },
         {
@@ -832,6 +836,7 @@
                 "issues": "https://github.com/pmmp/Log/issues",
                 "source": "https://github.com/pmmp/Log/tree/0.4.0"
             },
+            "abandoned": true,
             "time": "2021-06-18T19:08:09+00:00"
         },
         {
@@ -873,6 +878,7 @@
                 "issues": "https://github.com/pmmp/Math/issues",
                 "source": "https://github.com/pmmp/Math/tree/1.0.0"
             },
+            "abandoned": true,
             "time": "2023-08-03T12:56:33+00:00"
         },
         {
@@ -1872,16 +1878,16 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v6.4.43",
+            "version": "v6.4.44",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "9ff03da12d67649fbd1f34ca95951554624d0a16"
+                "reference": "e84ffb3e77e3a7144727a0d0735d0d9cc0ca77a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/9ff03da12d67649fbd1f34ca95951554624d0a16",
-                "reference": "9ff03da12d67649fbd1f34ca95951554624d0a16",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/e84ffb3e77e3a7144727a0d0735d0d9cc0ca77a7",
+                "reference": "e84ffb3e77e3a7144727a0d0735d0d9cc0ca77a7",
                 "shasum": ""
             },
             "require": {
@@ -1918,7 +1924,7 @@
             "description": "Provides basic utilities for the filesystem",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/filesystem/tree/v6.4.43"
+                "source": "https://github.com/symfony/filesystem/tree/v6.4.44"
             },
             "funding": [
                 {
@@ -1938,7 +1944,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-27T10:13:35+00:00"
+            "time": "2026-08-20T20:21:47+00:00"
         },
         {
             "name": "symfony/polyfill-php84",

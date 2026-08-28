@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bf12e7c6056f02d7f81284a321b759d8",
+    "content-hash": "7ed5309c82f83761c99404039c5ee2e4",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -67,16 +67,16 @@
         },
         {
             "name": "altayofficial/bedrock-data",
-            "version": "dev-bedrock-1.26.40",
+            "version": "dev-bedrock-1.26.44",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "a57f724d4dd303d361e8c5a804ea678d1bb2be5c"
+                "reference": "fef087e156e43d636707b0e6df3bca8552300e7f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/a57f724d4dd303d361e8c5a804ea678d1bb2be5c",
-                "reference": "a57f724d4dd303d361e8c5a804ea678d1bb2be5c",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/fef087e156e43d636707b0e6df3bca8552300e7f",
+                "reference": "fef087e156e43d636707b0e6df3bca8552300e7f",
                 "shasum": ""
             },
             "type": "library",
@@ -85,9 +85,9 @@
             ],
             "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by Altayz",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockData/tree/6.8.0+bedrock-1.26.40"
+                "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.44"
             },
-            "time": "2026-07-23T08:05:33+00:00"
+            "time": "2026-08-28T14:17:01+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
@@ -369,6 +369,7 @@
                 "issues": "https://github.com/pmmp/BinaryUtils/issues",
                 "source": "https://github.com/pmmp/BinaryUtils/tree/0.2.7"
             },
+            "abandoned": true,
             "time": "2025-12-24T04:20:35+00:00"
         },
         {
@@ -419,6 +420,7 @@
                 "issues": "https://github.com/pmmp/CallbackValidator/issues",
                 "source": "https://github.com/pmmp/CallbackValidator/tree/1.0.4"
             },
+            "abandoned": true,
             "time": "2025-12-24T01:25:05+00:00"
         },
         {
@@ -457,6 +459,7 @@
                 "issues": "https://github.com/pmmp/Color/issues",
                 "source": "https://github.com/pmmp/Color/tree/0.3.1"
             },
+            "abandoned": true,
             "time": "2023-04-10T11:38:05+00:00"
         },
         {
@@ -496,6 +499,7 @@
                 "issues": "https://github.com/pmmp/ErrorHandler/issues",
                 "source": "https://github.com/pmmp/ErrorHandler/tree/0.7.1"
             },
+            "abandoned": true,
             "time": "2025-12-24T02:26:52+00:00"
         },
         {
@@ -537,6 +541,7 @@
                 "issues": "https://github.com/pmmp/Log/issues",
                 "source": "https://github.com/pmmp/Log/tree/0.4.0"
             },
+            "abandoned": true,
             "time": "2021-06-18T19:08:09+00:00"
         },
         {
@@ -578,6 +583,7 @@
                 "issues": "https://github.com/pmmp/Math/issues",
                 "source": "https://github.com/pmmp/Math/tree/1.0.0"
             },
+            "abandoned": true,
             "time": "2023-08-03T12:56:33+00:00"
         },
         {
@@ -662,6 +668,7 @@
                 "issues": "https://github.com/pmmp/RakLibIpc/issues",
                 "source": "https://github.com/pmmp/RakLibIpc/tree/1.0.1"
             },
+            "abandoned": true,
             "time": "2024-03-01T15:55:05+00:00"
         },
         {
@@ -860,16 +867,16 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v6.4.43",
+            "version": "v6.4.44",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "9ff03da12d67649fbd1f34ca95951554624d0a16"
+                "reference": "e84ffb3e77e3a7144727a0d0735d0d9cc0ca77a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/9ff03da12d67649fbd1f34ca95951554624d0a16",
-                "reference": "9ff03da12d67649fbd1f34ca95951554624d0a16",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/e84ffb3e77e3a7144727a0d0735d0d9cc0ca77a7",
+                "reference": "e84ffb3e77e3a7144727a0d0735d0d9cc0ca77a7",
                 "shasum": ""
             },
             "require": {
@@ -906,7 +913,7 @@
             "description": "Provides basic utilities for the filesystem",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/filesystem/tree/v6.4.43"
+                "source": "https://github.com/symfony/filesystem/tree/v6.4.44"
             },
             "funding": [
                 {
@@ -926,7 +933,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-27T10:13:35+00:00"
+            "time": "2026-08-20T20:21:47+00:00"
         }
     ],
     "packages-dev": [

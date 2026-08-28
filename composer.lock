@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7ed5309c82f83761c99404039c5ee2e4",
+    "content-hash": "72c3fbc2f12115917a1de5ce4d8fedd6",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -91,16 +91,16 @@
         },
         {
             "name": "altayofficial/bedrock-protocol",
-            "version": "dev-bedrock-1.26.44",
+            "version": "dev-bedrock-1.26.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "52c643229d342afc06c5db5984393bae39d5a4a9"
+                "reference": "44161a513d535fccd8fe3944961bde3ed7d0dc40"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/52c643229d342afc06c5db5984393bae39d5a4a9",
-                "reference": "52c643229d342afc06c5db5984393bae39d5a4a9",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/44161a513d535fccd8fe3944961bde3ed7d0dc40",
+                "reference": "44161a513d535fccd8fe3944961bde3ed7d0dc40",
                 "shasum": ""
             },
             "require": {
@@ -141,10 +141,10 @@
             ],
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.44",
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.45",
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues"
             },
-            "time": "2026-08-14T20:09:29+00:00"
+            "time": "2026-08-22T09:54:06+00:00"
         },
         {
             "name": "altayofficial/nbt",

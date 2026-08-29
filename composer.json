@@ -33,7 +33,7 @@
       "composer-runtime-api": "^2.0",
       "adhocore/json-comment": "~1.2.0",
       "netresearch/jsonmapper": "~v5.0.0",
-      "altayofficial/bedrock-data": "dev-bedrock-1.26.44",
+      "altayofficial/bedrock-data": "dev-bedrock-1.26.45",
       "altayofficial/bedrock-protocol": "dev-bedrock-1.26.45",
       "altayofficial/worldupgraderschemas": "dev-bedrock-1.26.20",
       "pocketmine/binaryutils": "^0.2.1",

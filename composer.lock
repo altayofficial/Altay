@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "72c3fbc2f12115917a1de5ce4d8fedd6",
+    "content-hash": "6f2be615b6821325a7fb82efad77ed63",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -67,16 +67,16 @@
         },
         {
             "name": "altayofficial/bedrock-data",
-            "version": "dev-bedrock-1.26.44",
+            "version": "dev-bedrock-1.26.45",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "fef087e156e43d636707b0e6df3bca8552300e7f"
+                "reference": "dde23f43c98bd934b82ca7ece2bc96a088aaaa0b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/fef087e156e43d636707b0e6df3bca8552300e7f",
-                "reference": "fef087e156e43d636707b0e6df3bca8552300e7f",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/dde23f43c98bd934b82ca7ece2bc96a088aaaa0b",
+                "reference": "dde23f43c98bd934b82ca7ece2bc96a088aaaa0b",
                 "shasum": ""
             },
             "type": "library",
@@ -85,9 +85,9 @@
             ],
             "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by Altayz",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.44"
+                "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.45"
             },
-            "time": "2026-08-28T14:17:01+00:00"
+            "time": "2026-08-29T09:54:45+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",

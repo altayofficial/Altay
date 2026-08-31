@@ -41,11 +41,13 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDeathEvent;
 use pocketmine\event\entity\EntityFrostWalkerEvent;
+use pocketmine\event\item\ItemDamageEvent;
 use pocketmine\inventory\ArmorInventory;
 use pocketmine\inventory\CallbackInventoryListener;
 use pocketmine\inventory\Inventory;
 use pocketmine\item\Armor;
 use pocketmine\item\Durable;
+use pocketmine\item\ItemDamageContext;
 use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\item\Item;
@@ -495,10 +497,10 @@ abstract class Living extends Entity{
 			foreach($this->armorInventory->getContents() as $k => $item){
 				if($item instanceof Armor && ($thornsLevel = $item->getEnchantmentLevel(VanillaEnchantments::THORNS())) > 0){
 					if(mt_rand(0, 99) < $thornsLevel * 15){
-						$this->damageItem($item, 3);
+						$this->damageItem($item, 3, ItemDamageEvent::CAUSE_THORNS, $attacker, $this->armorInventory, $k);
 						$damage += ($thornsLevel > 10 ? $thornsLevel - 10 : 1 + mt_rand(0, 3));
 					}else{
-						$this->damageItem($item, 1); //thorns causes an extra +1 durability loss even if it didn't activate
+						$this->damageItem($item, 1, ItemDamageEvent::CAUSE_THORNS, $attacker, $this->armorInventory, $k); //thorns causes an extra +1 durability loss even if it didn't activate
 					}
 
 					$this->armorInventory->setItem($k, $item);
@@ -513,7 +515,7 @@ abstract class Living extends Entity{
 				$helmet = $this->armorInventory->getHelmet();
 				if($helmet instanceof Armor){
 					$finalDamage = $source->getFinalDamage();
-					$this->damageItem($helmet, (int) round($finalDamage * 4 + Utils::getRandomFloat() * $finalDamage * 2));
+					$this->damageItem($helmet, (int) round($finalDamage * 4 + Utils::getRandomFloat() * $finalDamage * 2), ItemDamageEvent::CAUSE_ARMOR_DAMAGE, null, $this->armorInventory, ArmorInventory::SLOT_HEAD);
 					$this->armorInventory->setHelmet($helmet);
 				}
 			}
@@ -531,7 +533,7 @@ abstract class Living extends Entity{
 		foreach($armor as $slotId => $item){
 			if($item instanceof Armor){
 				$oldItem = clone $item;
-				$this->damageItem($item, $durabilityRemoved);
+				$this->damageItem($item, $durabilityRemoved, ItemDamageEvent::CAUSE_ARMOR_DAMAGE, null, $this->armorInventory, $slotId);
 				if(!$item->equalsExact($oldItem)){
 					$this->armorInventory->setItem($slotId, $item);
 				}
@@ -539,8 +541,18 @@ abstract class Living extends Entity{
 		}
 	}
 
-	private function damageItem(Durable $item, int $durabilityRemoved) : void{
-		$item->applyDamage($durabilityRemoved);
+	private function damageItem(
+		Durable $item,
+		int $durabilityRemoved,
+		int $cause,
+		Block|Entity|null $target = null,
+		?Inventory $inventory = null,
+		?int $slot = null
+	) : void{
+		$item->applyDamageWithContext(
+			$durabilityRemoved,
+			new ItemDamageContext($cause, $this, $target, $inventory, $slot)
+		);
 		if($item->isBroken()){
 			$this->broadcastSound(new ItemBreakSound());
 		}

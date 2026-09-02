@@ -31,6 +31,7 @@ use pocketmine\data\bedrock\DyeColorIdMap;
 use pocketmine\entity\Entity;
 use pocketmine\entity\EntitySizeInfo;
 use pocketmine\entity\Living;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\item\Item;
 use pocketmine\item\VanillaItems;
 use pocketmine\math\Facing;
@@ -92,6 +93,13 @@ class Cushion extends Living{
 	 * @return Item[]
 	 */
 	public function getDrops() : array{
+		if($this->lastDamageCause instanceof EntityDamageByEntityEvent){
+			$killer = $this->lastDamageCause->getDamager();
+			if($killer instanceof Player && !$killer->hasFiniteResources()){
+				return [];
+			}
+		}
+
 		return [VanillaItems::CUSHION()->setColor($this->color)];
 	}
 

@@ -44,7 +44,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private string $bindAddress = "0.0.0.0",
 		private int $port = NetherNetTransport::DISCOVERY_PORT,
 		private bool $onlineMode = false,
-		private int $signallingPort = 19132
+		private int $signallingPort = 19132,
+		private ?string $identityKeyPath = null
 	){}
 
 	public function getName() : string{
@@ -76,7 +77,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 			null,
 			//the server list reaches a NetherNet server over HTTP on the server port, the same way
 			//vanilla does it: the entry's MOTD comes from a GET and the join posts its offer there
-			"$this->bindAddress:$this->signallingPort"
+			"$this->bindAddress:$this->signallingPort",
+			$this->identityKeyPath
 		);
 	}
 }

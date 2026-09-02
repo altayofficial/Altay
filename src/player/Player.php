@@ -1182,15 +1182,19 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			return false;
 		}
 
+		$setsRespawnPoint = true;
 		if($b instanceof BedBase){
 			$b->setOccupied();
 			$this->getWorld()->setBlock($pos, $b);
+			$setsRespawnPoint = $b->setsRespawnPoint();
 		}
 
 		$this->sleeping = $pos;
 		$this->networkPropertiesDirty = true;
 
-		$this->setSpawn($pos);
+		if($setsRespawnPoint){
+			$this->setSpawn($pos);
+		}
 
 		$this->getWorld()->setSleepTicks(60);
 
@@ -1205,6 +1209,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				$this->getWorld()->setBlock($this->sleeping, $b);
 			}
 			(new PlayerBedLeaveEvent($this, $b))->call();
+
+			if($b instanceof BedBase){
+				$b->onSleepEnd($this);
+			}
 
 			$this->sleeping = null;
 			$this->networkPropertiesDirty = true;

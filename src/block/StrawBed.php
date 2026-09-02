@@ -25,6 +25,26 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\entity\Entity;
+use pocketmine\player\Player;
+
 class StrawBed extends BedBase{
 
+	public function setsRespawnPoint() : bool{
+		return false;
+	}
+
+	public function onSleepEnd(Player $player) : void{
+		//a straw bed is single use so it falls apart once someone has been in it
+		$world = $this->position->getWorld();
+		if(($other = $this->getOtherHalf()) !== null){
+			$world->setBlock($other->position, VanillaBlocks::AIR());
+		}
+		$world->setBlock($this->position, VanillaBlocks::AIR());
+	}
+
+	public function onEntityLand(Entity $entity) : ?float{
+		//straw isn't bouncy like wool is
+		return null;
+	}
 }

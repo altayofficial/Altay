@@ -26,11 +26,14 @@ declare(strict_types=1);
 namespace pocketmine\item;
 
 use pocketmine\block\Block;
+use pocketmine\block\Liquid;
 use pocketmine\block\utils\DyeColor;
+use pocketmine\block\utils\SupportType;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\entity\Location;
 use pocketmine\entity\object\Cushion as EntityCushion;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 
@@ -50,7 +53,12 @@ class Cushion extends Item{
 	}
 
 	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
-		if(!$blockReplace->canBeReplaced()){
+		if(!$blockReplace->canBeReplaced() || $blockReplace instanceof Liquid){
+			return ItemUseResult::NONE;
+		}
+
+		//a cushion rests on whatever is under it, so it needs a surface to sit on
+		if($blockReplace->getSide(Facing::DOWN)->getSupportType(Facing::UP) === SupportType::NONE){
 			return ItemUseResult::NONE;
 		}
 
@@ -82,5 +90,9 @@ class Cushion extends Item{
 
 	public function getMaxStackSize() : int{
 		return 64;
+	}
+
+	public function getFuelTime() : int{
+		return 200;
 	}
 }

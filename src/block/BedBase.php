@@ -71,6 +71,21 @@ abstract class BedBase extends Transparent implements HorizontalFacing{
 		return $this;
 	}
 
+	/**
+	 * Returns whether sleeping in this bed moves the player's respawn point onto it.
+	 * @return bool
+	 */
+	public function setsRespawnPoint() : bool{
+		return true;
+	}
+
+	/**
+	 * Called after a player stops sleeping in this bed, whether the night was skipped or not
+	 */
+	public function onSleepEnd(Player $player) : void{
+
+	}
+
 	public function isOccupied() : bool{
 		return $this->occupied;
 	}

@@ -26,12 +26,14 @@ declare(strict_types=1);
 namespace pocketmine\entity\object;
 
 use pocketmine\block\utils\DyeColor;
+use pocketmine\block\utils\SupportType;
 use pocketmine\data\bedrock\DyeColorIdMap;
 use pocketmine\entity\Entity;
 use pocketmine\entity\EntitySizeInfo;
 use pocketmine\entity\Living;
 use pocketmine\item\Item;
 use pocketmine\item\VanillaItems;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
@@ -42,6 +44,8 @@ use pocketmine\player\Player;
 class Cushion extends Living{
 	private const TAG_COLOR = "Color"; //TAG_Byte
 
+	private const SUPPORT_CHECK_PERIOD = 100; // hmm, the game only revalidates the block a cushion rests on every 5 seconds instead of every tick
+
 	private DyeColor $color = DyeColor::WHITE;
 
 	protected int $maxDeadTicks = 1;
@@ -50,9 +54,9 @@ class Cushion extends Living{
 
 	protected function getInitialSizeInfo() : EntitySizeInfo{ return new EntitySizeInfo(0.249, 0.999); }
 
-	protected function getInitialDragMultiplier() : float{ return 0.02; }
+	protected function getInitialDragMultiplier() : float{ return 1.0; }
 
-	protected function getInitialGravity() : float{ return 0.04; }
+	protected function getInitialGravity() : float{ return 0.0; }
 
 	public function getName() : string{
 		return "Cushion";
@@ -92,7 +96,35 @@ class Cushion extends Living{
 	}
 
 	public function onInteract(Player $player, Vector3 $clickPos) : bool{
-		return $this->getPassengers() === [] && $this->addPassenger($player);
+		if($this->getPassengers() !== []){
+			return false;
+		}
+
+		//riders may hop straight from one cushion to another without standing up in between
+		$vehicle = $player->getVehicle();
+		if($vehicle instanceof self){
+			$vehicle->removePassenger($player);
+		}
+
+		return $this->addPassenger($player);
+	}
+
+	protected function entityBaseTick(int $tickDiff = 1) : bool{
+		$hasUpdate = parent::entityBaseTick($tickDiff);
+
+		if($this->ticksLived % self::SUPPORT_CHECK_PERIOD < $tickDiff && !$this->hasSupportingBlock()){
+			//a cushion never falls, it breaks as soon as the block holding it up is gone
+			$this->kill();
+			$hasUpdate = true;
+		}
+
+		return $hasUpdate;
+	}
+
+	public function hasSupportingBlock() : bool{
+		$pos = $this->location->floor()->down();
+
+		return $this->getWorld()->getBlock($pos)->getSupportType(Facing::UP) !== SupportType::NONE;
 	}
 
 	/**

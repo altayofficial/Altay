@@ -189,15 +189,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::CHISELED_SULFUR(), Ids::CHISELED_SULFUR);
 		$reg->mapSimple(Blocks::CHISELED_CINNABAR(), Ids::CHISELED_CINNABAR);
 		$reg->mapSimple(Blocks::CHISELED_TUFF_BRICKS(), Ids::CHISELED_TUFF_BRICKS);
-		$reg->mapModel(Model::create(Blocks::CHORUS_PLANT(), Ids::CHORUS_PLANT)->properties([
-			//PM works the connected faces out on the client side, so these are left at their default
-			new DummyProperty(StateNames::MC_CONNECTION_NORTH, false),
-			new DummyProperty(StateNames::MC_CONNECTION_SOUTH, false),
-			new DummyProperty(StateNames::MC_CONNECTION_WEST, false),
-			new DummyProperty(StateNames::MC_CONNECTION_EAST, false),
-			new DummyProperty(StateNames::MC_CONNECTION_UP, false),
-			new DummyProperty(StateNames::MC_CONNECTION_DOWN, false)
-		]));
+		$reg->mapSimple(Blocks::CHORUS_PLANT(), Ids::CHORUS_PLANT);
 		$reg->mapSimple(Blocks::CLAY(), Ids::CLAY);
 		$reg->mapSimple(Blocks::COAL(), Ids::COAL_BLOCK);
 		$reg->mapSimple(Blocks::COAL_ORE(), Ids::COAL_ORE);
@@ -1445,14 +1437,7 @@ final class VanillaBlockMappings{
 			new IntProperty(StateNames::MOISTURIZED_AMOUNT, 0, 7, fn(Farmland $b) => $b->getWetness(), fn(Farmland $b, int $v) => $b->setWetness($v))
 		]));
 		$reg->mapModel(Model::create(Blocks::FIRE(), Ids::FIRE)->properties([
-			new IntProperty(StateNames::AGE, 0, 15, fn(Fire $b) => $b->getAge(), fn(Fire $b, int $v) => $b->setAge($v)),
-			//PM works the connected faces out on the client side, so these are left at their default
-			new DummyProperty(StateNames::MC_CONNECTION_NORTH, false),
-			new DummyProperty(StateNames::MC_CONNECTION_SOUTH, false),
-			new DummyProperty(StateNames::MC_CONNECTION_WEST, false),
-			new DummyProperty(StateNames::MC_CONNECTION_EAST, false),
-			new DummyProperty(StateNames::MC_CONNECTION_UP, false),
-			new DummyProperty(StateNames::MC_CONNECTION_DOWN, false)
+			new IntProperty(StateNames::AGE, 0, 15, fn(Fire $b) => $b->getAge(), fn(Fire $b, int $v) => $b->setAge($v))
 		]));
 		$reg->mapModel(Model::create(Blocks::FLOWER_POT(), Ids::FLOWER_POT)->properties([
 			BoolProperty::unused(StateNames::UPDATE_BIT, false)

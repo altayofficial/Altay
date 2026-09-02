@@ -84,6 +84,7 @@ use pocketmine\network\mcpe\protocol\PlayerHotbarPacket;
 use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
 use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
 use pocketmine\network\mcpe\protocol\serializer\BitSet;
+use pocketmine\network\mcpe\protocol\ServerboundDiagnosticsPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\SpawnExperienceOrbPacket;
@@ -137,6 +138,7 @@ use const JSON_THROW_ON_ERROR;
 #[SilentDiscard(MovePlayerPacket::class, comment: "Not needed, noisy debug when landing on ground")]
 #[SilentDiscard(NetworkStackLatencyPacket::class, comment: "Not used, noisy debug")]
 #[SilentDiscard(PlayerHotbarPacket::class, comment: "Not needed")]
+#[SilentDiscard(ServerboundDiagnosticsPacket::class, comment: "Not needed, noisy debug")]
 #[SilentDiscard(SetActorMotionPacket::class, comment: "Not needed, erroneously sent by client when in a vehicle")]
 #[SilentDiscard(SpawnExperienceOrbPacket::class, comment: "XP drops should be server-calculated")]
 class InGamePacketHandler extends PacketHandler{

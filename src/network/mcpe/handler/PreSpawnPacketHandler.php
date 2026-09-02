@@ -62,6 +62,8 @@ use function sprintf;
 #[SilentDiscard(PlayerAuthInputPacket::class, comment: "Spammed after StartGame even though player has no controls")]
 #[SilentDiscard(ServerboundLoadingScreenPacket::class, "Not needed")]
 class PreSpawnPacketHandler extends PacketHandler{
+	use PacketViolationWarningTrait;
+
 	public function __construct(
 		private Server $server,
 		private Player $player,

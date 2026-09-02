@@ -56,6 +56,8 @@ use function substr;
  * packs to the client.
  */
 class ResourcePacksPacketHandler extends PacketHandler{
+	use PacketViolationWarningTrait;
+
 	private const PACK_CHUNK_SIZE = 256 * 1024; //256KB
 
 	/**

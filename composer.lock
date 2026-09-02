@@ -251,12 +251,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/Network.git",
-                "reference": "685fa5e7f43fe8d5b92496eb5f6c43c1efd8b028"
+                "reference": "1e3a4877eac132fa02620d765a149e0bd358b851"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/Network/zipball/685fa5e7f43fe8d5b92496eb5f6c43c1efd8b028",
-                "reference": "685fa5e7f43fe8d5b92496eb5f6c43c1efd8b028",
+                "url": "https://api.github.com/repos/altayofficial/Network/zipball/1e3a4877eac132fa02620d765a149e0bd358b851",
+                "reference": "1e3a4877eac132fa02620d765a149e0bd358b851",
                 "shasum": ""
             },
             "require": {
@@ -303,10 +303,10 @@
             ],
             "description": "Central network library for Altay family written in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/Network/tree/1.1.0",
+                "source": "https://github.com/altayofficial/Network/tree/main",
                 "issues": "https://github.com/altayofficial/Network/issues"
             },
-            "time": "2026-08-24T11:49:58+00:00"
+            "time": "2026-09-02T15:18:15+00:00"
         },
         {
             "name": "altayofficial/webrtc",

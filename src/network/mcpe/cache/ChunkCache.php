@@ -105,11 +105,19 @@ class ChunkCache implements ChunkListener{
 		private int $dimensionId = DimensionIds::OVERWORLD
 	){}
 
+	/**
+	 * Marks a chunk's cached packet as being in use by a session. A retained cache survives the chunk being unloaded
+	 * from the world, so a session which was sent the chunk can keep serving it without the world having to keep the
+	 * chunk in memory. Every call must be paired with a release().
+	 */
 	public function retain(int $chunkX, int $chunkZ) : void{
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
 		$this->usageCounts[$chunkHash] = ($this->usageCounts[$chunkHash] ?? 0) + 1;
 	}
 
+	/**
+	 * Drops a reference previously taken by retain(). The cached packet is thrown away once the last user releases it.
+	 */
 	public function release(int $chunkX, int $chunkZ) : void{
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
 		if(isset($this->usageCounts[$chunkHash])){

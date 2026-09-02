@@ -211,6 +211,14 @@ class NetworkSession{
 	 * @phpstan-var array<int, array<int, true>>
 	 */
 	private array $usedChunkCacheReferences = [];
+	/**
+	 * Caches we hold references in, kept per world so that releasing a reference never has to look up (and thereby
+	 * recreate) the cache of a world which has since been unloaded.
+	 *
+	 * @var ChunkCache[]
+	 * @phpstan-var array<int, ChunkCache>
+	 */
+	private array $usedChunkCaches = [];
 
 	/**
 	 * @var \Closure[]|ObjectSet
@@ -1298,6 +1306,7 @@ class NetworkSession{
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
 		if(!isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){
 			$this->usedChunkCacheReferences[$worldId][$chunkHash] = true;
+			$this->usedChunkCaches[$worldId] = $chunkCache;
 			$chunkCache->retain($chunkX, $chunkZ);
 		}
 		$promiseOrPacket = $chunkCache->request($chunkX, $chunkZ);
@@ -1337,10 +1346,12 @@ class NetworkSession{
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
 		if(isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){
 			unset($this->usedChunkCacheReferences[$worldId][$chunkHash]);
+			//the cache is looked up from our own references instead of ChunkCache::getInstance(), which would
+			//resurrect the cache of an already unloaded world and leak it
+			$this->usedChunkCaches[$worldId]->release($chunkX, $chunkZ);
 			if(count($this->usedChunkCacheReferences[$worldId]) === 0){
-				unset($this->usedChunkCacheReferences[$worldId]);
+				unset($this->usedChunkCacheReferences[$worldId], $this->usedChunkCaches[$worldId]);
 			}
-			ChunkCache::getInstance($world, $this->compressor)->release($chunkX, $chunkZ);
 		}
 	}
 

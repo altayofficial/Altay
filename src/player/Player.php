@@ -264,6 +264,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	/** @var true[] */
 	private array $tickingChunks = [];
 
+	/** Hash of the chunk we're currently unloading on purpose, so that we don't mistake it for a forced unload */
+	private ?int $releasingChunkHash = null;
+
 	protected int $viewDistance = -1;
 	protected int $spawnThreshold;
 	protected int $spawnChunkLoadCount = 0;
@@ -931,8 +934,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 						}
 						(new PlayerPostChunkSendEvent($this, $X, $Z))->call();
 						if(isset($this->usedChunks[$index]) && !$this->isChunkNeededForTicking($X, $Z) && count($world->getChunkEntities($X, $Z)) === 0){
-							$world->unregisterChunkLoader($this->chunkLoader, $X, $Z);
-							$world->unloadChunk($X, $Z, true);
+							$this->releaseChunkFromMemory($world, $X, $Z);
 						}
 					});
 				},
@@ -992,6 +994,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		}
 	}
 
+	/**
+	 * A ticking chunk needs its neighbours loaded, since block updates, entity movement and light propagation on its
+	 * edges all reach one chunk out. That's why the whole 3x3 around the chunk is checked here.
+	 */
 	private function isChunkNeededForTicking(int $chunkX, int $chunkZ) : bool{
 		for($x = -1; $x <= 1; ++$x){
 			for($z = -1; $z <= 1; ++$z){
@@ -1004,19 +1010,65 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		return false;
 	}
 
-	private function updateChunkLoaderRegistrations() : void{
+	/**
+	 * Unloads a chunk we've already sent to the client from memory. The client keeps the terrain it was sent and the
+	 * chunk stays in usedChunks, so onChunkUnloaded() must not treat this as a forced unload.
+	 */
+	private function releaseChunkFromMemory(World $world, int $chunkX, int $chunkZ) : void{
+		$this->releasingChunkHash = World::chunkHash($chunkX, $chunkZ);
+		try{
+			$world->unregisterChunkLoader($this->chunkLoader, $chunkX, $chunkZ);
+			$world->unloadChunk($chunkX, $chunkZ, true);
+		}finally{
+			$this->releasingChunkHash = null;
+		}
+	}
+
+	/**
+	 * Only the chunks whose ticking status actually changed can have gained or lost the need to stay loaded, and a
+	 * ticking chunk only affects the 3x3 around it, so the scan is limited to that neighbourhood instead of walking
+	 * the whole (potentially huge) usedChunks set.
+	 *
+	 * @param true[] $oldTickingChunks
+	 * @param true[] $newTickingChunks
+	 *
+	 * @phpstan-param array<int, true> $oldTickingChunks
+	 * @phpstan-param array<int, true> $newTickingChunks
+	 */
+	private function updateChunkLoaderRegistrations(array $oldTickingChunks, array $newTickingChunks) : void{
 		$world = $this->getWorld();
-		foreach($this->usedChunks as $hash => $status){
-			if($status === UsedChunkStatus::SENT){
-				World::getXZ($hash, $chunkX, $chunkZ);
-				if($this->isChunkNeededForTicking($chunkX, $chunkZ)){
-					$world->registerChunkLoader($this->chunkLoader, $chunkX, $chunkZ);
-				}else{
-					if(count($world->getChunkEntities($chunkX, $chunkZ)) === 0){
-						$world->unregisterChunkLoader($this->chunkLoader, $chunkX, $chunkZ);
-						$world->unloadChunk($chunkX, $chunkZ, true);
-					}
+
+		$affectedChunks = [];
+		foreach($oldTickingChunks as $hash => $_){
+			if(!isset($newTickingChunks[$hash])){
+				$affectedChunks[$hash] = true;
+			}
+		}
+		foreach($newTickingChunks as $hash => $_){
+			if(!isset($oldTickingChunks[$hash])){
+				$affectedChunks[$hash] = true;
+			}
+		}
+
+		$neighbourChunks = [];
+		foreach($affectedChunks as $hash => $_){
+			World::getXZ($hash, $chunkX, $chunkZ);
+			for($x = -1; $x <= 1; ++$x){
+				for($z = -1; $z <= 1; ++$z){
+					$neighbourChunks[World::chunkHash($chunkX + $x, $chunkZ + $z)] = true;
 				}
+			}
+		}
+
+		foreach($neighbourChunks as $hash => $_){
+			if(($this->usedChunks[$hash] ?? null) !== UsedChunkStatus::SENT){
+				continue;
+			}
+			World::getXZ($hash, $chunkX, $chunkZ);
+			if($this->isChunkNeededForTicking($chunkX, $chunkZ)){
+				$world->registerChunkLoader($this->chunkLoader, $chunkX, $chunkZ);
+			}elseif(count($world->getChunkEntities($chunkX, $chunkZ)) === 0){
+				$this->releaseChunkFromMemory($world, $chunkX, $chunkZ);
 			}
 		}
 	}
@@ -1086,9 +1138,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		$this->loadQueue = $newOrder;
 
 		$oldTickingChunks = $this->tickingChunks;
-		$this->updateTickingChunkRegistrations($oldTickingChunks, $tickingChunks);
 		$this->tickingChunks = $tickingChunks;
-		$this->updateChunkLoaderRegistrations();
+		$this->updateTickingChunkRegistrations($oldTickingChunks, $tickingChunks);
+		$this->updateChunkLoaderRegistrations($oldTickingChunks, $tickingChunks);
 
 		if(count($this->loadQueue) > 0 || count($unloadChunks) > 0){
 			$this->getNetworkSession()->syncViewAreaCenterPoint($this->location, $this->viewDistance);
@@ -2987,9 +3039,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	public function onChunkUnloaded(int $chunkX, int $chunkZ, Chunk $chunk) : void{
-		$hash = World::chunkHash($chunkX, $chunkZ);
 		if($this->isUsingChunk($chunkX, $chunkZ)){
-			if(($this->usedChunks[$hash] ?? null) === UsedChunkStatus::SENT && !$this->isChunkNeededForTicking($chunkX, $chunkZ)){
+			if($this->releasingChunkHash === World::chunkHash($chunkX, $chunkZ)){
+				//we asked for this one ourselves - the client keeps the terrain it was already sent
 				return;
 			}
 			$this->logger->debug("Detected forced unload of chunk " . $chunkX . " " . $chunkZ);

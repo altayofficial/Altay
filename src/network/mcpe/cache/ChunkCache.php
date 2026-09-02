@@ -73,8 +73,10 @@ class ChunkCache implements ChunkListener{
 		foreach(self::$instances as $compressorMap){
 			foreach($compressorMap as $chunkCache){
 				foreach($chunkCache->caches as $chunkHash => $promise){
-					if(is_string($promise)){
-						//Do not clear promises that are not yet fulfilled; they will have requesters waiting on them
+					if(is_string($promise) && !isset($chunkCache->usageCounts[$chunkHash])){
+						//Do not clear promises that are not yet fulfilled; they will have requesters waiting on them.
+						//Retained caches are kept too - their chunks may no longer be loaded, in which case the cache
+						//could not be regenerated.
 						unset($chunkCache->caches[$chunkHash]);
 					}
 				}
@@ -116,18 +118,24 @@ class ChunkCache implements ChunkListener{
 	}
 
 	/**
-	 * Drops a reference previously taken by retain(). The cached packet is thrown away once the last user releases it.
+	 * Drops a reference previously taken by retain(). Once the last user releases it, the cache is thrown away if its
+	 * chunk is no longer loaded - a cache of a still-loaded chunk is left alone, since it can be regenerated on demand
+	 * and is worth keeping around for the next requester.
 	 */
 	public function release(int $chunkX, int $chunkZ) : void{
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
-		if(isset($this->usageCounts[$chunkHash])){
-			if($this->usageCounts[$chunkHash] === 1){
-				unset($this->usageCounts[$chunkHash]);
-				$this->destroy($chunkX, $chunkZ);
-				$this->world->unregisterChunkListener($this, $chunkX, $chunkZ);
-			}else{
-				--$this->usageCounts[$chunkHash];
-			}
+		if(!isset($this->usageCounts[$chunkHash])){
+			return;
+		}
+		if($this->usageCounts[$chunkHash] > 1){
+			--$this->usageCounts[$chunkHash];
+			return;
+		}
+
+		unset($this->usageCounts[$chunkHash]);
+		if(!$this->world->isChunkLoaded($chunkX, $chunkZ)){
+			$this->destroy($chunkX, $chunkZ);
+			$this->world->unregisterChunkListener($this, $chunkX, $chunkZ);
 		}
 	}
 

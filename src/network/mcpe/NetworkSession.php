@@ -213,10 +213,12 @@ class NetworkSession{
 	private array $usedChunkCacheReferences = [];
 	/**
 	 * Caches we hold references in, kept per world so that releasing a reference never has to look up (and thereby
-	 * recreate) the cache of a world which has since been unloaded.
+	 * recreate) the cache of a world which has since been unloaded. The references are weak, so that a session holding
+	 * leftover references can't keep an unloaded world alive - if the cache is already gone, there is nothing to
+	 * release.
 	 *
-	 * @var ChunkCache[]
-	 * @phpstan-var array<int, ChunkCache>
+	 * @var \WeakReference[]
+	 * @phpstan-var array<int, \WeakReference<ChunkCache>>
 	 */
 	private array $usedChunkCaches = [];
 
@@ -1306,7 +1308,7 @@ class NetworkSession{
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
 		if(!isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){
 			$this->usedChunkCacheReferences[$worldId][$chunkHash] = true;
-			$this->usedChunkCaches[$worldId] = $chunkCache;
+			$this->usedChunkCaches[$worldId] = \WeakReference::create($chunkCache);
 			$chunkCache->retain($chunkX, $chunkZ);
 		}
 		$promiseOrPacket = $chunkCache->request($chunkX, $chunkZ);
@@ -1337,18 +1339,14 @@ class NetworkSession{
 		);
 	}
 
-	public function stopUsingChunk(int $chunkX, int $chunkZ, ?World $world = null) : void{
-		$world ??= $this->player?->getLocation()->getWorld();
-		if($world === null){
-			return;
-		}
+	public function stopUsingChunk(int $chunkX, int $chunkZ, World $world) : void{
 		$worldId = $world->getId();
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
 		if(isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){
 			unset($this->usedChunkCacheReferences[$worldId][$chunkHash]);
 			//the cache is looked up from our own references instead of ChunkCache::getInstance(), which would
 			//resurrect the cache of an already unloaded world and leak it
-			$this->usedChunkCaches[$worldId]->release($chunkX, $chunkZ);
+			($this->usedChunkCaches[$worldId] ?? null)?->get()?->release($chunkX, $chunkZ);
 			if(count($this->usedChunkCacheReferences[$worldId]) === 0){
 				unset($this->usedChunkCacheReferences[$worldId], $this->usedChunkCaches[$worldId]);
 			}

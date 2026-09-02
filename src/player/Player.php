@@ -264,8 +264,23 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	/** @var true[] */
 	private array $tickingChunks = [];
 
-	/** Hash of the chunk we're currently unloading on purpose, so that we don't mistake it for a forced unload */
-	private ?int $releasingChunkHash = null;
+	/**
+	 * Chunks we've sent to the client and then dropped from memory on purpose. They stay in usedChunks, so they must
+	 * not be mistaken for a forced unload - which may be reported long after we released them, since another loader
+	 * may have been keeping the chunk alive in the meantime.
+	 *
+	 * @var true[]
+	 * @phpstan-var array<int, true>
+	 */
+	private array $releasedChunks = [];
+	/**
+	 * Chunks we wanted to drop from memory but couldn't yet, e.g. because they still contain entities. Retried on
+	 * every chunk order run, since whatever blocked the release may no longer hold.
+	 *
+	 * @var true[]
+	 * @phpstan-var array<int, true>
+	 */
+	private array $releasePendingChunks = [];
 
 	protected int $viewDistance = -1;
 	protected int $spawnThreshold;
@@ -826,6 +841,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 				$this->usedChunks = [];
 				$this->loadQueue = [];
+				$this->releasedChunks = [];
+				$this->releasePendingChunks = [];
 				$this->getNetworkSession()->onEnterWorld();
 			}
 
@@ -848,6 +865,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			unset($this->usedChunks[$index]);
 			unset($this->activeChunkGenerationRequests[$index]);
 		}
+		unset($this->releasedChunks[$index], $this->releasePendingChunks[$index]);
 		$world->unregisterChunkLoader($this->chunkLoader, $x, $z);
 		$world->unregisterChunkListener($this, $x, $z);
 		unset($this->loadQueue[$index]);
@@ -900,7 +918,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 			$this->usedChunks[$index] = UsedChunkStatus::REQUESTED_GENERATION;
 			$this->activeChunkGenerationRequests[$index] = true;
-			unset($this->loadQueue[$index]);
+			unset($this->loadQueue[$index], $this->releasedChunks[$index], $this->releasePendingChunks[$index]);
 			$world->registerChunkLoader($this->chunkLoader, $X, $Z, true);
 			$world->registerChunkListener($this, $X, $Z);
 			if(isset($this->tickingChunks[$index])){
@@ -933,8 +951,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 							$this->getNetworkSession()->notifyTerrainReady();
 						}
 						(new PlayerPostChunkSendEvent($this, $X, $Z))->call();
-						if(isset($this->usedChunks[$index]) && !$this->isChunkNeededForTicking($X, $Z) && count($world->getChunkEntities($X, $Z)) === 0){
-							$this->releaseChunkFromMemory($world, $X, $Z);
+						if(isset($this->usedChunks[$index])){
+							$this->tryReleaseChunkFromMemory($world, $X, $Z);
 						}
 					});
 				},
@@ -1011,16 +1029,38 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	/**
-	 * Unloads a chunk we've already sent to the client from memory. The client keeps the terrain it was sent and the
-	 * chunk stays in usedChunks, so onChunkUnloaded() must not treat this as a forced unload.
+	 * Drops a chunk we've already sent to the client from memory, if nothing needs it to stay loaded. The client keeps
+	 * the terrain it was sent and the chunk stays in usedChunks, so onChunkUnloaded() must not treat this as a forced
+	 * unload.
+	 *
+	 * The chunk may survive the unload attempt because another loader still holds it - that's fine, we've given up our
+	 * claim on it either way, and we'll ignore its unload whenever it happens.
 	 */
-	private function releaseChunkFromMemory(World $world, int $chunkX, int $chunkZ) : void{
-		$this->releasingChunkHash = World::chunkHash($chunkX, $chunkZ);
-		try{
-			$world->unregisterChunkLoader($this->chunkLoader, $chunkX, $chunkZ);
-			$world->unloadChunk($chunkX, $chunkZ, true);
-		}finally{
-			$this->releasingChunkHash = null;
+	private function tryReleaseChunkFromMemory(World $world, int $chunkX, int $chunkZ) : void{
+		$hash = World::chunkHash($chunkX, $chunkZ);
+		if($this->isChunkNeededForTicking($chunkX, $chunkZ) || count($world->getChunkEntities($chunkX, $chunkZ)) !== 0){
+			$this->releasePendingChunks[$hash] = true;
+			return;
+		}
+
+		unset($this->releasePendingChunks[$hash]);
+		$this->releasedChunks[$hash] = true;
+		$world->unregisterChunkLoader($this->chunkLoader, $chunkX, $chunkZ);
+		$world->unloadChunk($chunkX, $chunkZ, true);
+	}
+
+	/**
+	 * Retries the chunks whose release was previously blocked. This set only holds chunks we already decided we don't
+	 * need loaded, so it stays small compared to usedChunks.
+	 */
+	private function retryPendingChunkReleases(World $world) : void{
+		foreach($this->releasePendingChunks as $hash => $_){
+			if(($this->usedChunks[$hash] ?? null) !== UsedChunkStatus::SENT){
+				unset($this->releasePendingChunks[$hash]);
+				continue;
+			}
+			World::getXZ($hash, $chunkX, $chunkZ);
+			$this->tryReleaseChunkFromMemory($world, $chunkX, $chunkZ);
 		}
 	}
 
@@ -1029,26 +1069,12 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * ticking chunk only affects the 3x3 around it, so the scan is limited to that neighbourhood instead of walking
 	 * the whole (potentially huge) usedChunks set.
 	 *
-	 * @param true[] $oldTickingChunks
-	 * @param true[] $newTickingChunks
+	 * @param true[] $affectedChunks hashes of the chunks whose ticking status changed
 	 *
-	 * @phpstan-param array<int, true> $oldTickingChunks
-	 * @phpstan-param array<int, true> $newTickingChunks
+	 * @phpstan-param array<int, true> $affectedChunks
 	 */
-	private function updateChunkLoaderRegistrations(array $oldTickingChunks, array $newTickingChunks) : void{
+	private function updateChunkLoaderRegistrations(array $affectedChunks) : void{
 		$world = $this->getWorld();
-
-		$affectedChunks = [];
-		foreach($oldTickingChunks as $hash => $_){
-			if(!isset($newTickingChunks[$hash])){
-				$affectedChunks[$hash] = true;
-			}
-		}
-		foreach($newTickingChunks as $hash => $_){
-			if(!isset($oldTickingChunks[$hash])){
-				$affectedChunks[$hash] = true;
-			}
-		}
 
 		$neighbourChunks = [];
 		foreach($affectedChunks as $hash => $_){
@@ -1066,9 +1092,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			}
 			World::getXZ($hash, $chunkX, $chunkZ);
 			if($this->isChunkNeededForTicking($chunkX, $chunkZ)){
+				unset($this->releasedChunks[$hash], $this->releasePendingChunks[$hash]);
 				$world->registerChunkLoader($this->chunkLoader, $chunkX, $chunkZ);
-			}elseif(count($world->getChunkEntities($chunkX, $chunkZ)) === 0){
-				$this->releaseChunkFromMemory($world, $chunkX, $chunkZ);
+			}else{
+				$this->tryReleaseChunkFromMemory($world, $chunkX, $chunkZ);
 			}
 		}
 	}
@@ -1079,23 +1106,35 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 *
 	 * @phpstan-param array<int, true> $oldTickingChunks
 	 * @phpstan-param array<int, true> $newTickingChunks
+	 *
+	 * @return true[] hashes of the chunks whose ticking status changed
+	 * @phpstan-return array<int, true>
 	 */
-	private function updateTickingChunkRegistrations(array $oldTickingChunks, array $newTickingChunks) : void{
+	private function updateTickingChunkRegistrations(array $oldTickingChunks, array $newTickingChunks) : array{
 		$world = $this->getWorld();
+		$affectedChunks = [];
 		foreach($oldTickingChunks as $hash => $_){
-			if(!isset($newTickingChunks[$hash]) && !isset($this->loadQueue[$hash])){
-				//we are (probably) still using this chunk, but it's no longer within ticking range
-				World::getXZ($hash, $tickingChunkX, $tickingChunkZ);
-				$world->unregisterTickingChunk($this->chunkTicker, $tickingChunkX, $tickingChunkZ);
+			if(!isset($newTickingChunks[$hash])){
+				$affectedChunks[$hash] = true;
+				if(!isset($this->loadQueue[$hash])){
+					//we are (probably) still using this chunk, but it's no longer within ticking range
+					World::getXZ($hash, $tickingChunkX, $tickingChunkZ);
+					$world->unregisterTickingChunk($this->chunkTicker, $tickingChunkX, $tickingChunkZ);
+				}
 			}
 		}
 		foreach($newTickingChunks as $hash => $_){
-			if(!isset($oldTickingChunks[$hash]) && !isset($this->loadQueue[$hash])){
-				//we were already using this chunk, but it is now within ticking range
-				World::getXZ($hash, $tickingChunkX, $tickingChunkZ);
-				$world->registerTickingChunk($this->chunkTicker, $tickingChunkX, $tickingChunkZ);
+			if(!isset($oldTickingChunks[$hash])){
+				$affectedChunks[$hash] = true;
+				if(!isset($this->loadQueue[$hash])){
+					//we were already using this chunk, but it is now within ticking range
+					World::getXZ($hash, $tickingChunkX, $tickingChunkZ);
+					$world->registerTickingChunk($this->chunkTicker, $tickingChunkX, $tickingChunkZ);
+				}
 			}
 		}
+
+		return $affectedChunks;
 	}
 
 	/**
@@ -1139,8 +1178,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 		$oldTickingChunks = $this->tickingChunks;
 		$this->tickingChunks = $tickingChunks;
-		$this->updateTickingChunkRegistrations($oldTickingChunks, $tickingChunks);
-		$this->updateChunkLoaderRegistrations($oldTickingChunks, $tickingChunks);
+		$affectedTickingChunks = $this->updateTickingChunkRegistrations($oldTickingChunks, $tickingChunks);
+		$this->updateChunkLoaderRegistrations($affectedTickingChunks);
+		$this->retryPendingChunkReleases($world);
 
 		if(count($this->loadQueue) > 0 || count($unloadChunks) > 0){
 			$this->getNetworkSession()->syncViewAreaCenterPoint($this->location, $this->viewDistance);
@@ -3040,8 +3080,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	public function onChunkUnloaded(int $chunkX, int $chunkZ, Chunk $chunk) : void{
 		if($this->isUsingChunk($chunkX, $chunkZ)){
-			if($this->releasingChunkHash === World::chunkHash($chunkX, $chunkZ)){
-				//we asked for this one ourselves - the client keeps the terrain it was already sent
+			if(isset($this->releasedChunks[World::chunkHash($chunkX, $chunkZ)])){
+				//we gave up our claim on this one ourselves - the client keeps the terrain it was already sent
 				return;
 			}
 			$this->logger->debug("Detected forced unload of chunk " . $chunkX . " " . $chunkZ);

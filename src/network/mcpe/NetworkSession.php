@@ -1339,7 +1339,15 @@ class NetworkSession{
 		);
 	}
 
-	public function stopUsingChunk(int $chunkX, int $chunkZ, World $world) : void{
+	/**
+	 * @param World|null $world World the chunk belongs to, defaulting to the world the player is currently in. It has
+	 *                          to be given explicitly when the player has already been moved to another world.
+	 */
+	public function stopUsingChunk(int $chunkX, int $chunkZ, ?World $world = null) : void{
+		$world ??= $this->player?->getLocation()->getWorld();
+		if($world === null){
+			return;
+		}
 		$worldId = $world->getId();
 		$chunkHash = World::chunkHash($chunkX, $chunkZ);
 		if(isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){

@@ -227,6 +227,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("bricks_block", fn() => Blocks::BRICKS());
 		$result->registerBlock("brown_mushroom", fn() => Blocks::BROWN_MUSHROOM());
 		$result->registerBlock("brown_mushroom_block", fn() => Blocks::BROWN_MUSHROOM_BLOCK());
+		$result->registerBlock("bubble_column", fn() => Blocks::BUBBLE_COLUMN());
 		$result->registerBlock("budding_amethyst", fn() => Blocks::BUDDING_AMETHYST());
 		$result->registerBlock("burning_furnace", fn() => Blocks::FURNACE());
 		$result->registerBlock("bush", fn() => Blocks::DEAD_BUSH());

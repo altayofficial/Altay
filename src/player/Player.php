@@ -101,11 +101,14 @@ use pocketmine\inventory\transaction\TransactionCancelledException;
 use pocketmine\inventory\transaction\TransactionValidationException;
 use pocketmine\item\ConsumableItem;
 use pocketmine\item\Durable;
+use pocketmine\item\Elytra;
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\enchantment\MeleeWeaponEnchantment;
 use pocketmine\item\Item;
 use pocketmine\item\ItemUseResult;
+use pocketmine\item\Mace;
 use pocketmine\item\Releasable;
+use pocketmine\item\Spear;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\lang\Language;
 use pocketmine\lang\Translatable;
@@ -305,6 +308,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	protected ?float $lastMovementProcess = null;
 
 	protected int $inAirTicks = 0;
+	private int $glidingTicks = 0;
 
 	protected float $stepHeight = 0.6;
 
@@ -1682,6 +1686,15 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		return $this->flying ? 0 : parent::calculateFallDamage($fallDistance);
 	}
 
+	protected function updateFallState(float $distanceThisTick, bool $onGround) : ?float{
+		//gliding at a shallow angle and a low descent rate resets the fall height, so a controlled landing is harmless
+		if($this->gliding && $distanceThisTick > -0.5 && $this->location->pitch <= 40){
+			$this->setFallDistance(0.0);
+		}
+
+		return parent::updateFallState($distanceThisTick, $onGround);
+	}
+
 	public function jump() : void{
 		(new PlayerJumpEvent($this))->call();
 		parent::jump();
@@ -1742,11 +1755,18 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$this->entityBaseTick($tickDiff);
 			Timings::$entityBaseTick->stopTiming();
 
+			if($this->gliding){
+				$this->tickGliding($tickDiff);
+			}
+
 			if($this->isCreative() && $this->fireTicks > 1){
 				$this->fireTicks = 1;
 			}
 
 			$item = $this->getInventory()->getItemInHand();
+			if($item instanceof Spear && $this->isUsingItem()){
+				$item->whileSpearUsing($this);
+			}
 			if($item instanceof ConsumableItem && $this->isUsingItem()){
 				if($this->getItemUseDuration() >= $item->getMinUseDuration()){
 					$this->consumeHeldItem();
@@ -2228,9 +2248,16 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		}
 		$ev->setModifier($meleeEnchantmentDamage, EntityDamageEvent::MODIFIER_WEAPON_ENCHANTMENTS);
 
-		if(!$this->isSprinting() && !$this->isFlying() && $this->fallDistance > 0 && !$this->effectManager->has(VanillaEffects::BLINDNESS()) && !$this->isUnderwater()){
+		$smashingMace = $heldItem instanceof Mace && $heldItem->canSmash($this) ? $heldItem : null;
+		if($smashingMace !== null){
+			$smashBonus = ($smashingMace->getSmashDamage($this->fallDistance) - $smashingMace->getAttackPoints()) + $smashingMace->getDensityBonus($this->fallDistance);
+			$ev->setModifier($smashBonus, EntityDamageEvent::MODIFIER_MACE_SMASH);
+		}elseif(!$this->isSprinting() && !$this->isFlying() && $this->fallDistance > 0 && !$this->effectManager->has(VanillaEffects::BLINDNESS()) && !$this->isUnderwater()){
+			//a mace smash replaces the regular fall critical hit
 			$ev->setModifier($ev->getFinalDamage() / 2, EntityDamageEvent::MODIFIER_CRITICAL);
 		}
+
+		$this->interruptShieldBlockingForAttack();
 
 		$entity->attack($ev);
 		$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
@@ -2240,7 +2267,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$this->getWorld()->addSound($soundPos, new EntityAttackNoDamageSound());
 			return false;
 		}
-		$this->getWorld()->addSound($soundPos, new EntityAttackSound());
+		$attackSound = $entity->getAttackSound();
+		if($attackSound !== null){
+			$this->getWorld()->addSound($soundPos, $attackSound);
+		}
 
 		if($ev->getModifier(EntityDamageEvent::MODIFIER_CRITICAL) > 0 && $entity instanceof Living){
 			$entity->broadcastAnimation(new CriticalHitAnimation($entity));
@@ -2253,6 +2283,13 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$type = $enchantment->getType();
 			assert($type instanceof MeleeWeaponEnchantment);
 			$type->onPostAttack($this, $entity, $enchantment->getLevel());
+		}
+
+		if($smashingMace !== null){
+			$smashingMace->playSmashEffects($this, $ev->getFinalDamage());
+			$smashingMace->applyWindBurst($this);
+			//the fall is spent on the smash, so it neither damages the attacker nor powers a second smash
+			$this->resetFallDistance();
 		}
 
 		if($this->isAlive()){
@@ -2362,13 +2399,48 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if($glide === $this->gliding){
 			return true;
 		}
+		if($glide && $this->getGlidingElytra() === null){
+			return false;
+		}
 		$ev = new PlayerToggleGlideEvent($this, $glide);
 		$ev->call();
 		if($ev->isCancelled()){
 			return false;
 		}
 		$this->setGliding($glide);
+		$this->glidingTicks = 0;
 		return true;
+	}
+
+	private function getGlidingElytra() : ?Elytra{
+		$chestplate = $this->armorInventory->getChestplate();
+
+		return $chestplate instanceof Elytra && $chestplate->isFlyable() ? $chestplate : null;
+	}
+
+	private function tickGliding(int $tickDiff) : void{
+		$elytra = $this->getGlidingElytra();
+		if($elytra === null || $this->onGround){
+			$this->setGliding(false);
+			$this->glidingTicks = 0;
+			return;
+		}
+
+		if(!$this->hasFiniteResources()){
+			return;
+		}
+
+		$this->glidingTicks += $tickDiff;
+		if($this->glidingTicks < 20){
+			return;
+		}
+		$this->glidingTicks = 0;
+
+		$elytra->applyDamage(1);
+		$this->armorInventory->setChestplate($elytra);
+		if(!$elytra->isFlyable()){
+			$this->setGliding(false);
+		}
 	}
 
 	public function toggleSwim(bool $swim) : bool{

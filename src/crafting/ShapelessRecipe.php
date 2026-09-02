@@ -70,7 +70,9 @@ class ShapelessRecipe implements CraftingRecipe{
 	}
 
 	public function getResultsFor(CraftingGrid $grid) : array{
-		return $this->getResults();
+		$results = $this->getResults();
+		CraftingResultTransfer::transferContainerNamedTag($grid->getContents(), $results);
+		return $results;
 	}
 
 	public function getType() : ShapelessRecipeType{

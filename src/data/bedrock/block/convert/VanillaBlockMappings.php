@@ -37,6 +37,7 @@ use pocketmine\block\Bell;
 use pocketmine\block\BigDripleafHead;
 use pocketmine\block\Block;
 use pocketmine\block\BrewingStand;
+use pocketmine\block\BubbleColumn;
 use pocketmine\block\Cactus;
 use pocketmine\block\Cake;
 use pocketmine\block\Candle;
@@ -72,6 +73,7 @@ use pocketmine\block\NetherVines;
 use pocketmine\block\NetherWartPlant;
 use pocketmine\block\PinkPetals;
 use pocketmine\block\PitcherCrop;
+use pocketmine\block\PointedDripstone;
 use pocketmine\block\PoweredRail;
 use pocketmine\block\Rail;
 use pocketmine\block\RedMushroomBlock;
@@ -80,6 +82,7 @@ use pocketmine\block\RedstoneRepeater;
 use pocketmine\block\RedstoneTorch;
 use pocketmine\block\RespawnAnchor;
 use pocketmine\block\Sapling;
+use pocketmine\block\Seagrass;
 use pocketmine\block\SeaPickle;
 use pocketmine\block\SmallDripleaf;
 use pocketmine\block\SnowLayer;
@@ -97,6 +100,7 @@ use pocketmine\block\utils\ChiseledBookshelfSlot;
 use pocketmine\block\utils\CopperOxidation;
 use pocketmine\block\utils\DirtType;
 use pocketmine\block\utils\DripleafState;
+use pocketmine\block\utils\DripstoneThickness;
 use pocketmine\block\utils\DyeColor;
 use pocketmine\block\utils\FroglightType;
 use pocketmine\block\utils\HorizontalFacing;
@@ -104,6 +108,7 @@ use pocketmine\block\utils\LeverFacing;
 use pocketmine\block\utils\MobHeadType;
 use pocketmine\block\utils\MushroomBlockType;
 use pocketmine\block\utils\PoweredByRedstone;
+use pocketmine\block\utils\SeagrassType;
 use pocketmine\block\VanillaBlocks as Blocks;
 use pocketmine\block\Vine;
 use pocketmine\data\bedrock\block\BlockLegacyMetadata;
@@ -161,6 +166,7 @@ final class VanillaBlockMappings{
 
 	private static function registerSimpleIdOnlyMappings(BlockSerializerDeserializerRegistrar $reg) : void{
 		$reg->mapSimple(Blocks::AIR(), Ids::AIR);
+		$reg->mapSimple(Blocks::ALLOW(), Ids::ALLOW);
 		$reg->mapSimple(Blocks::AMETHYST(), Ids::AMETHYST_BLOCK);
 		$reg->mapSimple(Blocks::ANCIENT_DEBRIS(), Ids::ANCIENT_DEBRIS);
 		$reg->mapSimple(Blocks::ANDESITE(), Ids::ANDESITE);
@@ -217,11 +223,13 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::DEEPSLATE_IRON_ORE(), Ids::DEEPSLATE_IRON_ORE);
 		$reg->mapSimple(Blocks::DEEPSLATE_LAPIS_LAZULI_ORE(), Ids::DEEPSLATE_LAPIS_ORE);
 		$reg->mapSimple(Blocks::DEEPSLATE_TILES(), Ids::DEEPSLATE_TILES);
+		$reg->mapSimple(Blocks::DENY(), Ids::DENY);
 		$reg->mapSimple(Blocks::DIAMOND(), Ids::DIAMOND_BLOCK);
 		$reg->mapSimple(Blocks::DIAMOND_ORE(), Ids::DIAMOND_ORE);
 		$reg->mapSimple(Blocks::DIORITE(), Ids::DIORITE);
 		$reg->mapSimple(Blocks::DRAGON_EGG(), Ids::DRAGON_EGG);
 		$reg->mapSimple(Blocks::DRIED_KELP(), Ids::DRIED_KELP_BLOCK);
+		$reg->mapSimple(Blocks::DRIPSTONE_BLOCK(), Ids::DRIPSTONE_BLOCK);
 		$reg->mapSimple(Blocks::ELEMENT_ACTINIUM(), Ids::ELEMENT_89);
 		$reg->mapSimple(Blocks::ELEMENT_ALUMINUM(), Ids::ELEMENT_13);
 		$reg->mapSimple(Blocks::ELEMENT_AMERICIUM(), Ids::ELEMENT_95);
@@ -356,6 +364,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::GLOWSTONE(), Ids::GLOWSTONE);
 		$reg->mapSimple(Blocks::GOLD(), Ids::GOLD_BLOCK);
 		$reg->mapSimple(Blocks::GOLD_ORE(), Ids::GOLD_ORE);
+		$reg->mapSimple(Blocks::GOLDEN_DANDELION(), Ids::GOLDEN_DANDELION);
 		$reg->mapSimple(Blocks::GRANITE(), Ids::GRANITE);
 		$reg->mapSimple(Blocks::GRASS(), Ids::GRASS_BLOCK);
 		$reg->mapSimple(Blocks::GRASS_PATH(), Ids::GRASS_PATH);
@@ -364,6 +373,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::HARDENED_CLAY(), Ids::HARDENED_CLAY);
 		$reg->mapSimple(Blocks::HARDENED_GLASS(), Ids::HARD_GLASS);
 		$reg->mapSimple(Blocks::HARDENED_GLASS_PANE(), Ids::HARD_GLASS_PANE);
+		$reg->mapSimple(Blocks::HONEY_BLOCK(), Ids::HONEY_BLOCK);
 		$reg->mapSimple(Blocks::HONEYCOMB(), Ids::HONEYCOMB_BLOCK);
 		$reg->mapSimple(Blocks::ICE(), Ids::ICE);
 		$reg->mapSimple(Blocks::INFESTED_CHISELED_STONE_BRICK(), Ids::INFESTED_CHISELED_STONE_BRICKS);
@@ -387,6 +397,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::MANGROVE_ROOTS(), Ids::MANGROVE_ROOTS);
 		$reg->mapSimple(Blocks::MELON(), Ids::MELON_BLOCK);
 		$reg->mapSimple(Blocks::MONSTER_SPAWNER(), Ids::MOB_SPAWNER);
+		$reg->mapSimple(Blocks::MOSS_BLOCK(), Ids::MOSS_BLOCK);
 		$reg->mapSimple(Blocks::MOSSY_COBBLESTONE(), Ids::MOSSY_COBBLESTONE);
 		$reg->mapSimple(Blocks::MOSSY_STONE_BRICKS(), Ids::MOSSY_STONE_BRICKS);
 		$reg->mapSimple(Blocks::MUD(), Ids::MUD);
@@ -560,6 +571,7 @@ final class VanillaBlockMappings{
 		foreach([
 			Ids::ACACIA_SAPLING => Blocks::ACACIA_SAPLING(),
 			Ids::BIRCH_SAPLING => Blocks::BIRCH_SAPLING(),
+			Ids::CHERRY_SAPLING => Blocks::CHERRY_SAPLING(),
 			Ids::DARK_OAK_SAPLING => Blocks::DARK_OAK_SAPLING(),
 			Ids::JUNGLE_SAPLING => Blocks::JUNGLE_SAPLING(),
 			Ids::OAK_SAPLING => Blocks::OAK_SAPLING(),
@@ -597,6 +609,10 @@ final class VanillaBlockMappings{
 				new ValueFromIntProperty(StateNames::HUGE_MUSHROOM_BITS, ValueMappings::getInstance()->mushroomBlockType, fn(RedMushroomBlock $b) => $b->getMushroomBlockType(), fn(RedMushroomBlock $b, MushroomBlockType $v) => $b->setMushroomBlockType($v)),
 			]));
 		}
+
+		$reg->mapModel(Model::create(Blocks::SEAGRASS(), Ids::SEAGRASS)->properties([
+			new ValueFromStringProperty(StateNames::SEA_GRASS_TYPE, ValueMappings::getInstance()->seaGrassType, fn(Seagrass $b) => $b->getSeagrassType(), fn(Seagrass $b, SeagrassType $v) => $b->setSeagrassType($v))
+		]));
 
 		$reg->mapModel(Model::create(Blocks::GLOW_LICHEN(), Ids::GLOW_LICHEN)->properties([$commonProperties->multiFacingFlags]));
 		$reg->mapModel(Model::create(Blocks::RESIN_CLUMP(), Ids::RESIN_CLUMP)->properties([$commonProperties->multiFacingFlags]));
@@ -1323,11 +1339,16 @@ final class VanillaBlockMappings{
 			$commonProperties->pillarAxis
 		]));
 
+		$reg->mapModel(Model::create(Blocks::BORDER_BLOCK(), Ids::BORDER_BLOCK)->properties($commonProperties->wallProperties));
+
 		$reg->mapModel(Model::create(Blocks::BREWING_STAND(), Ids::BREWING_STAND)->properties(array_map(fn(BrewingStandSlot $slot) => new BoolProperty(match ($slot) {
 			BrewingStandSlot::EAST => StateNames::BREWING_STAND_SLOT_A_BIT,
 			BrewingStandSlot::SOUTHWEST => StateNames::BREWING_STAND_SLOT_B_BIT,
 			BrewingStandSlot::NORTHWEST => StateNames::BREWING_STAND_SLOT_C_BIT
 		}, fn(BrewingStand $b) => $b->hasSlot($slot), fn(BrewingStand $b, bool $v) => $b->setSlot($slot, $v)), BrewingStandSlot::cases())));
+		$reg->mapModel(Model::create(Blocks::BUBBLE_COLUMN(), Ids::BUBBLE_COLUMN)->properties([
+			new BoolProperty(StateNames::DRAG_DOWN, fn(BubbleColumn $b) => $b->isDragDown(), fn(BubbleColumn $b, bool $v) => $b->setDragDown($v))
+		]));
 
 		//C
 		$reg->mapModel(Model::create(Blocks::CACTUS(), Ids::CACTUS)->properties([
@@ -1369,10 +1390,17 @@ final class VanillaBlockMappings{
 		]));
 
 		//D
+		$reg->mapModel(Model::create(Blocks::DECORATED_POT(), Ids::DECORATED_POT)->properties([
+			$commonProperties->horizontalFacingSWNE
+		]));
 		$reg->mapModel(Model::create(Blocks::DEEPSLATE(), Ids::DEEPSLATE)->properties([$commonProperties->pillarAxis]));
 		$reg->mapModel(Model::create(Blocks::DETECTOR_RAIL(), Ids::DETECTOR_RAIL)->properties([
 			new BoolProperty(StateNames::RAIL_DATA_BIT, fn(DetectorRail $b) => $b->isActivated(), fn(DetectorRail $b, bool $v) => $b->setActivated($v)),
 			new IntProperty(StateNames::RAIL_DIRECTION, 0, 5, fn(StraightOnlyRail $b) => $b->getShape(), fn(StraightOnlyRail $b, int $v) => $b->setShape($v)) //TODO: shared with ActivatorRail
+		]));
+		$reg->mapModel(Model::create(Blocks::POINTED_DRIPSTONE(), Ids::POINTED_DRIPSTONE)->properties([
+			new ValueFromStringProperty(StateNames::DRIPSTONE_THICKNESS, ValueMappings::getInstance()->dripstoneThickness, fn(PointedDripstone $b) => $b->getThickness(), fn(PointedDripstone $b, DripstoneThickness $v) => $b->setThickness($v)),
+			new BoolProperty(StateNames::HANGING, fn(PointedDripstone $b) => $b->isHanging(), fn(PointedDripstone $b, bool $v) => $b->setHanging($v)),
 		]));
 
 		//E

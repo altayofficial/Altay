@@ -25,26 +25,22 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
-use pocketmine\color\Color;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\inventory\ArmorInventory;
 use pocketmine\item\enchantment\ProtectionEnchantment;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\IntTag;
 use pocketmine\player\Player;
-use pocketmine\utils\Binary;
 use pocketmine\utils\Utils;
 use function mt_rand;
 
-class Armor extends Durable{
+class Armor extends Durable implements DyeableItem{
+	use CustomColorHandlingTrait;
 
-	public const TAG_CUSTOM_COLOR = "customColor"; //TAG_Int
+	public const TAG_CUSTOM_COLOR = DyeableItem::TAG_CUSTOM_COLOR; // TODO: remove this, this is here for BC compatibility
 
 	private ArmorTypeInfo $armorInfo;
-
-	protected ?Color $customColor = null;
 
 	/**
 	 * @param string[] $enchantmentTags
@@ -83,29 +79,6 @@ class Armor extends Durable{
 
 	public function getEnchantability() : int{
 		return $this->armorInfo->getMaterial()->getEnchantability();
-	}
-
-	/**
-	 * Returns the dyed colour of this armour piece. This generally only applies to leather armour.
-	 */
-	public function getCustomColor() : ?Color{
-		return $this->customColor;
-	}
-
-	/**
-	 * Sets the dyed colour of this armour piece. This generally only applies to leather armour.
-	 *
-	 * @return $this
-	 */
-	public function setCustomColor(Color $color) : self{
-		$this->customColor = $color;
-		return $this;
-	}
-
-	/** @return $this */
-	public function clearCustomColor() : self{
-		$this->customColor = null;
-		return $this;
 	}
 
 	/**
@@ -161,17 +134,11 @@ class Armor extends Durable{
 
 	protected function deserializeCompoundTag(CompoundTag $tag) : void{
 		parent::deserializeCompoundTag($tag);
-		if(($colorTag = $tag->getTag(self::TAG_CUSTOM_COLOR)) instanceof IntTag){
-			$this->customColor = Color::fromARGB(Binary::unsignInt($colorTag->getValue()));
-		}else{
-			$this->customColor = null;
-		}
+		$this->deserializeCustomColor($tag);
 	}
 
 	protected function serializeCompoundTag(CompoundTag $tag) : void{
 		parent::serializeCompoundTag($tag);
-		$this->customColor !== null ?
-			$tag->setInt(self::TAG_CUSTOM_COLOR, Binary::signInt($this->customColor->toARGB())) :
-			$tag->removeTag(self::TAG_CUSTOM_COLOR);
+		$this->serializeCustomColor($tag);
 	}
 }

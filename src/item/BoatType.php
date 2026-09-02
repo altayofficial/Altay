@@ -33,6 +33,7 @@ use pocketmine\utils\LegacyEnumShimTrait;
  *  These are retained for backwards compatibility only.
  *
  * @method static BoatType ACACIA()
+ * @method static BoatType BAMBOO()
  * @method static BoatType BIRCH()
  * @method static BoatType DARK_OAK()
  * @method static BoatType JUNGLE()
@@ -50,6 +51,7 @@ enum BoatType{
 	case ACACIA;
 	case DARK_OAK;
 	case MANGROVE;
+	case BAMBOO;
 
 	public function getWoodType() : WoodType{
 		return match($this){
@@ -60,7 +62,12 @@ enum BoatType{
 			self::ACACIA => WoodType::ACACIA,
 			self::DARK_OAK => WoodType::DARK_OAK,
 			self::MANGROVE => WoodType::MANGROVE,
+			self::BAMBOO => WoodType::BAMBOO,
 		};
+	}
+
+	public function getVehicleName() : string{
+		return $this === self::BAMBOO ? "Raft" : "Boat"; // lmao
 	}
 
 	public function getDisplayName() : string{

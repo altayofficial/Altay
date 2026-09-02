@@ -27,6 +27,7 @@ namespace pocketmine\inventory\transaction;
 
 use pocketmine\crafting\CraftingManager;
 use pocketmine\crafting\CraftingRecipe;
+use pocketmine\crafting\CraftingResultTransfer;
 use pocketmine\crafting\RecipeIngredient;
 use pocketmine\event\inventory\CraftItemEvent;
 use pocketmine\item\Item;
@@ -244,9 +245,20 @@ class CraftingTransaction extends InventoryTransaction{
 		return $iterations;
 	}
 
+	/**
+	 * @return Item[]
+	 * @phpstan-return list<Item>
+	 */
+	private function getExpectedResultsFor(CraftingRecipe $recipe) : array{
+		//grid may already be empty by validate() time - use transaction inputs as a fallback
+		$results = $recipe->getResultsFor($this->source->getCraftingGrid());
+		CraftingResultTransfer::transferContainerNamedTag($this->inputs, $results);
+		return $results;
+	}
+
 	private function validateRecipe(CraftingRecipe $recipe, ?int $expectedRepetitions) : int{
 		//compute number of times recipe was crafted
-		$repetitions = $this->matchOutputs($this->outputs, $recipe->getResultsFor($this->source->getCraftingGrid()));
+		$repetitions = $this->matchOutputs($this->outputs, $this->getExpectedResultsFor($recipe));
 		if($expectedRepetitions !== null && $repetitions !== $expectedRepetitions){
 			throw new TransactionValidationException("Expected $expectedRepetitions repetitions, got $repetitions");
 		}
@@ -269,7 +281,7 @@ class CraftingTransaction extends InventoryTransaction{
 			foreach($this->craftingManager->matchRecipeByOutputs($this->outputs) as $recipe){
 				try{
 					//compute number of times recipe was crafted
-					$this->repetitions = $this->matchOutputs($this->outputs, $recipe->getResultsFor($this->source->getCraftingGrid()));
+					$this->repetitions = $this->matchOutputs($this->outputs, $this->getExpectedResultsFor($recipe));
 					//assert that $repetitions x recipe ingredients should be consumed
 					self::matchIngredients($this->inputs, $recipe->getIngredientList(), $this->repetitions);
 

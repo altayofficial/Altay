@@ -40,6 +40,8 @@ use function mb_strtoupper;
 final class VanillaEnchantments{
 	private static Enchantment $_mAQUA_AFFINITY;
 	private static ProtectionEnchantment $_mBLAST_PROTECTION;
+	private static Enchantment $_mBREACH;
+	private static Enchantment $_mDENSITY;
 	private static Enchantment $_mEFFICIENCY;
 	private static ProtectionEnchantment $_mFEATHER_FALLING;
 	private static FireAspectEnchantment $_mFIRE_ASPECT;
@@ -49,6 +51,7 @@ final class VanillaEnchantments{
 	private static Enchantment $_mFROST_WALKER;
 	private static Enchantment $_mINFINITY;
 	private static KnockbackEnchantment $_mKNOCKBACK;
+	private static Enchantment $_mLUNGE;
 	private static Enchantment $_mMENDING;
 	private static Enchantment $_mPOWER;
 	private static ProtectionEnchantment $_mPROJECTILE_PROTECTION;
@@ -61,6 +64,7 @@ final class VanillaEnchantments{
 	private static Enchantment $_mTHORNS;
 	private static Enchantment $_mUNBREAKING;
 	private static Enchantment $_mVANISHING;
+	private static Enchantment $_mWIND_BURST;
 
 	/**
 	 * @var Enchantment[]
@@ -97,6 +101,8 @@ final class VanillaEnchantments{
 		return [
 			"AQUA_AFFINITY" => fn(Enchantment $v) => self::$_mAQUA_AFFINITY = $v,
 			"BLAST_PROTECTION" => fn(ProtectionEnchantment $v) => self::$_mBLAST_PROTECTION = $v,
+			"BREACH" => fn(Enchantment $v) => self::$_mBREACH = $v,
+			"DENSITY" => fn(Enchantment $v) => self::$_mDENSITY = $v,
 			"EFFICIENCY" => fn(Enchantment $v) => self::$_mEFFICIENCY = $v,
 			"FEATHER_FALLING" => fn(ProtectionEnchantment $v) => self::$_mFEATHER_FALLING = $v,
 			"FIRE_ASPECT" => fn(FireAspectEnchantment $v) => self::$_mFIRE_ASPECT = $v,
@@ -106,6 +112,7 @@ final class VanillaEnchantments{
 			"FROST_WALKER" => fn(Enchantment $v) => self::$_mFROST_WALKER = $v,
 			"INFINITY" => fn(Enchantment $v) => self::$_mINFINITY = $v,
 			"KNOCKBACK" => fn(KnockbackEnchantment $v) => self::$_mKNOCKBACK = $v,
+			"LUNGE" => fn(Enchantment $v) => self::$_mLUNGE = $v,
 			"MENDING" => fn(Enchantment $v) => self::$_mMENDING = $v,
 			"POWER" => fn(Enchantment $v) => self::$_mPOWER = $v,
 			"PROJECTILE_PROTECTION" => fn(ProtectionEnchantment $v) => self::$_mPROJECTILE_PROTECTION = $v,
@@ -118,6 +125,7 @@ final class VanillaEnchantments{
 			"THORNS" => fn(Enchantment $v) => self::$_mTHORNS = $v,
 			"UNBREAKING" => fn(Enchantment $v) => self::$_mUNBREAKING = $v,
 			"VANISHING" => fn(Enchantment $v) => self::$_mVANISHING = $v,
+			"WIND_BURST" => fn(Enchantment $v) => self::$_mWIND_BURST = $v,
 		];
 	}
 
@@ -166,6 +174,16 @@ final class VanillaEnchantments{
 		return self::$_mBLAST_PROTECTION;
 	}
 
+	public static function BREACH() : Enchantment{
+		if(!isset(self::$_mBREACH)){ self::init(); }
+		return self::$_mBREACH;
+	}
+
+	public static function DENSITY() : Enchantment{
+		if(!isset(self::$_mDENSITY)){ self::init(); }
+		return self::$_mDENSITY;
+	}
+
 	public static function EFFICIENCY() : Enchantment{
 		if(!isset(self::$_mEFFICIENCY)){ self::init(); }
 		return self::$_mEFFICIENCY;
@@ -209,6 +227,11 @@ final class VanillaEnchantments{
 	public static function KNOCKBACK() : KnockbackEnchantment{
 		if(!isset(self::$_mKNOCKBACK)){ self::init(); }
 		return self::$_mKNOCKBACK;
+	}
+
+	public static function LUNGE() : Enchantment{
+		if(!isset(self::$_mLUNGE)){ self::init(); }
+		return self::$_mLUNGE;
 	}
 
 	public static function MENDING() : Enchantment{
@@ -269,5 +292,10 @@ final class VanillaEnchantments{
 	public static function VANISHING() : Enchantment{
 		if(!isset(self::$_mVANISHING)){ self::init(); }
 		return self::$_mVANISHING;
+	}
+
+	public static function WIND_BURST() : Enchantment{
+		if(!isset(self::$_mWIND_BURST)){ self::init(); }
+		return self::$_mWIND_BURST;
 	}
 }

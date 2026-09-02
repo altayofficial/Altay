@@ -30,9 +30,9 @@ use pocketmine\block\utils\DyeColor;
 use pocketmine\color\Color;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityExtinguishEvent;
-use pocketmine\item\Armor;
 use pocketmine\item\Banner;
 use pocketmine\item\Dye;
+use pocketmine\item\DyeableItem;
 use pocketmine\item\Item;
 use pocketmine\item\ItemTypeIds;
 use pocketmine\item\Potion;
@@ -131,13 +131,14 @@ final class WaterCauldron extends FillableCauldron{
 			}else{
 				$this->mix($item, VanillaItems::GLASS_BOTTLE(), $returnedItems);
 			}
-		}elseif($item instanceof Armor){
+		}elseif($item instanceof DyeableItem){
 			if($this->customWaterColor !== null){
-				if(match($item->getTypeId()){ //TODO: a DyeableArmor class would probably be a better idea, since not all types of armor are dyeable
+				if(match($item->getTypeId()){ //not all dyeable items accept a colour from the cauldron
 					ItemTypeIds::LEATHER_CAP,
 					ItemTypeIds::LEATHER_TUNIC,
 					ItemTypeIds::LEATHER_PANTS,
-					ItemTypeIds::LEATHER_BOOTS => true,
+					ItemTypeIds::LEATHER_BOOTS,
+					ItemTypeIds::WOLF_ARMOR => true,
 					default => false
 				} && $item->getCustomColor()?->toRGBA() !== $this->customWaterColor->toRGBA()){
 					$item->setCustomColor($this->customWaterColor);

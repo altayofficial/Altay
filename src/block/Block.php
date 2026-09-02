@@ -899,6 +899,22 @@ class Block{
 	}
 
 	/**
+	 * Returns the multiplier applied to fall damage taken from landing on this block.
+	 */
+	public function getFallDamageMultiplier() : float{
+		return 1.0;
+	}
+
+	/**
+	 * Returns the fall damage taken from landing on this block, given the standard fall damage that would be dealt
+	 * on a normal block. Most blocks just scale it by {@link Block::getFallDamageMultiplier()}, but some (e.g. a
+	 * pointed dripstone tip) use a completely different formula.
+	 */
+	public function getFallDamage(float $vanillaFallDamage, float $fallDistance, int $jumpBoostLevel) : float{
+		return $vanillaFallDamage * $this->getFallDamageMultiplier();
+	}
+
+	/**
 	 * Called when a projectile collides with one of this block's collision boxes.
 	 */
 	public function onProjectileHit(Projectile $projectile, RayTraceResult $hitResult) : void{

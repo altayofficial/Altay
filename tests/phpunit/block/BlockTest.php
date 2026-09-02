@@ -114,7 +114,9 @@ class BlockTest extends TestCase{
 			BlockTypeNames::FLOWING_WATER,
 			BlockTypeNames::LAVA,
 			BlockTypeNames::FLOWING_LAVA,
+			BlockTypeNames::BUBBLE_COLUMN, //the table claims it's instantly breakable, but like water it can't be targeted at all
 			BlockTypeNames::MANGROVE_LOG, //For some reason ONLY this wood block has blast resistance 2 instead of 10...
+			BlockTypeNames::BORDER_BLOCK, //the table claims it's breakable, but it's a creative-only block which can't be destroyed by any means
 		], true);
 
 		$serializer = GlobalBlockStateHandlers::getSerializer();

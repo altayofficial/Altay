@@ -1,6 +1,12 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Cannot unset property pocketmine\\entity\\object\\ArmorStand\:\:\$handInventory because it might have hooks in a subclass\.$#'
+			identifier: unset.possiblyHookedProperty
+			count: 1
+			path: ../../../src/entity/object/ArmorStand.php
+
+		-
 			message: '#^Cannot unset property pocketmine\\entity\\Human\:\:\$enderInventory because it might have hooks in a subclass\.$#'
 			identifier: unset.possiblyHookedProperty
 			count: 1

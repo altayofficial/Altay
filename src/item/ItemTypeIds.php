@@ -365,8 +365,23 @@ final class ItemTypeIds{
 	public const BAMBOO_HANGING_SIGN = 20324;
 	public const BAMBOO_SIGN = 20325;
 	public const RECORD_BOUNCE = 20326;
+	public const WIND_CHARGE = 20327;
+	public const ELYTRA = 20328;
+	public const BAMBOO_RAFT = 20329;
+	public const POTTERY_SHERD = 20330;
+	public const SHIELD = 20331;
+	public const ARMOR_STAND = 20332;
+	public const WOLF_ARMOR = 20333;
+	public const COPPER_SPEAR = 20334;
+	public const DIAMOND_SPEAR = 20335;
+	public const GOLDEN_SPEAR = 20336;
+	public const IRON_SPEAR = 20337;
+	public const NETHERITE_SPEAR = 20338;
+	public const STONE_SPEAR = 20339;
+	public const WOODEN_SPEAR = 20340;
+	public const MACE = 20341;
 
-	public const FIRST_UNUSED_ITEM_ID = 20327;
+	public const FIRST_UNUSED_ITEM_ID = 20342;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_ITEM_ID;
 

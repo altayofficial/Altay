@@ -63,7 +63,11 @@ final class AvailableEnchantmentRegistry{
 		$this->register(Enchantments::FROST_WALKER(), [/* no primary items */], [Tags::BOOTS]);
 		$this->register(Enchantments::SHARPNESS(), [Tags::SWORD, Tags::AXE], []);
 		$this->register(Enchantments::KNOCKBACK(), [Tags::SWORD], []);
-		$this->register(Enchantments::FIRE_ASPECT(), [Tags::SWORD], []);
+		$this->register(Enchantments::FIRE_ASPECT(), [Tags::SWORD, Tags::MACE], []);
+		$this->register(Enchantments::DENSITY(), [Tags::MACE], []);
+		$this->register(Enchantments::BREACH(), [Tags::MACE], []);
+		//Wind Burst is a treasure enchantment, so it has no primary tags and can't be rolled in an enchanting table
+		$this->register(Enchantments::WIND_BURST(), [], [Tags::MACE]);
 		$this->register(Enchantments::EFFICIENCY(), [Tags::BLOCK_TOOLS], [Tags::SHEARS]);
 		$this->register(Enchantments::FORTUNE(), [Tags::BLOCK_TOOLS], []);
 		$this->register(Enchantments::SILK_TOUCH(), [Tags::BLOCK_TOOLS], [Tags::SHEARS]);
@@ -84,6 +88,7 @@ final class AvailableEnchantmentRegistry{
 		);
 		$this->register(Enchantments::VANISHING(), [], [Tags::ALL]);
 		$this->register(Enchantments::SWIFT_SNEAK(), [], [Tags::LEGGINGS]);
+		$this->register(Enchantments::LUNGE(), [Tags::SPEAR], []);
 	}
 
 	/**

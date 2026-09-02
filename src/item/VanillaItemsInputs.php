@@ -102,6 +102,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::registerDelayed("acacia_hanging_sign", fn(string $name) : HangingSign => new HangingSign(self::makeIID($name), "Acacia Hanging Sign", Blocks::ACACIA_CEILING_CENTER_HANGING_SIGN(), Blocks::ACACIA_CEILING_EDGES_HANGING_SIGN(), Blocks::ACACIA_WALL_HANGING_SIGN()));
 		self::register("amethyst_shard", fn(IID $id) => new Item($id, "Amethyst Shard"));
 		self::register("apple", fn(IID $id) => new Apple($id, "Apple"));
+		self::register("armor_stand", fn(IID $id) => new ArmorStand($id, "Armor Stand"));
 		self::register("arrow", fn(IID $id) => new Arrow($id, "Arrow"));
 		self::register("baked_potato", fn(IID $id) => new BakedPotato($id, "Baked Potato"));
 		self::register("bamboo", fn(IID $id) => new Bamboo($id, "Bamboo"));
@@ -234,6 +235,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::registerDelayed("lava_bucket", fn(string $name) : LiquidBucket => new LiquidBucket(self::makeIID($name), "Lava Bucket", Blocks::LAVA()));
 		self::register("leather", fn(IID $id) => new Item($id, "Leather"));
 		self::register("lingering_potion", fn(IID $id) => new SplashPotion($id, "Lingering Potion", linger: true));
+		self::register("mace", fn(IID $id) => new Mace($id, "Mace", [EnchantmentTags::MACE]));
 		self::register("magma_cream", fn(IID $id) => new Item($id, "Magma Cream"));
 		self::registerDelayed("mangrove_sign", fn(string $name) : ItemBlockWallOrFloor => new ItemBlockWallOrFloor(self::makeIID($name), Blocks::MANGROVE_SIGN(), Blocks::MANGROVE_WALL_SIGN()));
 		self::registerDelayed("mangrove_hanging_sign", fn(string $name) : HangingSign => new HangingSign(self::makeIID($name), "Mangrove Hanging Sign", Blocks::MANGROVE_CEILING_CENTER_HANGING_SIGN(), Blocks::MANGROVE_CEILING_EDGES_HANGING_SIGN(), Blocks::MANGROVE_WALL_HANGING_SIGN()));
@@ -267,6 +269,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("popped_chorus_fruit", fn(IID $id) => new Item($id, "Popped Chorus Fruit"));
 		self::register("potato", fn(IID $id) => new Potato($id, "Potato"));
 		self::register("potion", fn(IID $id) => new Potion($id, "Potion"));
+		self::register("pottery_sherd", fn(IID $id) => new PotterySherd($id, "Pottery Sherd"));
 		self::register("prismarine_crystals", fn(IID $id) => new Item($id, "Prismarine Crystals"));
 		self::register("prismarine_shard", fn(IID $id) => new Item($id, "Prismarine Shard"));
 		self::register("pufferfish", fn(IID $id) => new Pufferfish($id, "Pufferfish"));
@@ -312,6 +315,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("rotten_flesh", fn(IID $id) => new RottenFlesh($id, "Rotten Flesh"));
 		self::register("scute", fn(IID $id) => new Item($id, "Scute"));
 		self::register("shears", fn(IID $id) => new Shears($id, "Shears", [EnchantmentTags::SHEARS]));
+		self::register("shield", fn(IID $id) => new Shield($id, "Shield", [EnchantmentTags::SHIELD]));
 		self::register("shulker_shell", fn(IID $id) => new Item($id, "Shulker Shell"));
 		self::register("slimeball", fn(IID $id) => new Item($id, "Slimeball"));
 		self::register("snowball", fn(IID $id) => new Snowball($id, "Snowball"));
@@ -334,12 +338,15 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::registerDelayed("water_bucket", fn(string $name) : LiquidBucket => new LiquidBucket(self::makeIID($name), "Water Bucket", Blocks::WATER()));
 		self::register("wheat", fn(IID $id) => new Item($id, "Wheat"));
 		self::register("wheat_seeds", fn(IID $id) => new WheatSeeds($id, "Wheat Seeds"));
+		self::register("wind_charge", fn(IID $id) => new WindCharge($id, "Wind Charge"));
+		self::register("wolf_armor", fn(IID $id) => new WolfArmor($id, "Wolf Armor"));
 		self::register("writable_book", fn(IID $id) => new WritableBook($id, "Book & Quill"));
 		self::register("written_book", fn(IID $id) => new WrittenBook($id, "Written Book"));
 
 		foreach(BoatType::cases() as $type){
 			//boat type is static, because different types of wood may have different properties
-			self::register(strtolower($type->name) . "_boat", fn(IID $id) => new Boat($id, $type->getDisplayName() . " Boat", $type));
+			$vehicleName = $type->getVehicleName();
+			self::register(strtolower($type->name . "_" . $vehicleName), fn(IID $id) => new Boat($id, $type->getDisplayName() . " " . $vehicleName, $type));
 		}
 	}
 
@@ -376,6 +383,7 @@ final class VanillaItemsInputs extends RegistrySource{
 			self::register($idPrefix . "_pickaxe", fn(IID $id) => new Pickaxe($id, $namePrefix . " Pickaxe", $tier, [EnchantmentTags::PICKAXE]));
 			self::register($idPrefix . "_shovel", fn(IID $id) => new Shovel($id, $namePrefix . " Shovel", $tier, [EnchantmentTags::SHOVEL]));
 			self::register($idPrefix . "_sword", fn(IID $id) => new Sword($id, $namePrefix . " Sword", $tier, [EnchantmentTags::SWORD]));
+			self::register($idPrefix . "_spear", fn(IID $id) => new Spear($id, $namePrefix . " Spear", $tier, [EnchantmentTags::SPEAR]));
 		}
 	}
 
@@ -395,6 +403,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::registerDelayed("iron_chestplate", fn($name) : Armor => new Armor(self::makeIID($name), "Iron Chestplate", new ArmorTypeInfo(6, 241, ArmorInventory::SLOT_CHEST, material: ArmorMaterials::IRON()), [EnchantmentTags::CHESTPLATE]));
 		self::registerDelayed("leather_tunic", fn($name) : Armor => new Armor(self::makeIID($name), "Leather Tunic", new ArmorTypeInfo(3, 81, ArmorInventory::SLOT_CHEST, material: ArmorMaterials::LEATHER()), [EnchantmentTags::CHESTPLATE]));
 		self::registerDelayed("netherite_chestplate", fn($name) : Armor => new Armor(self::makeIID($name), "Netherite Chestplate", new ArmorTypeInfo(8, 593, ArmorInventory::SLOT_CHEST, 3, true, material: ArmorMaterials::NETHERITE()), [EnchantmentTags::CHESTPLATE]));
+		self::registerDelayed("elytra", fn($name) : Elytra => new Elytra(self::makeIID($name), "Elytra", new ArmorTypeInfo(0, 433, ArmorInventory::SLOT_CHEST, material: ArmorMaterials::ELYTRA()), [EnchantmentTags::ELYTRA]));
 
 		self::registerDelayed("chainmail_helmet", fn($name) : Armor => new Armor(self::makeIID($name), "Chainmail Helmet", new ArmorTypeInfo(2, 166, ArmorInventory::SLOT_HEAD, material: ArmorMaterials::CHAINMAIL()), [EnchantmentTags::HELMET]));
 		self::registerDelayed("copper_helmet", fn($name) : Armor => new Armor(self::makeIID($name), "Copper Helmet", new ArmorTypeInfo(2, 122, ArmorInventory::SLOT_HEAD, material: ArmorMaterials::COPPER()), [EnchantmentTags::HELMET]));

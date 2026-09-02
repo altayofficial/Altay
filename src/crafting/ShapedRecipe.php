@@ -133,7 +133,9 @@ class ShapedRecipe implements CraftingRecipe{
 	 * @phpstan-return list<Item>
 	 */
 	public function getResultsFor(CraftingGrid $grid) : array{
-		return $this->getResults();
+		$results = $this->getResults();
+		CraftingResultTransfer::transferContainerNamedTag($grid->getContents(), $results);
+		return $results;
 	}
 
 	/**

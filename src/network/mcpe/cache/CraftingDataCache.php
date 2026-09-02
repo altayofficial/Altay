@@ -31,6 +31,7 @@ use pocketmine\crafting\FurnaceType;
 use pocketmine\crafting\ShapedRecipe;
 use pocketmine\crafting\ShapelessRecipe;
 use pocketmine\crafting\ShapelessRecipeType;
+use pocketmine\crafting\SmithingTrimRecipe;
 use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\network\mcpe\protocol\CraftingDataPacket;
 use pocketmine\network\mcpe\protocol\types\recipe\CraftingRecipeBlockName;
@@ -41,11 +42,14 @@ use pocketmine\network\mcpe\protocol\types\recipe\PotionTypeRecipe as ProtocolPo
 use pocketmine\network\mcpe\protocol\types\recipe\RecipeUnlockingRequirement;
 use pocketmine\network\mcpe\protocol\types\recipe\ShapedRecipe as ProtocolShapedRecipe;
 use pocketmine\network\mcpe\protocol\types\recipe\ShapelessRecipe as ProtocolShapelessRecipe;
+use pocketmine\network\mcpe\protocol\types\recipe\SmithingTransformRecipe as ProtocolSmithingTransformRecipe;
+use pocketmine\network\mcpe\protocol\types\recipe\SmithingTrimRecipe as ProtocolSmithingTrimRecipe;
 use pocketmine\timings\Timings;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\SingletonTrait;
 use Ramsey\Uuid\Uuid;
 use function array_map;
+use function count;
 use function spl_object_id;
 
 final class CraftingDataCache{
@@ -92,12 +96,41 @@ final class CraftingDataCache{
 		foreach($manager->getCraftingRecipeIndex() as $index => $recipe){
 			//the client doesn't like recipes with an ID of 0, so we need to offset them
 			$recipeNetId = $index + self::RECIPE_ID_OFFSET;
-			if($recipe instanceof ShapelessRecipe){
+			if($recipe instanceof ShapelessRecipe && $recipe->getType() === ShapelessRecipeType::SMITHING){
+				//smithing transform recipes (e.g. netherite upgrade) use a dedicated network entry, not the generic
+				//shapeless one - the client's smithing table UI won't recognize them otherwise
+				$ingredients = $recipe->getIngredientList();
+				$results = $recipe->getResults();
+				if(count($ingredients) !== 3 || count($results) !== 1){
+					continue;
+				}
+				[$base, $addition, $template] = $ingredients;
+				$recipesWithTypeIds[] = new ProtocolSmithingTransformRecipe(
+					CraftingDataPacket::ENTRY_SMITHING_TRANSFORM,
+					"smithing_transform_$recipeNetId",
+					$converter->coreRecipeIngredientToNet($template),
+					$converter->coreRecipeIngredientToNet($base),
+					$converter->coreRecipeIngredientToNet($addition),
+					$converter->coreItemStackToNet($results[0]),
+					CraftingRecipeBlockName::SMITHING_TABLE,
+					$recipeNetId
+				);
+			}elseif($recipe instanceof SmithingTrimRecipe){
+				$recipesWithTypeIds[] = new ProtocolSmithingTrimRecipe(
+					CraftingDataPacket::ENTRY_SMITHING_TRIM,
+					"smithing_trim_$recipeNetId",
+					$converter->coreRecipeIngredientToNet($recipe->getTemplate()),
+					$converter->coreRecipeIngredientToNet($recipe->getBase()),
+					$converter->coreRecipeIngredientToNet($recipe->getAddition()),
+					CraftingRecipeBlockName::SMITHING_TABLE,
+					$recipeNetId
+				);
+			}elseif($recipe instanceof ShapelessRecipe){
 				$typeTag = match($recipe->getType()){
 					ShapelessRecipeType::CRAFTING => CraftingRecipeBlockName::CRAFTING_TABLE,
 					ShapelessRecipeType::STONECUTTER => CraftingRecipeBlockName::STONECUTTER,
 					ShapelessRecipeType::CARTOGRAPHY => CraftingRecipeBlockName::CARTOGRAPHY_TABLE,
-					ShapelessRecipeType::SMITHING => CraftingRecipeBlockName::SMITHING_TABLE,
+					ShapelessRecipeType::SMITHING => throw new AssumptionFailedError("Smithing transform recipes are handled in the branch above"),
 				};
 				$recipesWithTypeIds[] = new ProtocolShapelessRecipe(
 					CraftingDataPacket::ENTRY_SHAPELESS,

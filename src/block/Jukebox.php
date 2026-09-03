@@ -62,11 +62,22 @@ class Jukebox extends Opaque{
 	}
 
 	public function ejectRecord() : void{
-		if($this->record !== null){
-			$this->position->getWorld()->dropItem($this->position->add(0.5, 1, 0.5), $this->record);
+		$record = $this->extractRecord();
+		if($record !== null){
+			$this->position->getWorld()->dropItem($this->position->add(0.5, 1, 0.5), $record);
+		}
+	}
+
+	/**
+	 * Removes the record from the jukebox without dropping it and returns it, or null if there was no record inside.
+	 */
+	public function extractRecord() : ?Record{
+		$record = $this->record;
+		if($record !== null){
 			$this->record = null;
 			$this->stopSound();
 		}
+		return $record;
 	}
 
 	public function insertRecord(Record $record) : void{

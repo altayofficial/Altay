@@ -903,7 +903,7 @@ final class BlockTypeIds{
 	public const SHORT_DRY_GRASS = 10870;
 	public const TALL_DRY_GRASS = 10871;
 	public const DRIED_GHAST = 10872;
-  public const PALE_MOSS_BLOCK = 10873;
+	public const PALE_MOSS_BLOCK = 10873;
 	public const MOSS_CARPET = 10874;
 
 

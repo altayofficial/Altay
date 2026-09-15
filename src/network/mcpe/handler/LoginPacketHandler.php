@@ -148,16 +148,6 @@ class LoginPacketHandler extends PacketHandler{
 		}
 
 		$clientData = $this->parseClientData($packet->clientDataJwt);
-		try {
-			$verStr = new VersionString($clientData->GameVersion);
-		} catch(\InvalidArgumentException $e){
-			throw PacketHandlingException::wrap($e);
-		}
-
-		if($verStr->getPatch() < 44){
-			$this->session->disconnectWithError(KnownTranslationFactory::disconnectionScreen_outdatedClient());
-			return null;
-		}
 
 		try{
 			$skin = $this->session->getTypeConverter()->getSkinAdapter()->fromSkinData(ClientDataToSkinDataHelper::fromClientData($clientData));

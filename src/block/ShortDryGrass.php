@@ -25,6 +25,21 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-class PinkPetals extends BaseFlowerBed{
+use pocketmine\block\utils\BlockEventHelper;
+use pocketmine\item\Fertilizer;
+use pocketmine\item\Item;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
 
+class ShortDryGrass extends BaseDryGrass{
+
+	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+		if($item instanceof Fertilizer){
+			if(BlockEventHelper::grow($this, VanillaBlocks::TALL_DRY_GRASS(), $player)){
+				$item->pop();
+			}
+			return true;
+		}
+		return false;
+	}
 }

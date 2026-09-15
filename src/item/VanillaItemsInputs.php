@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use pocketmine\block\utils\BannerPatternType;
 use pocketmine\block\utils\RecordType;
 use pocketmine\block\VanillaBlocks as Blocks;
 use pocketmine\entity\Entity;
@@ -102,6 +103,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::registerDelayed("acacia_hanging_sign", fn(string $name) : HangingSign => new HangingSign(self::makeIID($name), "Acacia Hanging Sign", Blocks::ACACIA_CEILING_CENTER_HANGING_SIGN(), Blocks::ACACIA_CEILING_EDGES_HANGING_SIGN(), Blocks::ACACIA_WALL_HANGING_SIGN()));
 		self::register("amethyst_shard", fn(IID $id) => new Item($id, "Amethyst Shard"));
 		self::register("apple", fn(IID $id) => new Apple($id, "Apple"));
+		self::register("armadillo_scute", fn(IID $id) => new Item($id, "Armadillo Scute"));
 		self::register("armor_stand", fn(IID $id) => new ArmorStand($id, "Armor Stand"));
 		self::register("arrow", fn(IID $id) => new Arrow($id, "Arrow"));
 		self::register("baked_potato", fn(IID $id) => new BakedPotato($id, "Baked Potato"));
@@ -109,6 +111,16 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::registerDelayed("bamboo_sign", fn(string $name) : ItemBlockWallOrFloor => new ItemBlockWallOrFloor(self::makeIID($name), Blocks::BAMBOO_SIGN(), Blocks::BAMBOO_WALL_SIGN()));
 		self::registerDelayed("bamboo_hanging_sign", fn(string $name) : HangingSign => new HangingSign(self::makeIID($name), "Bamboo Hanging Sign", Blocks::BAMBOO_CEILING_CENTER_HANGING_SIGN(), Blocks::BAMBOO_CEILING_EDGES_HANGING_SIGN(), Blocks::BAMBOO_WALL_HANGING_SIGN()));
 		self::registerDelayed("banner", fn(string $name) : Banner => new Banner(self::makeIID($name), Blocks::BANNER(), Blocks::WALL_BANNER()));
+		self::register("bordure_indented_banner_pattern", fn(IID $id) => new BannerPattern($id, "Bordure Indented Banner Pattern", BannerPatternType::CURLY_BORDER));
+		self::register("creeper_banner_pattern", fn(IID $id) => new BannerPattern($id, "Creeper Charge Banner Pattern", BannerPatternType::CREEPER));
+		self::register("field_masoned_banner_pattern", fn(IID $id) => new BannerPattern($id, "Field Masoned Banner Pattern", BannerPatternType::BRICKS));
+		self::register("flow_banner_pattern", fn(IID $id) => new BannerPattern($id, "Flow Banner Pattern", BannerPatternType::FLOW));
+		self::register("flower_banner_pattern", fn(IID $id) => new BannerPattern($id, "Flower Charge Banner Pattern", BannerPatternType::FLOWER));
+		self::register("globe_banner_pattern", fn(IID $id) => new BannerPattern($id, "Globe Banner Pattern", BannerPatternType::GLOBE));
+		self::register("guster_banner_pattern", fn(IID $id) => new BannerPattern($id, "Guster Banner Pattern", BannerPatternType::GUSTER));
+		self::register("mojang_banner_pattern", fn(IID $id) => new BannerPattern($id, "Thing Banner Pattern", BannerPatternType::MOJANG));
+		self::register("piglin_banner_pattern", fn(IID $id) => new BannerPattern($id, "Snout Banner Pattern", BannerPatternType::PIGLIN));
+		self::register("skull_banner_pattern", fn(IID $id) => new BannerPattern($id, "Skull Charge Banner Pattern", BannerPatternType::SKULL));
 		self::register("beetroot", fn(IID $id) => new Beetroot($id, "Beetroot"));
 		self::register("beetroot_seeds", fn(IID $id) => new BeetrootSeeds($id, "Beetroot Seeds"));
 		self::register("beetroot_soup", fn(IID $id) => new BeetrootSoup($id, "Beetroot Soup"));
@@ -123,6 +135,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("bow", fn(IID $id) => new Bow($id, "Bow", [EnchantmentTags::BOW]));
 		self::register("bowl", fn(IID $id) => new Bowl($id, "Bowl"));
 		self::register("bread", fn(IID $id) => new Bread($id, "Bread"));
+		self::register("breeze_rod", fn(IID $id) => new Item($id, "Breeze Rod"));
 		self::register("brick", fn(IID $id) => new Item($id, "Brick"));
 		self::register("bucket", fn(IID $id) => new Bucket($id, "Bucket"));
 		self::register("carrot", fn(IID $id) => new Carrot($id, "Carrot"));
@@ -307,6 +320,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("record_relic", fn(IID $id) => new Record($id, RecordType::DISK_RELIC, "Record Relic"));
 		self::register("record_stal", fn(IID $id) => new Record($id, RecordType::DISK_STAL, "Record Stal"));
 		self::register("record_strad", fn(IID $id) => new Record($id, RecordType::DISK_STRAD, "Record Strad"));
+		self::register("record_tears", fn(IID $id) => new Record($id, RecordType::DISK_TEARS, "Record Tears"));
 		self::register("record_wait", fn(IID $id) => new Record($id, RecordType::DISK_WAIT, "Record Wait"));
 		self::register("record_ward", fn(IID $id) => new Record($id, RecordType::DISK_WARD, "Record Ward"));
 		self::register("recovery_compass", fn(IID $id) => new Item($id, "Recovery Compass"));

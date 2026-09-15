@@ -25,6 +25,20 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-class PinkPetals extends BaseFlowerBed{
+use pocketmine\block\utils\SupportType;
+use pocketmine\item\Item;
+use pocketmine\math\Facing;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
 
+class LeafLitter extends BaseFlowerBed{
+
+	protected function canBeSupportedBy(Block $supportBlock) : bool{
+		return $supportBlock->getSupportType(Facing::UP) === SupportType::FULL;
+	}
+
+	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+		//unlike the other flower beds, bone meal does nothing to leaf litter
+		return false;
+	}
 }

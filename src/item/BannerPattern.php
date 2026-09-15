@@ -23,8 +23,23 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\block;
+namespace pocketmine\item;
 
-class PinkPetals extends BaseFlowerBed{
+use pocketmine\block\utils\BannerPatternType;
 
+class BannerPattern extends Item{
+	private BannerPatternType $patternType;
+
+	public function __construct(ItemIdentifier $identifier, string $name, BannerPatternType $patternType){
+		parent::__construct($identifier, $name);
+		$this->patternType = $patternType;
+	}
+
+	public function getPatternType() : BannerPatternType{
+		return $this->patternType;
+	}
+
+	public function getMaxStackSize() : int{
+		return 1;
+	}
 }

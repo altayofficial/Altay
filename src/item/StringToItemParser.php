@@ -227,9 +227,10 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("bricks_block", fn() => Blocks::BRICKS());
 		$result->registerBlock("brown_mushroom", fn() => Blocks::BROWN_MUSHROOM());
 		$result->registerBlock("brown_mushroom_block", fn() => Blocks::BROWN_MUSHROOM_BLOCK());
+		$result->registerBlock("bubble_column", fn() => Blocks::BUBBLE_COLUMN());
 		$result->registerBlock("budding_amethyst", fn() => Blocks::BUDDING_AMETHYST());
 		$result->registerBlock("burning_furnace", fn() => Blocks::FURNACE());
-		$result->registerBlock("bush", fn() => Blocks::DEAD_BUSH());
+		$result->registerBlock("bush", fn() => Blocks::BUSH());
 		$result->registerBlock("cactus", fn() => Blocks::CACTUS());
 		$result->registerBlock("cactus_flower", fn() => Blocks::CACTUS_FLOWER());
 		$result->registerBlock("cake", fn() => Blocks::CAKE());
@@ -429,6 +430,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("double_wooden_slabs", fn() => Blocks::OAK_SLAB()->setSlabType(SlabType::DOUBLE));
 		$result->registerBlock("dragon_egg", fn() => Blocks::DRAGON_EGG());
 		$result->registerBlock("dragon_head", fn() => Blocks::MOB_HEAD()->setMobHeadType(MobHeadType::DRAGON));
+		$result->registerBlock("dried_ghast", fn() => Blocks::DRIED_GHAST());
 		$result->registerBlock("dried_kelp_block", fn() => Blocks::DRIED_KELP());
 		$result->registerBlock("dripstone_block", fn() => Blocks::DRIPSTONE_BLOCK());
 		$result->registerBlock("dyed_shulker_box", fn() => Blocks::DYED_SHULKER_BOX());
@@ -697,6 +699,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("fence_gate_spruce", fn() => Blocks::SPRUCE_FENCE_GATE());
 		$result->registerBlock("fern", fn() => Blocks::FERN());
 		$result->registerBlock("fire", fn() => Blocks::FIRE());
+		$result->registerBlock("firefly_bush", fn() => Blocks::FIREFLY_BUSH());
 		$result->registerBlock("fletching_table", fn() => Blocks::FLETCHING_TABLE());
 		$result->registerBlock("flower_pot", fn() => Blocks::FLOWER_POT());
 		$result->registerBlock("flower_pot_block", fn() => Blocks::FLOWER_POT());
@@ -746,6 +749,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("hardened_glass_pane", fn() => Blocks::HARDENED_GLASS_PANE());
 		$result->registerBlock("hay_bale", fn() => Blocks::HAY_BALE());
 		$result->registerBlock("hay_block", fn() => Blocks::HAY_BALE());
+		$result->registerBlock("heavy_core", fn() => Blocks::HEAVY_CORE());
 		$result->registerBlock("heavy_weighted_pressure_plate", fn() => Blocks::WEIGHTED_PRESSURE_PLATE_HEAVY());
 		$result->registerBlock("honey_block", fn() => Blocks::HONEY_BLOCK());
 		$result->registerBlock("honeycomb_block", fn() => Blocks::HONEYCOMB());
@@ -798,6 +802,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("jungle_wood", fn() => Blocks::JUNGLE_WOOD()->setStripped(false));
 		$result->registerBlock("jungle_wood_stairs", fn() => Blocks::JUNGLE_STAIRS());
 		$result->registerBlock("jungle_wooden_stairs", fn() => Blocks::JUNGLE_STAIRS());
+		$result->registerBlock("kelp", fn() => Blocks::KELP());
 		$result->registerBlock("lab_table", fn() => Blocks::LAB_TABLE());
 		$result->registerBlock("ladder", fn() => Blocks::LADDER());
 		$result->registerBlock("lantern", fn() => Blocks::LANTERN());
@@ -808,6 +813,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("large_amethyst_bud", fn() => Blocks::AMETHYST_CLUSTER()->setStage(AmethystCluster::STAGE_LARGE_BUD));
 		$result->registerBlock("large_fern", fn() => Blocks::LARGE_FERN());
 		$result->registerBlock("lava", fn() => Blocks::LAVA());
+		$result->registerBlock("leaf_litter", fn() => Blocks::LEAF_LITTER());
 		$result->registerBlock("leave", fn() => Blocks::OAK_LEAVES());
 		$result->registerBlock("leave2", fn() => Blocks::ACACIA_LEAVES());
 		$result->registerBlock("leaves", fn() => Blocks::OAK_LEAVES());
@@ -1066,6 +1072,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("sea_pickle", fn() => Blocks::SEA_PICKLE());
 		$result->registerBlock("seagrass", fn() => Blocks::SEAGRASS());
 		$result->registerBlock("sealantern", fn() => Blocks::SEA_LANTERN());
+		$result->registerBlock("short_dry_grass", fn() => Blocks::SHORT_DRY_GRASS());
 		$result->registerBlock("shroomlight", fn() => Blocks::SHROOMLIGHT());
 		$result->registerBlock("shulker_box", fn() => Blocks::SHULKER_BOX());
 		$result->registerBlock("sign", fn() => Blocks::OAK_SIGN());
@@ -1187,6 +1194,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("sugarcane_block", fn() => Blocks::SUGARCANE());
 		$result->registerBlock("sunflower", fn() => Blocks::SUNFLOWER());
 		$result->registerBlock("sweet_berry_bush", fn() => Blocks::SWEET_BERRY_BUSH());
+		$result->registerBlock("tall_dry_grass", fn() => Blocks::TALL_DRY_GRASS());
 		$result->registerBlock("tall_grass", fn() => Blocks::TALL_GRASS());
 		$result->registerBlock("tallgrass", fn() => Blocks::FERN());
 		$result->registerBlock("terracotta", fn() => Blocks::STAINED_CLAY());
@@ -1249,6 +1257,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("weighted_pressure_plate_light", fn() => Blocks::WEIGHTED_PRESSURE_PLATE_LIGHT());
 		$result->registerBlock("wheat_block", fn() => Blocks::WHEAT());
 		$result->registerBlock("white_tulip", fn() => Blocks::WHITE_TULIP());
+		$result->registerBlock("wildflowers", fn() => Blocks::WILDFLOWERS());
 		$result->registerBlock("wither_rose", fn() => Blocks::WITHER_ROSE());
 		$result->registerBlock("wither_skeleton_skull", fn() => Blocks::MOB_HEAD()->setMobHeadType(MobHeadType::WITHER_SKELETON));
 		$result->registerBlock("wood", fn() => Blocks::OAK_LOG()->setStripped(false));
@@ -1316,6 +1325,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("apple", fn() => Items::APPLE());
 		$result->register("apple_enchanted", fn() => Items::ENCHANTED_GOLDEN_APPLE());
 		$result->register("appleenchanted", fn() => Items::ENCHANTED_GOLDEN_APPLE());
+		$result->register("armadillo_scute", fn() => Items::ARMADILLO_SCUTE());
 		$result->register("armor_stand", fn() => Items::ARMOR_STAND());
 		$result->register("arrow", fn() => Items::ARROW());
 		$result->register("baked_potato", fn() => Items::BAKED_POTATO());
@@ -1336,10 +1346,12 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("bone", fn() => Items::BONE());
 		$result->register("bone_meal", fn() => Items::BONE_MEAL());
 		$result->register("book", fn() => Items::BOOK());
+		$result->register("bordure_indented_banner_pattern", fn() => Items::BORDURE_INDENTED_BANNER_PATTERN());
 		$result->register("bottle_o_enchanting", fn() => Items::EXPERIENCE_BOTTLE());
 		$result->register("bow", fn() => Items::BOW());
 		$result->register("bowl", fn() => Items::BOWL());
 		$result->register("bread", fn() => Items::BREAD());
+		$result->register("breeze_rod", fn() => Items::BREEZE_ROD());
 		$result->register("brick", fn() => Items::BRICK());
 		$result->register("bucket", fn() => Items::BUCKET());
 		$result->register("carrot", fn() => Items::CARROT());
@@ -1425,7 +1437,9 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("copper_pickaxe", fn() => Items::COPPER_PICKAXE());
 		$result->register("copper_shovel", fn() => Items::COPPER_SHOVEL());
 		$result->register("copper_sword", fn() => Items::COPPER_SWORD());
+		$result->register("creeper_banner_pattern", fn() => Items::CREEPER_BANNER_PATTERN());
 		$result->register("crimson_hanging_sign", fn() => Items::CRIMSON_HANGING_SIGN());
+		$result->register("cherry_boat", fn() => Items::CHERRY_BOAT());
 		$result->register("dark_oak_boat", fn() => Items::DARK_OAK_BOAT());
 		$result->register("dark_oak_hanging_sign", fn() => Items::DARK_OAK_HANGING_SIGN());
 		$result->register("diamond", fn() => Items::DIAMOND());
@@ -1458,6 +1472,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("eye_drops", fn() => Items::MEDICINE()->setType(MedicineType::EYE_DROPS));
 		$result->register("feather", fn() => Items::FEATHER());
 		$result->register("fermented_spider_eye", fn() => Items::FERMENTED_SPIDER_EYE());
+		$result->register("field_masoned_banner_pattern", fn() => Items::FIELD_MASONED_BANNER_PATTERN());
 		$result->register("firework_rocket", fn() => Items::FIREWORK_ROCKET());
 		$result->register("firework_star", fn() => Items::FIREWORK_STAR());
 		$result->register("fireworks", fn() => Items::FIREWORK_ROCKET());
@@ -1467,9 +1482,12 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("flint", fn() => Items::FLINT());
 		$result->register("flint_and_steel", fn() => Items::FLINT_AND_STEEL());
 		$result->register("flint_steel", fn() => Items::FLINT_AND_STEEL());
+		$result->register("flow_banner_pattern", fn() => Items::FLOW_BANNER_PATTERN());
+		$result->register("flower_banner_pattern", fn() => Items::FLOWER_BANNER_PATTERN());
 		$result->register("ghast_tear", fn() => Items::GHAST_TEAR());
 		$result->register("glass_bottle", fn() => Items::GLASS_BOTTLE());
 		$result->register("glistering_melon", fn() => Items::GLISTERING_MELON());
+		$result->register("globe_banner_pattern", fn() => Items::GLOBE_BANNER_PATTERN());
 		$result->register("glow_berries", fn() => Items::GLOW_BERRIES());
 		$result->register("glow_ink_sac", fn() => Items::GLOW_INK_SAC());
 		$result->register("glowstone_dust", fn() => Items::GLOWSTONE_DUST());
@@ -1498,6 +1516,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("golden_shovel", fn() => Items::GOLDEN_SHOVEL());
 		$result->register("golden_sword", fn() => Items::GOLDEN_SWORD());
 		$result->register("gunpowder", fn() => Items::GUNPOWDER());
+		$result->register("guster_banner_pattern", fn() => Items::GUSTER_BANNER_PATTERN());
 		$result->register("heart_of_the_sea", fn() => Items::HEART_OF_THE_SEA());
 		$result->register("honey_bottle", fn() => Items::HONEY_BOTTLE());
 		$result->register("host_armor_trim_smithing_template", fn() => Items::HOST_ARMOR_TRIM_SMITHING_TEMPLATE());
@@ -1529,12 +1548,14 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("leather_tunic", fn() => Items::LEATHER_TUNIC());
 		$result->register("mace", fn() => Items::MACE());
 		$result->register("magma_cream", fn() => Items::MAGMA_CREAM());
+		$result->register("mangrove_boat", fn() => Items::MANGROVE_BOAT());
 		$result->register("mangrove_hanging_sign", fn() => Items::MANGROVE_HANGING_SIGN());
 		$result->register("melon", fn() => Items::MELON());
 		$result->register("melon_seeds", fn() => Items::MELON_SEEDS());
 		$result->register("melon_slice", fn() => Items::MELON());
 		$result->register("milk_bucket", fn() => Items::MILK_BUCKET());
 		$result->register("minecart", fn() => Items::MINECART());
+		$result->register("mojang_banner_pattern", fn() => Items::MOJANG_BANNER_PATTERN());
 		$result->register("mushroom_stew", fn() => Items::MUSHROOM_STEW());
 		$result->register("mutton", fn() => Items::RAW_MUTTON());
 		$result->register("mutton_cooked", fn() => Items::COOKED_MUTTON());
@@ -1566,6 +1587,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("pale_oak_hanging_sign", fn() => Items::PALE_OAK_HANGING_SIGN());
 		$result->register("paper", fn() => Items::PAPER());
 		$result->register("phantom_membrane", fn() => Items::PHANTOM_MEMBRANE());
+		$result->register("piglin_banner_pattern", fn() => Items::PIGLIN_BANNER_PATTERN());
 		$result->register("pitcher_pod", fn() => Items::PITCHER_POD());
 		$result->register("poisonous_potato", fn() => Items::POISONOUS_POTATO());
 		$result->register("popped_chorus_fruit", fn() => Items::POPPED_CHORUS_FRUIT());
@@ -1614,6 +1636,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("record_relic", fn() => Items::RECORD_RELIC());
 		$result->register("record_stal", fn() => Items::RECORD_STAL());
 		$result->register("record_strad", fn() => Items::RECORD_STRAD());
+		$result->register("record_tears", fn() => Items::RECORD_TEARS());
 		$result->register("record_wait", fn() => Items::RECORD_WAIT());
 		$result->register("record_ward", fn() => Items::RECORD_WARD());
 		$result->register("recovery_compass", fn() => Items::RECOVERY_COMPASS());
@@ -1631,6 +1654,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("shield", fn() => Items::SHIELD());
 		$result->register("shulker_shell", fn() => Items::SHULKER_SHELL());
 		$result->register("silence_armor_trim_smithing_template", fn() => Items::SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE());
+		$result->register("skull_banner_pattern", fn() => Items::SKULL_BANNER_PATTERN());
 		$result->register("slime_ball", fn() => Items::SLIMEBALL());
 		$result->register("snout_armor_trim_smithing_template", fn() => Items::SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE());
 		$result->register("slimeball", fn() => Items::SLIMEBALL());
@@ -1639,6 +1663,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("spider_eye", fn() => Items::SPIDER_EYE());
 		$result->register("spire_armor_trim_smithing_template", fn() => Items::SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE());
 		$result->register("splash_potion", fn() => Items::SPLASH_POTION());
+		$result->register("pale_oak_boat", fn() => Items::PALE_OAK_BOAT());
 		$result->register("spruce_boat", fn() => Items::SPRUCE_BOAT());
 		$result->register("spruce_hanging_sign", fn() => Items::SPRUCE_HANGING_SIGN());
 		$result->register("spyglass", fn() => Items::SPYGLASS());

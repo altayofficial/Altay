@@ -25,6 +25,23 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-class PinkPetals extends BaseFlowerBed{
+use pocketmine\block\utils\SupportType;
+use pocketmine\math\Axis;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
 
+class HeavyCore extends Transparent{
+
+	protected function recalculateCollisionBoxes() : array{
+		return [
+			AxisAlignedBB::one()
+				->trim(Facing::UP, 8 / 16)
+				->squash(Axis::X, 4 / 16)
+				->squash(Axis::Z, 4 / 16)
+		];
+	}
+
+	public function getSupportType(int $facing) : SupportType{
+		return SupportType::NONE;
+	}
 }

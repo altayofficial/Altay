@@ -25,23 +25,21 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\utils\SupportType;
-use pocketmine\math\Axis;
-use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Facing;
+use pocketmine\block\utils\BlockEventHelper;
+use pocketmine\item\Fertilizer;
+use pocketmine\item\Item;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
 
-class HeavyCore extends Transparent{
+class ShortDryGrass extends BaseDryGrass{
 
-	protected function recalculateCollisionBoxes() : array{
-		return [
-			AxisAlignedBB::one()
-				->trim(Facing::UP, 8 / 16)
-				->squash(Axis::X, 4 / 16)
-				->squash(Axis::Z, 4 / 16)
-		];
-	}
-
-	public function getSupportType(int $facing) : SupportType{
-		return SupportType::NONE;
+	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+		if($item instanceof Fertilizer){
+			if(BlockEventHelper::grow($this, VanillaBlocks::TALL_DRY_GRASS(), $player)){
+				$item->pop();
+			}
+			return true;
+		}
+		return false;
 	}
 }

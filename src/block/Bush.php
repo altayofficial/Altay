@@ -25,23 +25,27 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\utils\SupportType;
-use pocketmine\math\Axis;
-use pocketmine\math\AxisAlignedBB;
+use pocketmine\block\utils\StaticSupportTrait;
 use pocketmine\math\Facing;
 
-class HeavyCore extends Transparent{
+class Bush extends Flowable{
+	use StaticSupportTrait;
 
-	protected function recalculateCollisionBoxes() : array{
-		return [
-			AxisAlignedBB::one()
-				->trim(Facing::UP, 8 / 16)
-				->squash(Axis::X, 4 / 16)
-				->squash(Axis::Z, 4 / 16)
-		];
+	public function canBeReplaced() : bool{
+		return true;
 	}
 
-	public function getSupportType(int $facing) : SupportType{
-		return SupportType::NONE;
+	public function getFlameEncouragement() : int{
+		return 60;
+	}
+
+	public function getFlammability() : int{
+		return 100;
+	}
+
+	private function canBeSupportedAt(Block $block) : bool{
+		$supportBlock = $block->getSide(Facing::DOWN);
+		//TODO: Moss block
+		return $supportBlock->hasTypeTag(BlockTypeTags::DIRT) || $supportBlock->hasTypeTag(BlockTypeTags::MUD);
 	}
 }

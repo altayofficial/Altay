@@ -54,6 +54,7 @@ use pocketmine\block\DoublePitcherCrop;
 use pocketmine\block\DoublePlant;
 use pocketmine\block\EndPortalFrame;
 use pocketmine\block\EndRod;
+use pocketmine\block\DriedGhast;
 use pocketmine\block\Farmland;
 use pocketmine\block\FillableCauldron;
 use pocketmine\block\Fire;
@@ -62,7 +63,9 @@ use pocketmine\block\Froglight;
 use pocketmine\block\FrostedIce;
 use pocketmine\block\GlazedTerracotta;
 use pocketmine\block\Hopper;
+use pocketmine\block\Kelp;
 use pocketmine\block\Lantern;
+use pocketmine\block\LeafLitter;
 use pocketmine\block\Leaves;
 use pocketmine\block\Lectern;
 use pocketmine\block\Lever;
@@ -111,6 +114,7 @@ use pocketmine\block\utils\PoweredByRedstone;
 use pocketmine\block\utils\SeagrassType;
 use pocketmine\block\VanillaBlocks as Blocks;
 use pocketmine\block\Vine;
+use pocketmine\block\Wildflowers;
 use pocketmine\data\bedrock\block\BlockLegacyMetadata;
 use pocketmine\data\bedrock\block\BlockStateDeserializeException;
 use pocketmine\data\bedrock\block\BlockStateNames as StateNames;
@@ -179,6 +183,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::BRICKS(), Ids::BRICK_BLOCK);
 		$reg->mapSimple(Blocks::BROWN_MUSHROOM(), Ids::BROWN_MUSHROOM);
 		$reg->mapSimple(Blocks::BUDDING_AMETHYST(), Ids::BUDDING_AMETHYST);
+		$reg->mapSimple(Blocks::BUSH(), Ids::BUSH);
 		$reg->mapSimple(Blocks::CALCITE(), Ids::CALCITE);
 		$reg->mapSimple(Blocks::CARTOGRAPHY_TABLE(), Ids::CARTOGRAPHY_TABLE);
 		$reg->mapSimple(Blocks::CHEMICAL_HEAT(), Ids::CHEMICAL_HEAT);
@@ -355,6 +360,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::END_STONE(), Ids::END_STONE);
 		$reg->mapSimple(Blocks::END_STONE_BRICKS(), Ids::END_BRICKS);
 		$reg->mapSimple(Blocks::FERN(), Ids::FERN);
+		$reg->mapSimple(Blocks::FIREFLY_BUSH(), Ids::FIREFLY_BUSH);
 		$reg->mapSimple(Blocks::FLETCHING_TABLE(), Ids::FLETCHING_TABLE);
 		$reg->mapSimple(Blocks::FLOWERING_AZALEA(), Ids::FLOWERING_AZALEA);
 		$reg->mapSimple(Blocks::GILDED_BLACKSTONE(), Ids::GILDED_BLACKSTONE);
@@ -448,6 +454,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::SCULK(), Ids::SCULK);
 		$reg->mapSimple(Blocks::SEA_LANTERN(), Ids::SEA_LANTERN);
 		$reg->mapSimple(Blocks::SHROOMLIGHT(), Ids::SHROOMLIGHT);
+		$reg->mapSimple(Blocks::SHORT_DRY_GRASS(), Ids::SHORT_DRY_GRASS);
 		$reg->mapSimple(Blocks::SHULKER_BOX(), Ids::UNDYED_SHULKER_BOX);
 		$reg->mapSimple(Blocks::SLIME(), Ids::SLIME);
 		$reg->mapSimple(Blocks::SMITHING_TABLE(), Ids::SMITHING_TABLE);
@@ -465,6 +472,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::SULFUR(), Ids::SULFUR);
 		$reg->mapSimple(Blocks::SULFUR_BRICKS(), Ids::SULFUR_BRICKS);
 		$reg->mapSimple(Blocks::TALL_GRASS(), Ids::SHORT_GRASS);  //no, this is not a typo - tall_grass is now the double block, just to be confusing :(
+		$reg->mapSimple(Blocks::TALL_DRY_GRASS(), Ids::TALL_DRY_GRASS);
 		$reg->mapSimple(Blocks::TINTED_GLASS(), Ids::TINTED_GLASS);
 		$reg->mapSimple(Blocks::TORCHFLOWER(), Ids::TORCHFLOWER);
 		$reg->mapSimple(Blocks::TUFF(), Ids::TUFF);
@@ -1397,6 +1405,10 @@ final class VanillaBlockMappings{
 			$commonProperties->horizontalFacingSWNE
 		]));
 		$reg->mapModel(Model::create(Blocks::DEEPSLATE(), Ids::DEEPSLATE)->properties([$commonProperties->pillarAxis]));
+		$reg->mapModel(Model::create(Blocks::DRIED_GHAST(), Ids::DRIED_GHAST)->properties([
+			$commonProperties->horizontalFacingCardinal,
+			new IntProperty(StateNames::REHYDRATION_LEVEL, 0, DriedGhast::MAX_REHYDRATION_LEVEL, fn(DriedGhast $b) => $b->getRehydrationLevel(), fn(DriedGhast $b, int $v) => $b->setRehydrationLevel($v))
+		]));
 		$reg->mapModel(Model::create(Blocks::DETECTOR_RAIL(), Ids::DETECTOR_RAIL)->properties([
 			new BoolProperty(StateNames::RAIL_DATA_BIT, fn(DetectorRail $b) => $b->isActivated(), fn(DetectorRail $b, bool $v) => $b->setActivated($v)),
 			new IntProperty(StateNames::RAIL_DIRECTION, 0, 5, fn(StraightOnlyRail $b) => $b->getShape(), fn(StraightOnlyRail $b, int $v) => $b->setShape($v)) //TODO: shared with ActivatorRail
@@ -1450,8 +1462,18 @@ final class VanillaBlockMappings{
 		$reg->mapModel(Model::create(Blocks::IRON_TRAPDOOR(), Ids::IRON_TRAPDOOR)->properties($commonProperties->trapdoorProperties));
 		$reg->mapModel(Model::create(Blocks::ITEM_FRAME(), Ids::FRAME)->properties($commonProperties->itemFrameProperties));
 
+		//K
+		$reg->mapModel(Model::create(Blocks::KELP(), Ids::KELP)->properties([
+			new IntProperty(StateNames::KELP_AGE, 0, Kelp::MAX_AGE, fn(Kelp $b) => $b->getAge(), fn(Kelp $b, int $v) => $b->setAge($v))
+		]));
+
 		//L
 		$reg->mapModel(Model::create(Blocks::LADDER(), Ids::LADDER)->properties([$commonProperties->horizontalFacingClassic]));
+		$reg->mapModel(Model::create(Blocks::LEAF_LITTER(), Ids::LEAF_LITTER)->properties([
+			//like pink petals, only 0-3 is used, but the state allows up to 7
+			new IntProperty(StateNames::GROWTH, 0, 7, fn(LeafLitter $b) => $b->getCount(), fn(LeafLitter $b, int $v) => $b->setCount(min($v, LeafLitter::MAX_COUNT)), offset: 1),
+			$commonProperties->horizontalFacingCardinal
+		]));
 		$reg->mapModel(Model::create(Blocks::LANTERN(), Ids::LANTERN)->properties([
 			new BoolProperty(StateNames::HANGING, fn(Lantern $b) => $b->isHanging(), fn(Lantern $b, bool $v) => $b->setHanging($v))
 		]));
@@ -1574,6 +1596,11 @@ final class VanillaBlockMappings{
 		]));
 		$reg->mapModel(Model::create(Blocks::WEIGHTED_PRESSURE_PLATE_HEAVY(), Ids::HEAVY_WEIGHTED_PRESSURE_PLATE)->properties([$commonProperties->analogRedstoneSignal]));
 		$reg->mapModel(Model::create(Blocks::WEIGHTED_PRESSURE_PLATE_LIGHT(), Ids::LIGHT_WEIGHTED_PRESSURE_PLATE)->properties([$commonProperties->analogRedstoneSignal]));
+		$reg->mapModel(Model::create(Blocks::WILDFLOWERS(), Ids::WILDFLOWERS)->properties([
+			//like pink petals, only 0-3 is used, but the state allows up to 7
+			new IntProperty(StateNames::GROWTH, 0, 7, fn(Wildflowers $b) => $b->getCount(), fn(Wildflowers $b, int $v) => $b->setCount(min($v, Wildflowers::MAX_COUNT)), offset: 1),
+			$commonProperties->horizontalFacingCardinal
+		]));
 	}
 
 	/**

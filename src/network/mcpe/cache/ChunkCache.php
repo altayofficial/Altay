@@ -56,6 +56,7 @@ class ChunkCache implements ChunkListener{
 			$world->addOnUnloadCallback(static function() use ($worldId) : void{
 				foreach(self::$instances[$worldId] as $cache){
 					$cache->caches = [];
+					$cache->usageCounts = [];
 				}
 				unset(self::$instances[$worldId]);
 				\GlobalLogger::get()->debug("Destroyed chunk packet caches for world#$worldId");
@@ -72,8 +73,10 @@ class ChunkCache implements ChunkListener{
 		foreach(self::$instances as $compressorMap){
 			foreach($compressorMap as $chunkCache){
 				foreach($chunkCache->caches as $chunkHash => $promise){
-					if(is_string($promise)){
-						//Do not clear promises that are not yet fulfilled; they will have requesters waiting on them
+					if(is_string($promise) && !isset($chunkCache->usageCounts[$chunkHash])){
+						//Do not clear promises that are not yet fulfilled; they will have requesters waiting on them.
+						//Retained caches are kept too - their chunks may no longer be loaded, in which case the cache
+						//could not be regenerated.
 						unset($chunkCache->caches[$chunkHash]);
 					}
 				}
@@ -86,6 +89,11 @@ class ChunkCache implements ChunkListener{
 	 * @phpstan-var array<int, CompressBatchPromise|string>
 	 */
 	private array $caches = [];
+	/**
+	 * @var int[]
+	 * @phpstan-var array<int, int>
+	 */
+	private array $usageCounts = [];
 
 	private int $hits = 0;
 	private int $misses = 0;
@@ -98,6 +106,38 @@ class ChunkCache implements ChunkListener{
 		private Compressor $compressor,
 		private int $dimensionId = DimensionIds::OVERWORLD
 	){}
+
+	/**
+	 * Marks a chunk's cached packet as being in use by a session. A retained cache survives the chunk being unloaded
+	 * from the world, so a session which was sent the chunk can keep serving it without the world having to keep the
+	 * chunk in memory. Every call must be paired with a release().
+	 */
+	public function retain(int $chunkX, int $chunkZ) : void{
+		$chunkHash = World::chunkHash($chunkX, $chunkZ);
+		$this->usageCounts[$chunkHash] = ($this->usageCounts[$chunkHash] ?? 0) + 1;
+	}
+
+	/**
+	 * Drops a reference previously taken by retain(). Once the last user releases it, the cache is thrown away if its
+	 * chunk is no longer loaded - a cache of a still-loaded chunk is left alone, since it can be regenerated on demand
+	 * and is worth keeping around for the next requester.
+	 */
+	public function release(int $chunkX, int $chunkZ) : void{
+		$chunkHash = World::chunkHash($chunkX, $chunkZ);
+		if(!isset($this->usageCounts[$chunkHash])){
+			return;
+		}
+		if($this->usageCounts[$chunkHash] > 1){
+			--$this->usageCounts[$chunkHash];
+			return;
+		}
+
+		unset($this->usageCounts[$chunkHash]);
+		if(!$this->world->isChunkLoaded($chunkX, $chunkZ)){
+			$this->destroy($chunkX, $chunkZ);
+			$this->world->unregisterChunkListener($this, $chunkX, $chunkZ);
+		}
+	}
 
 	private function prepareChunkAsync(int $chunkX, int $chunkZ, int $chunkHash) : CompressBatchPromise{
 		$this->world->registerChunkListener($this, $chunkX, $chunkZ);
@@ -205,6 +245,9 @@ class ChunkCache implements ChunkListener{
 	 * @see ChunkListener::onChunkUnloaded()
 	 */
 	public function onChunkUnloaded(int $chunkX, int $chunkZ, Chunk $chunk) : void{
+		if(($this->usageCounts[World::chunkHash($chunkX, $chunkZ)] ?? 0) > 0){
+			return;
+		}
 		$this->destroy($chunkX, $chunkZ);
 		$this->world->unregisterChunkListener($this, $chunkX, $chunkZ);
 	}

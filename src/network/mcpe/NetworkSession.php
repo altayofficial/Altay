@@ -207,6 +207,22 @@ class NetworkSession{
 	private ?InventoryManager $invManager = null;
 
 	/**
+	 * @var true[][]
+	 * @phpstan-var array<int, array<int, true>>
+	 */
+	private array $usedChunkCacheReferences = [];
+	/**
+	 * Caches we hold references in, kept per world so that releasing a reference never has to look up (and thereby
+	 * recreate) the cache of a world which has since been unloaded. The references are weak, so that a session holding
+	 * leftover references can't keep an unloaded world alive - if the cache is already gone, there is nothing to
+	 * release.
+	 *
+	 * @var \WeakReference[]
+	 * @phpstan-var array<int, \WeakReference<ChunkCache>>
+	 */
+	private array $usedChunkCaches = [];
+
+	/**
 	 * @var \Closure[]|ObjectSet
 	 * @phpstan-var ObjectSet<\Closure() : void>
 	 */
@@ -1287,7 +1303,15 @@ class NetworkSession{
 	 */
 	public function startUsingChunk(int $chunkX, int $chunkZ, \Closure $onCompletion) : void{
 		$world = $this->player->getLocation()->getWorld();
-		$promiseOrPacket = ChunkCache::getInstance($world, $this->compressor)->request($chunkX, $chunkZ);
+		$chunkCache = ChunkCache::getInstance($world, $this->compressor);
+		$worldId = $world->getId();
+		$chunkHash = World::chunkHash($chunkX, $chunkZ);
+		if(!isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){
+			$this->usedChunkCacheReferences[$worldId][$chunkHash] = true;
+			$this->usedChunkCaches[$worldId] = \WeakReference::create($chunkCache);
+			$chunkCache->retain($chunkX, $chunkZ);
+		}
+		$promiseOrPacket = $chunkCache->request($chunkX, $chunkZ);
 		if(is_string($promiseOrPacket)){
 			$this->sendChunkPacket($promiseOrPacket, $onCompletion, $world);
 			return;
@@ -1315,8 +1339,26 @@ class NetworkSession{
 		);
 	}
 
-	public function stopUsingChunk(int $chunkX, int $chunkZ) : void{
-
+	/**
+	 * @param World|null $world World the chunk belongs to, defaulting to the world the player is currently in. It has
+	 *                          to be given explicitly when the player has already been moved to another world.
+	 */
+	public function stopUsingChunk(int $chunkX, int $chunkZ, ?World $world = null) : void{
+		$world ??= $this->player?->getLocation()->getWorld();
+		if($world === null){
+			return;
+		}
+		$worldId = $world->getId();
+		$chunkHash = World::chunkHash($chunkX, $chunkZ);
+		if(isset($this->usedChunkCacheReferences[$worldId][$chunkHash])){
+			unset($this->usedChunkCacheReferences[$worldId][$chunkHash]);
+			//the cache is looked up from our own references instead of ChunkCache::getInstance(), which would
+			//resurrect the cache of an already unloaded world and leak it
+			($this->usedChunkCaches[$worldId] ?? null)?->get()?->release($chunkX, $chunkZ);
+			if(count($this->usedChunkCacheReferences[$worldId]) === 0){
+				unset($this->usedChunkCacheReferences[$worldId], $this->usedChunkCaches[$worldId]);
+			}
+		}
 	}
 
 	public function onEnterWorld() : void{

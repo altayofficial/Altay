@@ -894,11 +894,20 @@ final class BlockTypeIds{
 	public const MOSS_BLOCK = 10861;
 	public const DRIPSTONE_BLOCK = 10862;
 	public const POINTED_DRIPSTONE = 10863;
-	public const PALE_MOSS_BLOCK = 10864;
-	public const MOSS_CARPET = 10865;
+	public const WILDFLOWERS = 10864;
+	public const KELP = 10865;
 	public const HEAVY_CORE = 10866;
+	public const LEAF_LITTER = 10867;
+	public const BUSH = 10868;
+	public const FIREFLY_BUSH = 10869;
+	public const SHORT_DRY_GRASS = 10870;
+	public const TALL_DRY_GRASS = 10871;
+	public const DRIED_GHAST = 10872;
+  public const PALE_MOSS_BLOCK = 10873;
+	public const MOSS_CARPET = 10874;
 
-	public const FIRST_UNUSED_BLOCK_ID = 10867;
+
+	public const FIRST_UNUSED_BLOCK_ID = 10875;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_BLOCK_ID;
 

@@ -23,25 +23,23 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\block;
+namespace pocketmine\item;
 
-use pocketmine\block\utils\SupportType;
-use pocketmine\math\Axis;
-use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Facing;
+use pocketmine\block\utils\BannerPatternType;
 
-class HeavyCore extends Transparent{
+class BannerPattern extends Item{
+	private BannerPatternType $patternType;
 
-	protected function recalculateCollisionBoxes() : array{
-		return [
-			AxisAlignedBB::one()
-				->trim(Facing::UP, 8 / 16)
-				->squash(Axis::X, 4 / 16)
-				->squash(Axis::Z, 4 / 16)
-		];
+	public function __construct(ItemIdentifier $identifier, string $name, BannerPatternType $patternType){
+		parent::__construct($identifier, $name);
+		$this->patternType = $patternType;
 	}
 
-	public function getSupportType(int $facing) : SupportType{
-		return SupportType::NONE;
+	public function getPatternType() : BannerPatternType{
+		return $this->patternType;
+	}
+
+	public function getMaxStackSize() : int{
+		return 1;
 	}
 }

@@ -75,7 +75,7 @@ class MossBlock extends Opaque{
 
 					$isNearOrigin = abs($x - $bx) < self::SPREAD_RADIUS && abs($z - $bz) < self::SPREAD_RADIUS;
 					if((mt_rand() / mt_getrandmax()) < 0.6 || $isNearOrigin){
-						$world->setBlockAt($x, $y, $z, VanillaBlocks::MOSS_BLOCK());
+						$world->setBlockAt($x, $y, $z, $this->getMossBlock());
 						break;
 					}
 				}
@@ -124,7 +124,10 @@ class MossBlock extends Opaque{
 		}
 
 		if($roll < 0.46875){
-			//vanilla places moss carpet here, which Altay does not implement yet
+			$carpet = $this->getMossCarpet();
+			if($carpet !== null){
+				$world->setBlockAt($x, $y, $z, $carpet);
+			}
 			return;
 		}
 
@@ -148,6 +151,14 @@ class MossBlock extends Opaque{
 		}
 	}
 
+	protected function getMossBlock() : Block{
+		return VanillaBlocks::MOSS_BLOCK();
+	}
+
+	protected function getMossCarpet() : ?Block{
+		return VanillaBlocks::MOSS_CARPET();
+	}
+
 	private function canConvertToMoss(Block $block) : bool{
 		if($block instanceof Dirt){
 			return $block->getDirtType() !== DirtType::COARSE;
@@ -165,7 +176,7 @@ class MossBlock extends Opaque{
 		}
 
 		return match($block->getTypeId()){
-			BlockTypeIds::GRASS, BlockTypeIds::PODZOL, BlockTypeIds::FARMLAND, BlockTypeIds::MYCELIUM, BlockTypeIds::MOSS_BLOCK => true,
+			BlockTypeIds::GRASS, BlockTypeIds::PODZOL, BlockTypeIds::FARMLAND, BlockTypeIds::MYCELIUM, BlockTypeIds::MOSS_BLOCK, BlockTypeIds::PALE_MOSS_BLOCK => true,
 			default => false
 		};
 	}

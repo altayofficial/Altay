@@ -29,6 +29,7 @@ use pocketmine\block\inventory\HopperInventory;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\world\World;
+use function max;
 
 class Hopper extends Spawnable implements Container, Nameable{
 
@@ -36,6 +37,7 @@ class Hopper extends Spawnable implements Container, Nameable{
 	use NameableTrait;
 
 	private const TAG_TRANSFER_COOLDOWN = "TransferCooldown";
+	public const DEFAULT_TRANSFER_COOLDOWN = 8;
 
 	private HopperInventory $inventory;
 	private int $transferCooldown = 0;
@@ -43,13 +45,17 @@ class Hopper extends Spawnable implements Container, Nameable{
 	public function __construct(World $world, Vector3 $pos){
 		parent::__construct($world, $pos);
 		$this->inventory = new HopperInventory($this->position);
+		// Hopper::onScheduledUpdate() keeps rescheduling itself, but something has to start that chain off - both for
+		// newly placed hoppers and for the ones read back from disk.
+		$world->scheduleDelayedBlockUpdate($pos, 1);
 	}
 
 	public function readSaveData(CompoundTag $nbt) : void{
 		$this->loadItems($nbt);
 		$this->loadName($nbt);
 
-		$this->transferCooldown = $nbt->getInt(self::TAG_TRANSFER_COOLDOWN, 0);
+		// Only negative values are rejected here, to stay consistent with what setTransferCooldown() accepts.
+		$this->transferCooldown = max(0, $nbt->getInt(self::TAG_TRANSFER_COOLDOWN, 0));
 	}
 
 	protected function writeSaveData(CompoundTag $nbt) : void{
@@ -77,5 +83,16 @@ class Hopper extends Spawnable implements Container, Nameable{
 
 	public function getRealInventory() : HopperInventory{
 		return $this->inventory;
+	}
+
+	public function getTransferCooldown() : int{
+		return $this->transferCooldown;
+	}
+
+	public function setTransferCooldown(int $transferCooldown) : void{
+		if($transferCooldown < 0){
+			throw new \InvalidArgumentException("Transfer cooldown must not be negative");
+		}
+		$this->transferCooldown = $transferCooldown;
 	}
 }

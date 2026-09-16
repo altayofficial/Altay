@@ -1407,10 +1407,10 @@ class Server {
 		TypeConverter $typeConverter
 	) : bool{
 		$prettyIp = $ipV6 ? "[$ip]" : $ip;
-		$transportMode = strtolower($this->configGroup->getPropertyString(Yml::NETWORK_TRANSPORT, "raknet"));
+		$transportMode = strtolower($this->configGroup->getPropertyString(Yml::NETWORK_TRANSPORT, "nethernet"));
 		if($transportMode !== "raknet" && $transportMode !== "nethernet"){
-			$this->logger->warning("Unknown network transport \"$transportMode\", defaulting to \"raknet\"");
-			$transportMode = "raknet";
+			$this->logger->warning("Unknown network transport \"$transportMode\", defaulting to \"nethernet\"");
+			$transportMode = "nethernet";
 		}
 		$useRakNet = $transportMode === "raknet";
 		$useNetherNet = $transportMode === "nethernet" && !$ipV6; //nethernet discovery uses a single broadcast socket, a separate IPv6 bind is not needed

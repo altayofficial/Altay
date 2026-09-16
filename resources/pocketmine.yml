@@ -66,7 +66,7 @@ memory:
 network:
   # Network transport
   # Options: raknet or nethernet
-  transport: raknet
+  transport: nethernet
   #Settings for the NetherNet transport.
   nethernet:
     #Name shown to players the first time their client is asked to trust this server's identity.

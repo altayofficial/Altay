@@ -79,6 +79,7 @@ use function atan2;
 use function ceil;
 use function count;
 use function floor;
+use function intdiv;
 use function ksort;
 use function max;
 use function min;
@@ -132,6 +133,9 @@ abstract class Living extends Entity{
 	protected Attribute $absorptionAttr;
 	protected Attribute $knockbackResistanceAttr;
 	protected Attribute $moveSpeedAttr;
+
+	private const FREEZE_DAMAGE_INTERVAL_TICKS = 40;
+	private const FREEZE_MOVEMENT_PENALTY = -0.05;
 
 	protected ?bool $freezeProgressState = false;
 	protected int $freezeProgressTicks = 0;
@@ -529,31 +533,50 @@ abstract class Living extends Entity{
 	}
 
 	protected function getEntitySpecificCollisionBoxes(AxisAlignedBB $bb) : array{
-		$boxes = parent::getEntitySpecificCollisionBoxes($bb);
-		if(count($boxes) !== 0 || $this->sneaking || !$this->canWalkOnPowderSnow()){
-			return $boxes;
+		if($this->sneaking || !$this->canWalkOnPowderSnow()){
+			return parent::getEntitySpecificCollisionBoxes($bb);
 		}
 
+		//leather boots let the entity stand on top of the block, so the reduced fall collision must not be used here
 		return $this->getPowderSnowCollisionBoxes($bb, min((int) floor($bb->maxY), (int) floor($this->boundingBox->minY - 1)), 1.0);
 	}
 
 	protected function updateFreezeState(int $tickDiff) : bool{
 		$threshold = $this->getFreezeThresholdTicks();
 		if($this->freezeProgressState === true){
-			$this->setFreezeProgressTicks($this->freezeProgressTicks + $tickDiff);
-			if($this->freezeProgressTicks >= $threshold && (($this->freezeProgressTicks % 40 === 0) || $tickDiff > 40)){
-				$this->applyFreezeDamage();
+			$previousTicks = $this->freezeProgressTicks;
+			$this->setFreezeProgressTicks($previousTicks + $tickDiff);
+			if($this->freezeProgressTicks >= $threshold){
+				//damage is dealt whenever a damage interval boundary is crossed, otherwise a large tickDiff could skip one
+				$lastDamageTicks = max($previousTicks, $threshold - 1);
+				if(intdiv($this->freezeProgressTicks, self::FREEZE_DAMAGE_INTERVAL_TICKS) > intdiv($lastDamageTicks, self::FREEZE_DAMAGE_INTERVAL_TICKS)){
+					$this->applyFreezeDamage();
+				}
 			}
-			//TODO: apply movement modifier
+			$this->updateFreezeMovementModifier();
 			return true;
 		}
 
 		if($this->freezeProgressState === false && $this->freezeProgressTicks > 0){
 			$this->setFreezeProgressTicks(max(0, min($this->freezeProgressTicks, $threshold) - 2 * $tickDiff));
+			$this->updateFreezeMovementModifier();
 			return true;
 		}
 
 		return false;
+	}
+
+	/**
+	 * Applies the movement speed penalty matching the current freeze progress, removing the previously applied one.
+	 */
+	private function updateFreezeMovementModifier() : void{
+		$modifier = self::FREEZE_MOVEMENT_PENALTY * $this->getFreezeProgressRatio();
+		if($modifier === $this->freezeMovementAdd){
+			return;
+		}
+
+		$this->setMovementSpeed($this->getMovementSpeed() - $this->freezeMovementAdd + $modifier, true);
+		$this->freezeMovementAdd = $modifier;
 	}
 
 	protected function applyFreezeDamage() : void{

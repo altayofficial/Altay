@@ -27,11 +27,14 @@ namespace pmmp\TesterPlugin;
 
 use pmmp\TesterPlugin\hopper\HopperChainStressTest;
 use pmmp\TesterPlugin\hopper\HopperCooldownTest;
+use pmmp\TesterPlugin\hopper\HopperInventoryListenerDupeTest;
 use pmmp\TesterPlugin\hopper\HopperJukeboxDupeTest;
 use pmmp\TesterPlugin\hopper\HopperMoveEventDupeTest;
 use pmmp\TesterPlugin\hopper\HopperPickupBoundsTest;
 use pmmp\TesterPlugin\hopper\HopperPickupDupeTest;
 use pmmp\TesterPlugin\hopper\HopperPickupRangeTest;
+use pmmp\TesterPlugin\hopper\HopperPickupShulkerNestTest;
+use pmmp\TesterPlugin\hopper\HopperStaleUpdateTest;
 use pocketmine\event\Listener;
 use pocketmine\event\server\CommandEvent;
 use pocketmine\plugin\PluginBase;
@@ -85,9 +88,12 @@ class Main extends PluginBase implements Listener{
 			new HopperChainStressTest($this->getLogger(), $this),
 			new HopperCooldownTest($this->getLogger(), $this),
 			new HopperMoveEventDupeTest($this->getLogger(), $this),
+			new HopperInventoryListenerDupeTest($this->getLogger(), $this),
 			new HopperPickupDupeTest($this->getLogger(), $this),
 			new HopperPickupRangeTest($this->getLogger(), $this),
 			new HopperPickupBoundsTest($this->getLogger(), $this),
+			new HopperPickupShulkerNestTest($this->getLogger(), $this),
+			new HopperStaleUpdateTest($this->getLogger(), $this),
 			new HopperJukeboxDupeTest($this->getLogger(), $this)
 		];
 	}

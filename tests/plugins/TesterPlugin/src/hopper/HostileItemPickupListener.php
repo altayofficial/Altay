@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace pmmp\TesterPlugin\hopper;
 
 use pocketmine\block\VanillaBlocks;
+use pocketmine\entity\object\ItemEntity;
 use pocketmine\event\block\BlockItemPickupEvent;
 use pocketmine\event\Listener;
 use pocketmine\inventory\Inventory;
@@ -33,12 +34,13 @@ use function count;
 
 /**
  * Abuses BlockItemPickupEvent while a hopper is collecting an item entity, by cancelling the pickup, replacing the
- * collected item and redirecting the pickup into a completely different inventory.
+ * collected item, mutating the origin entity and redirecting the pickup into a completely different inventory.
  */
 final class HostileItemPickupListener implements Listener{
-	private const BEHAVIOUR_COUNT = 6;
+	private const BEHAVIOUR_COUNT = 8;
 
 	private int $calls = 0;
+	private int $ledger = 0;
 
 	/**
 	 * @param Inventory[] $foreignInventories inventories the pickup may be redirected into
@@ -72,7 +74,28 @@ final class HostileItemPickupListener implements Listener{
 					$event->setInventory($this->foreignInventories[$this->calls % count($this->foreignInventories)]);
 				}
 				break;
+			case 6:
+				$origin = $event->getOrigin();
+				if($origin instanceof ItemEntity && !$origin->isClosed()){
+					$current = $origin->getItem()->getCount();
+					if($current > 1){
+						$origin->setStackSize(1);
+						$this->ledger -= $current - 1;
+					}
+				}
+				break;
+			case 7:
+				$origin = $event->getOrigin();
+				if($origin instanceof ItemEntity && !$origin->isClosed() && !$origin->isFlaggedForDespawn()){
+					$this->ledger -= $origin->getItem()->getCount();
+					$origin->flagForDespawn();
+				}
+				break;
 		}
+	}
+
+	public function getLedger() : int{
+		return $this->ledger;
 	}
 
 	public function getCalls() : int{

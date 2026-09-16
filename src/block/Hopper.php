@@ -54,6 +54,7 @@ use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
+use function count;
 use function min;
 
 class Hopper extends Transparent implements PoweredByRedstone{
@@ -121,6 +122,13 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		if(!$tile instanceof TileHopper){
 			return;
 		}
+
+		$currentTick = $world->getServer()->getTick();
+		if($tile->getLastScheduledUpdateTick() === $currentTick){
+			return;
+		}
+		$tile->setLastScheduledUpdateTick($currentTick);
+
 		$world->scheduleDelayedBlockUpdate($this->position, 1);
 
 		// A powered hopper is locked, which freezes its cooldown instead of letting it tick down.
@@ -243,6 +251,11 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				// The source is always written first, so a listener reacting to either write can never observe the record
 				// in both the hopper and the jukebox at once.
 				$inventory->setItem($slot, $item);
+				$jukeboxBlock = $destination->getBlock();
+				if(!$jukeboxBlock instanceof Jukebox || $jukeboxBlock->getRecord() !== null){
+					$this->returnItemToSource($inventory, $slot, $recordToPush);
+					return false;
+				}
 				$jukeboxBlock->insertRecord($recordToPush);
 				$this->position->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
 				return true;
@@ -382,6 +395,13 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			if($ev->isCancelled()){
 				continue;
 			}
+			if($entity->isClosed() || $entity->isFlaggedForDespawn()){
+				continue;
+			}
+			$item = $entity->getItem();
+			if($item->isNull()){
+				continue;
+			}
 			$destination = $ev->getInventory();
 			if($destination === null){
 				continue;
@@ -392,6 +412,10 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			if(!$pickedUpItem->canStackWith($item)){
 				continue;
 			}
+			$probe = (clone $pickedUpItem)->setCount(1);
+			if(!$destination->canAddItem($probe)){
+				continue;
+			}
 			// Hoppers pick up as much of the item entity's stack as they can hold and leave the rest on the ground.
 			$entityCount = $item->getCount();
 			$addableQuantity = min($destination->getAddableItemQuantity($pickedUpItem), $entityCount);
@@ -399,8 +423,15 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				continue;
 			}
 
-			$destination->addItem((clone $pickedUpItem)->setCount($addableQuantity));
-			$remainingCount = $entityCount - $addableQuantity;
+			$leftover = $destination->addItem((clone $pickedUpItem)->setCount($addableQuantity));
+			$inserted = $addableQuantity - $this->countItems($leftover);
+			if($inserted <= 0){
+				continue;
+			}
+			if($entity->isClosed() || $entity->isFlaggedForDespawn()){
+				return true;
+			}
+			$remainingCount = $entity->getItem()->getCount() - $inserted;
 			if($remainingCount > 0){
 				$entity->setStackSize($remainingCount);
 			}else{
@@ -433,15 +464,19 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			return false;
 		}
 
+		// The source is always written first, so a listener reacting to either write can never observe the same item in
+		// both inventories at once.
+		$source->setItem($sourceSlot, $sourceItem);
+		$itemInSlot = $destination->getItem($destinationSlot);
+		if(!$this->canMergeInto($destination, $itemInSlot, $itemToMove)){
+			$this->returnItemToSource($source, $sourceSlot, $itemToMove);
+			return false;
+		}
 		if(!$itemInSlot->isNull()){
 			$itemInSlot->setCount($itemInSlot->getCount() + $itemToMove->getCount());
 		}else{
 			$itemInSlot = $itemToMove;
 		}
-
-		// The source is always written first, so a listener reacting to either write can never observe the same item in
-		// both inventories at once.
-		$source->setItem($sourceSlot, $sourceItem);
 		$destination->setItem($destinationSlot, $itemInSlot);
 		return true;
 	}
@@ -465,7 +500,11 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		}
 
 		$source->setItem($sourceSlot, $sourceItem);
-		$destination->addItem($itemToMove);
+		$leftover = $destination->addItem($itemToMove);
+		if(count($leftover) !== 0){
+			$this->returnItemToSource($source, $sourceSlot, $itemToMove);
+			return false;
+		}
 		return true;
 	}
 
@@ -508,6 +547,31 @@ class Hopper extends Transparent implements PoweredByRedstone{
 			}
 		}
 		return true;
+	}
+
+	private function returnItemToSource(Inventory $source, int $sourceSlot, Item $item) : void{
+		$current = $source->getItem($sourceSlot);
+		if($this->canMergeInto($source, $current, $item)){
+			if($current->isNull()){
+				$source->setItem($sourceSlot, clone $item);
+				return;
+			}
+			$current->setCount($current->getCount() + $item->getCount());
+			$source->setItem($sourceSlot, $current);
+			return;
+		}
+		$source->addItem(clone $item);
+	}
+
+	/**
+	 * @param Item[] $items
+	 */
+	private function countItems(array $items) : int{
+		$total = 0;
+		foreach($items as $item){
+			$total += $item->getCount();
+		}
+		return $total;
 	}
 
 	/**

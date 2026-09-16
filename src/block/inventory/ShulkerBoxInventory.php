@@ -53,11 +53,39 @@ class ShulkerBoxInventory extends SimpleInventory implements BlockInventory{
 	}
 
 	public function canAddItem(Item $item) : bool{
-		$blockTypeId = ItemTypeIds::toBlockTypeId($item->getTypeId());
-		if($blockTypeId === BlockTypeIds::SHULKER_BOX || $blockTypeId === BlockTypeIds::DYED_SHULKER_BOX){
+		if($this->isNestedShulkerBox($item)){
 			return false;
 		}
 		return parent::canAddItem($item);
+	}
+
+	public function getAddableItemQuantity(Item $item) : int{
+		if($this->isNestedShulkerBox($item)){
+			return 0;
+		}
+		return parent::getAddableItemQuantity($item);
+	}
+
+	public function addItem(Item ...$slots) : array{
+		$accepted = [];
+		$rejected = [];
+		foreach($slots as $slot){
+			if($this->isNestedShulkerBox($slot)){
+				$rejected[] = clone $slot;
+				continue;
+			}
+			$accepted[] = $slot;
+		}
+		$leftover = $accepted === [] ? [] : parent::addItem(...$accepted);
+		foreach($rejected as $item){
+			$leftover[] = $item;
+		}
+		return $leftover;
+	}
+
+	private function isNestedShulkerBox(Item $item) : bool{
+		$blockTypeId = ItemTypeIds::toBlockTypeId($item->getTypeId());
+		return $blockTypeId === BlockTypeIds::SHULKER_BOX || $blockTypeId === BlockTypeIds::DYED_SHULKER_BOX;
 	}
 
 	protected function animateBlock(bool $isOpen) : void{

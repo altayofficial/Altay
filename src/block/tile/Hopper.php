@@ -41,6 +41,7 @@ class Hopper extends Spawnable implements Container, Nameable{
 
 	private HopperInventory $inventory;
 	private int $transferCooldown = 0;
+	private int $lastScheduledUpdateTick = -1;
 
 	public function __construct(World $world, Vector3 $pos){
 		parent::__construct($world, $pos);
@@ -94,5 +95,13 @@ class Hopper extends Spawnable implements Container, Nameable{
 			throw new \InvalidArgumentException("Transfer cooldown must not be negative");
 		}
 		$this->transferCooldown = $transferCooldown;
+	}
+
+	public function getLastScheduledUpdateTick() : int{
+		return $this->lastScheduledUpdateTick;
+	}
+
+	public function setLastScheduledUpdateTick(int $tick) : void{
+		$this->lastScheduledUpdateTick = $tick;
 	}
 }

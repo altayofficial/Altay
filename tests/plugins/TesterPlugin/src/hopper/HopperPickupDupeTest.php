@@ -126,9 +126,10 @@ final class HopperPickupDupeTest extends HopperTestBase{
 	}
 
 	protected function checkInvariants(int $tick) : void{
+		$expected = $this->spawnedTotal + ($this->listener?->getLedger() ?? 0);
 		$total = $this->countItems($this->inventories) + $this->countDroppedItems();
-		if($total !== $this->spawnedTotal){
-			throw new TestFailedException("Dropped " . $this->spawnedTotal . " items but found $total after $tick ticks");
+		if($total !== $expected){
+			throw new TestFailedException("Expected $expected items after $tick ticks, but found $total");
 		}
 		$this->refillEntities();
 	}

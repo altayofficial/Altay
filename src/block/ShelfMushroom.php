@@ -67,13 +67,13 @@ class ShelfMushroom extends Flowable implements Ageable, HorizontalFacing{
 		if(Facing::axis($face) === Axis::Y || !$this->canBeSupportedAt($blockReplace, Facing::opposite($face))){
 			return false;
 		}
-		$this->facing = Facing::opposite($face);
+		$this->facing = $face;
 
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
 	public function onNearbyBlockChange() : void{
-		if(!$this->canBeSupportedAt($this, $this->facing)){
+		if(!$this->canBeSupportedAt($this, Facing::opposite($this->facing))){
 			$this->position->getWorld()->useBreakOn($this->position);
 		}else{
 			parent::onNearbyBlockChange();

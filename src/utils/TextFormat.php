@@ -76,6 +76,7 @@ abstract class TextFormat{
 	public const MATERIAL_LAPIS = TextFormat::ESCAPE . "t";
 	public const MATERIAL_AMETHYST = TextFormat::ESCAPE . "u";
 	public const MATERIAL_RESIN = TextFormat::ESCAPE . "v";
+	public const PARTY_BLUE = TextFormat::ESCAPE . "w";
 
 	public const COLORS = [
 		self::BLACK => self::BLACK,
@@ -106,6 +107,7 @@ abstract class TextFormat{
 		self::MATERIAL_LAPIS => self::MATERIAL_LAPIS,
 		self::MATERIAL_AMETHYST => self::MATERIAL_AMETHYST,
 		self::MATERIAL_RESIN => self::MATERIAL_RESIN,
+		self::PARTY_BLUE => self::PARTY_BLUE,
 	];
 
 	public const OBFUSCATED = TextFormat::ESCAPE . "k";
@@ -154,7 +156,7 @@ abstract class TextFormat{
 	 * @return string[]
 	 */
 	public static function tokenize(string $string) : array{
-		$result = preg_split("/(" . TextFormat::ESCAPE . "[0-9a-v])/u", $string, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+		$result = preg_split("/(" . TextFormat::ESCAPE . "[0-9a-w])/u", $string, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 		if($result === false) throw self::makePcreError();
 		return $result;
 	}
@@ -168,7 +170,7 @@ abstract class TextFormat{
 		$string = mb_scrub($string, 'UTF-8');
 		$string = self::preg_replace("/[\x{E000}-\x{F8FF}]/u", "", $string); //remove unicode private-use-area characters (they might break the console)
 		if($removeFormat){
-			$string = str_replace(TextFormat::ESCAPE, "", self::preg_replace("/" . TextFormat::ESCAPE . "[0-9a-v]/u", "", $string));
+			$string = str_replace(TextFormat::ESCAPE, "", self::preg_replace("/" . TextFormat::ESCAPE . "[0-9a-w]/u", "", $string));
 		}
 		return str_replace("\x1b", "", self::preg_replace("/\x1b[\\(\\][[0-9;\\[\\(]+[Bm]/u", "", $string));
 	}
@@ -179,7 +181,7 @@ abstract class TextFormat{
 	 * @param string $placeholder default "&"
 	 */
 	public static function colorize(string $string, string $placeholder = "&") : string{
-		return self::preg_replace('/' . preg_quote($placeholder, "/") . '([0-9a-v])/u', TextFormat::ESCAPE . '$1', $string);
+		return self::preg_replace('/' . preg_quote($placeholder, "/") . '([0-9a-w])/u', TextFormat::ESCAPE . '$1', $string);
 	}
 
 	/**
@@ -229,34 +231,35 @@ abstract class TextFormat{
 		$tokens = 0;
 		foreach(self::tokenize($string) as $token){
 			$formatString = match($token){
-				TextFormat::BLACK => "color:#000",
-				TextFormat::DARK_BLUE => "color:#00A",
-				TextFormat::DARK_GREEN => "color:#0A0",
-				TextFormat::DARK_AQUA => "color:#0AA",
-				TextFormat::DARK_RED => "color:#A00",
-				TextFormat::DARK_PURPLE => "color:#A0A",
-				TextFormat::GOLD => "color:#FA0",
-				TextFormat::GRAY => "color:#AAA",
-				TextFormat::DARK_GRAY => "color:#555",
-				TextFormat::BLUE => "color:#55F",
-				TextFormat::GREEN => "color:#5F5",
-				TextFormat::AQUA => "color:#5FF",
-				TextFormat::RED => "color:#F55",
-				TextFormat::LIGHT_PURPLE => "color:#F5F",
-				TextFormat::YELLOW => "color:#FF5",
-				TextFormat::WHITE => "color:#FFF",
-				TextFormat::MINECOIN_GOLD => "color:#dd0",
-				TextFormat::MATERIAL_QUARTZ => "color:#e2d3d1",
-				TextFormat::MATERIAL_IRON => "color:#cec9c9",
-				TextFormat::MATERIAL_NETHERITE => "color:#44393a",
-				TextFormat::MATERIAL_REDSTONE => "color:#961506",
-				TextFormat::MATERIAL_COPPER => "color:#b4684d",
-				TextFormat::MATERIAL_GOLD => "color:#deb02c",
-				TextFormat::MATERIAL_EMERALD => "color:#119f36",
-				TextFormat::MATERIAL_DIAMOND => "color:#2cb9a8",
-				TextFormat::MATERIAL_LAPIS => "color:#20487a",
-				TextFormat::MATERIAL_AMETHYST => "color:#9a5cc5",
-				TextFormat::MATERIAL_RESIN => "color:#fc7812",
+				TextFormat::BLACK => "color:#000000",
+				TextFormat::DARK_BLUE => "color:#0000aa",
+				TextFormat::DARK_GREEN => "color:#00aa00",
+				TextFormat::DARK_AQUA => "color:#00aaaa",
+				TextFormat::DARK_RED => "color:#aa0000",
+				TextFormat::DARK_PURPLE => "color:#aa00aa",
+				TextFormat::GOLD => "color:#ffaa00",
+				TextFormat::GRAY => "color:#c6c6c6",
+				TextFormat::DARK_GRAY => "color:#555555",
+				TextFormat::BLUE => "color:#447fff",
+				TextFormat::GREEN => "color:#55ff55",
+				TextFormat::AQUA => "color:#55ffff",
+				TextFormat::RED => "color:#ff5555",
+				TextFormat::LIGHT_PURPLE => "color:#ff55ff",
+				TextFormat::YELLOW => "color:#ffff55",
+				TextFormat::WHITE => "color:#ffffff",
+				TextFormat::MINECOIN_GOLD => "color:#ddd605",
+				TextFormat::MATERIAL_QUARTZ => "color:#d9ccb8",
+				TextFormat::MATERIAL_IRON => "color:#a9b4b7",
+				TextFormat::MATERIAL_NETHERITE => "color:#8f727d",
+				TextFormat::MATERIAL_REDSTONE => "color:#ee222c",
+				TextFormat::MATERIAL_COPPER => "color:#c87363",
+				TextFormat::MATERIAL_GOLD => "color:#ffbf1e",
+				TextFormat::MATERIAL_EMERALD => "color:#13a045",
+				TextFormat::MATERIAL_DIAMOND => "color:#5fecff",
+				TextFormat::MATERIAL_LAPIS => "color:#577bff",
+				TextFormat::MATERIAL_AMETHYST => "color:#b66cdd",
+				TextFormat::MATERIAL_RESIN => "color:#ff6a00",
+				TextFormat::PARTY_BLUE => "color:#8cb3ff",
 				TextFormat::BOLD => "font-weight:bold",
 				TextFormat::ITALIC => "font-style:italic",
 				default => null

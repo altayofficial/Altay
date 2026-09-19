@@ -45,6 +45,7 @@ use pocketmine\block\CaveVines;
 use pocketmine\block\ChiseledBookshelf;
 use pocketmine\block\ChorusFlower;
 use pocketmine\block\CocoaBlock;
+use pocketmine\block\Composter;
 use pocketmine\block\Copper;
 use pocketmine\block\CopperLantern;
 use pocketmine\block\DaylightSensor;
@@ -85,6 +86,7 @@ use pocketmine\block\RedstoneRepeater;
 use pocketmine\block\RedstoneTorch;
 use pocketmine\block\RespawnAnchor;
 use pocketmine\block\Sapling;
+use pocketmine\block\Scaffolding;
 use pocketmine\block\Seagrass;
 use pocketmine\block\SeaPickle;
 use pocketmine\block\ShelfMushroom;
@@ -1445,6 +1447,9 @@ final class VanillaBlockMappings{
 			new IntProperty(StateNames::AGE, 0, 2, fn(CocoaBlock $b) => $b->getAge(), fn(CocoaBlock $b, int $v) => $b->setAge($v)),
 			$commonProperties->horizontalFacingSWNEInverted
 		]));
+		$reg->mapModel(Model::create(Blocks::COMPOSTER(), Ids::COMPOSTER)->properties([
+			new IntProperty(StateNames::COMPOSTER_FILL_LEVEL, Composter::MIN_FILL_LEVEL, Composter::MAX_FILL_LEVEL, fn(Composter $b) => $b->getFillLevel(), fn(Composter $b, int $v) => $b->setFillLevel($v))
+		]));
 
 		//D
 		$reg->mapModel(Model::create(Blocks::DECORATED_POT(), Ids::DECORATED_POT)->properties([
@@ -1584,6 +1589,10 @@ final class VanillaBlockMappings{
 		]));
 
 		//S
+		$reg->mapModel(Model::create(Blocks::SCAFFOLDING(), Ids::SCAFFOLDING)->properties([
+			new IntProperty(StateNames::STABILITY, Scaffolding::MIN_STABILITY, Scaffolding::MAX_STABILITY, fn(Scaffolding $b) => $b->getStability(), fn(Scaffolding $b, int $v) => $b->setStability($v)),
+			new DummyProperty(StateNames::STABILITY_CHECK, false) //server-side only in Altay, stability is recalculated on block updates
+		]));
 		$reg->mapModel(Model::create(Blocks::SHELF_MUSHROOM(), Ids::SHELF_MUSHROOM)->properties([
 			new IntProperty(StateNames::GROWTH, 0, ShelfMushroom::MAX_AGE, fn(ShelfMushroom $b) => $b->getAge(), fn(ShelfMushroom $b, int $v) => $b->setAge($v)),
 			$commonProperties->horizontalFacingCardinal

@@ -1468,6 +1468,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("creeper_banner_pattern", fn() => Items::CREEPER_BANNER_PATTERN());
 		$result->register("crimson_hanging_sign", fn() => Items::CRIMSON_HANGING_SIGN());
 		$result->register("cherry_boat", fn() => Items::CHERRY_BOAT());
+		$result->register("crossbow", fn() => Items::CROSSBOW());
 		$result->register("dark_oak_boat", fn() => Items::DARK_OAK_BOAT());
 		$result->register("dark_oak_hanging_sign", fn() => Items::DARK_OAK_HANGING_SIGN());
 		$result->register("diamond", fn() => Items::DIAMOND());

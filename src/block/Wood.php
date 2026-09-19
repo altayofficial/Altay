@@ -68,7 +68,7 @@ class Wood extends Opaque implements PillarRotation, WoodMaterial{
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if(!$this->stripped && $item instanceof Axe){
-			$item->applyDamage(1);
+			$this->damageHeldItem($item, $player);
 			$this->stripped = true;
 			$this->position->getWorld()->setBlock($this->position, $this);
 			$this->position->getWorld()->addSound($this->position, new ItemUseOnBlockSound($this));

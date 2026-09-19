@@ -40,11 +40,14 @@ use pocketmine\data\runtime\RuntimeDataSizeCalculator;
 use pocketmine\data\runtime\RuntimeDataWriter;
 use pocketmine\entity\Entity;
 use pocketmine\entity\projectile\Projectile;
+use pocketmine\event\item\ItemDamageEvent;
 use pocketmine\item\enchantment\AvailableEnchantmentRegistry;
 use pocketmine\item\enchantment\ItemEnchantmentTagRegistry;
 use pocketmine\item\enchantment\ItemEnchantmentTags;
 use pocketmine\item\enchantment\VanillaEnchantments;
+use pocketmine\item\Durable;
 use pocketmine\item\Item;
+use pocketmine\item\ItemDamageContext;
 use pocketmine\item\ItemBlock;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
@@ -520,6 +523,19 @@ class Block{
 	 */
 	public function onScheduledUpdate() : void{
 
+	}
+
+	protected function damageHeldItem(Durable $item, ?Player $player) : void{
+		$item->applyDamageWithContext(
+			1,
+			new ItemDamageContext(
+				ItemDamageEvent::CAUSE_BLOCK_INTERACT,
+				$player,
+				$this,
+				$player?->getInventory(),
+				$player?->getInventory()?->getHeldItemIndex()
+			)
+		);
 	}
 
 	/**

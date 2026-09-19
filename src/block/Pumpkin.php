@@ -37,7 +37,7 @@ class Pumpkin extends Opaque{
 
 	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($item instanceof Shears && in_array($face, Facing::HORIZONTAL, true)){
-			$item->applyDamage(1);
+			$this->damageHeldItem($item, $player);
 			$world = $this->position->getWorld();
 			$world->setBlock($this->position, VanillaBlocks::CARVED_PUMPKIN()->setFacing($face));
 			$world->dropItem($this->position->add(0.5, 0.5, 0.5), VanillaItems::PUMPKIN_SEEDS()->setCount(1));

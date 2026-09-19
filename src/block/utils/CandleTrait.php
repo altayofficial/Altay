@@ -55,7 +55,7 @@ trait CandleTrait{
 				return true;
 			}
 			if($item instanceof Durable){
-				$item->applyDamage(1);
+				$this->damageHeldItem($item, $player);
 			}elseif($item->getTypeId() === ItemTypeIds::FIRE_CHARGE){
 				$item->pop();
 				//TODO: not sure if this is intentional, but it's what Bedrock currently does as of 1.20.10

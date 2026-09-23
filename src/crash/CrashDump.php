@@ -32,18 +32,16 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\plugin\PluginManager;
 use pocketmine\Server;
 use pocketmine\thread\ThreadCrashInfoFrame;
-use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\Filesystem;
 use pocketmine\utils\Utils;
 use pocketmine\VersionInfo;
 use pocketmine\YmlServerProperties;
-use Symfony\Component\Filesystem\Path;
 use function array_map;
 use function base64_encode;
+use function basename;
 use function error_get_last;
 use function file;
 use function file_exists;
-use function file_get_contents;
 use function get_loaded_extensions;
 use function json_encode;
 use function ksort;
@@ -57,7 +55,7 @@ use function ob_start;
 use function php_uname;
 use function phpinfo;
 use function phpversion;
-use function preg_replace;
+use function preg_match;
 use function sprintf;
 use function str_split;
 use function str_starts_with;
@@ -161,17 +159,25 @@ class CrashDump{
 		}
 	}
 
+	/**
+	 * argv is mostly paths, and those say more about where the operator keeps
+	 * their files than about the crash. Anything under a known root collapses to
+	 * the short form used elsewhere in the dump; anything else keeps its name and
+	 * loses the directories above it.
+	 */
+	private static function cleanArgument(string $argument) : string{
+		$cleaned = Filesystem::cleanPath($argument);
+
+		return str_starts_with($cleaned, "/") || preg_match('#^[A-Za-z]:/#', $cleaned) === 1
+			? basename($cleaned)
+			: $cleaned;
+	}
+
 	private function extraData() : void{
 		global $argv;
 
 		if($this->server->getConfigGroup()->getPropertyBool(YmlServerProperties::AUTO_REPORT_SEND_SETTINGS, true)){
-			$this->data->parameters = (array) $argv;
-			if(($serverDotProperties = @file_get_contents(Path::join($this->server->getDataPath(), "server.properties"))) !== false){
-				$this->data->serverDotProperties = preg_replace("#^rcon\\.password=(.*)$#m", "rcon.password=******", $serverDotProperties) ?? throw new AssumptionFailedError("Pattern is valid");
-			}
-			if(($pocketmineDotYml = @file_get_contents(Path::join($this->server->getDataPath(), "pocketmine.yml"))) !== false){
-				$this->data->pocketmineDotYml = $pocketmineDotYml;
-			}
+			$this->data->parameters = array_map(self::cleanArgument(...), (array) $argv);
 		}
 		$extensions = [];
 		foreach(get_loaded_extensions() as $ext){
@@ -217,6 +223,7 @@ class CrashDump{
 
 		if(isset($lastError)){
 			$this->data->lastError = $lastError;
+			unset($this->data->lastError["fullFile"]);
 			$this->data->lastError["message"] = mb_scrub($this->data->lastError["message"], 'UTF-8');
 			$this->data->lastError["trace"] = array_map(array: $lastError["trace"], callback: fn(ThreadCrashInfoFrame $frame) => $frame->getPrintableFrame());
 		}

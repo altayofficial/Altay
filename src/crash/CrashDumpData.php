@@ -25,7 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\crash;
 
-final class CrashDumpData implements \JsonSerializable{
+final class CrashDumpData{
 
 	public int $format_version;
 
@@ -66,10 +66,6 @@ final class CrashDumpData implements \JsonSerializable{
 	 */
 	public array $parameters = [];
 
-	public string $serverDotProperties = "";
-
-	public string $pocketmineDotYml = "";
-
 	/**
 	 * @var string[]
 	 * @phpstan-var array<string, string>
@@ -81,16 +77,4 @@ final class CrashDumpData implements \JsonSerializable{
 	public string $phpinfo = "";
 
 	public CrashDumpDataGeneral $general;
-
-	/**
-	 * @return mixed[]
-	 */
-	public function jsonSerialize() : array{
-		$result = (array) $this;
-		unset($result["serverDotProperties"]);
-		unset($result["pocketmineDotYml"]);
-		$result["pocketmine.yml"] = $this->pocketmineDotYml;
-		$result["server.properties"] = $this->serverDotProperties;
-		return $result;
-	}
 }

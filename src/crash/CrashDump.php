@@ -177,7 +177,7 @@ class CrashDump{
 		global $argv;
 
 		if($this->server->getConfigGroup()->getPropertyBool(YmlServerProperties::AUTO_REPORT_SEND_SETTINGS, true)){
-			$this->data->parameters = array_map(self::cleanArgument(...), (array) $argv);
+			$this->data->parameters = array_values(array_map(self::cleanArgument(...), (array) $argv));
 		}
 		$extensions = [];
 		foreach(get_loaded_extensions() as $ext){

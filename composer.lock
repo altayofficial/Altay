@@ -140,16 +140,16 @@
         },
         {
             "name": "altayofficial/dtls",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/dtls.git",
-                "reference": "9313178b05900bb49212e09e37f97b37ffb8de52"
+                "reference": "0c405b1311619449778dd937bb4f2c9d706ce1ba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/dtls/zipball/9313178b05900bb49212e09e37f97b37ffb8de52",
-                "reference": "9313178b05900bb49212e09e37f97b37ffb8de52",
+                "url": "https://api.github.com/repos/altayofficial/dtls/zipball/0c405b1311619449778dd937bb4f2c9d706ce1ba",
+                "reference": "0c405b1311619449778dd937bb4f2c9d706ce1ba",
                 "shasum": ""
             },
             "require": {
@@ -174,9 +174,9 @@
             "description": "Pure PHP DTLS 1.2 - no FFI, no native libraries",
             "support": {
                 "issues": "https://github.com/altayofficial/dtls/issues",
-                "source": "https://github.com/altayofficial/dtls/tree/1.0.1"
+                "source": "https://github.com/altayofficial/dtls/tree/1.0.2"
             },
-            "time": "2026-09-16T17:27:00+00:00"
+            "time": "2026-09-25T14:13:05+00:00"
         },
         {
             "name": "altayofficial/nbt",

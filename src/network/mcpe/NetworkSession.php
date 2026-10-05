@@ -1041,7 +1041,7 @@ class NetworkSession{
 		$event->call();
 		$this->setHandler(new ResourcePacksPacketHandler($this, $event->getResourcePacks(), $event->getEncryptionKeys(), $event->mustAccept(), function() : void{
 			$this->createPlayer();
-		}));
+		}, $this->server->getConfigGroup()->getPropertyBool(YmlServerProperties::EDUCATION_ENABLED, true)));
 	}
 
 	private function beginSpawnSequence() : void{

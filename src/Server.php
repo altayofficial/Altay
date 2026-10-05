@@ -47,6 +47,7 @@ use pocketmine\event\player\PlayerDataSaveEvent;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\event\server\CommandEvent;
 use pocketmine\event\server\QueryRegenerateEvent;
+use pocketmine\inventory\CreativeInventory;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\lang\Language;
 use pocketmine\lang\LanguageNotFoundException;
@@ -1013,6 +1014,10 @@ class Server {
 			$this->commandMap = new SimpleCommandMap($this);
 
 			$this->craftingManager = CraftingManagerFromDataHelper::make(BedrockDataFiles::RECIPES_JSON);
+
+			if(!$this->configGroup->getPropertyBool(Yml::EDUCATION_ENABLED, true)){
+				CreativeInventory::getInstance()->removeEducationEditionContent();
+			}
 
 			$this->resourceManager = new ResourcePackManager(Path::join($this->dataPath, "resource_packs"), $this->logger);
 

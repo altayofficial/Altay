@@ -155,6 +155,10 @@ level-settings:
   #The default format that worlds will use when created
   default-format: leveldb
 
+education:
+  #Show Education Edition items (chemistry, elements, compounds) in the creative inventory and send the chemistry resource packs
+  enabled: true
+
 chunk-sending:
   #To change server normal render distance, change view-distance in server.properties.
   #Amount of chunks sent to players per tick

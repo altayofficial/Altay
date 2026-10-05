@@ -130,6 +130,7 @@ final class TimingsRecord{
 	public function startTiming(int $now) : void{
 		$this->start = $now;
 		self::$currentRecord = $this;
+		TimingsTimeline::startEntry($this, $now);
 	}
 
 	public function stopTiming(int $now) : void{
@@ -145,6 +146,7 @@ final class TimingsRecord{
 			throw new AssumptionFailedError("stopTiming() called on a non-current timer");
 		}
 		self::$currentRecord = $this->parentRecord;
+		TimingsTimeline::endEntry($now);
 		$diff = $now - $this->start;
 		$this->totalTime += $diff;
 		$this->curTickTotal += $diff;

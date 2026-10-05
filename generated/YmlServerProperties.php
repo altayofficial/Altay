@@ -123,6 +123,7 @@ final class YmlServerProperties{
 	public const SETTINGS_ASYNC_WORKERS = 'settings.async-workers';
 	public const SETTINGS_ENABLE_DEV_BUILDS = 'settings.enable-dev-builds';
 	public const SETTINGS_ENABLE_PROFILING = 'settings.enable-profiling';
+	public const SETTINGS_ENABLE_TIMELINE_PROFILING = 'settings.enable-timeline-profiling';
 	public const SETTINGS_FORCE_LANGUAGE = 'settings.force-language';
 	public const SETTINGS_PROFILE_REPORT_TRIGGER = 'settings.profile-report-trigger';
 	public const SETTINGS_QUERY_PLUGINS = 'settings.query-plugins';

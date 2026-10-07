@@ -25,6 +25,9 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use pocketmine\block\Planks;
+use pocketmine\block\VanillaBlocks;
+
 abstract class TieredTool extends Tool{
 	protected ToolTier $tier;
 
@@ -62,5 +65,19 @@ abstract class TieredTool extends Tool{
 
 	public function isFireProof() : bool{
 		return $this->tier === ToolTier::NETHERITE;
+	}
+
+	public function isValidRepairMaterial(Item $material) : bool{
+		return match($this->tier){
+			ToolTier::WOOD => $material->getBlock() instanceof Planks,
+			ToolTier::STONE => $material->equals(VanillaBlocks::COBBLESTONE()->asItem(), false, false) ||
+				$material->equals(VanillaBlocks::BLACKSTONE()->asItem(), false, false) ||
+				$material->equals(VanillaBlocks::COBBLED_DEEPSLATE()->asItem(), false, false),
+			ToolTier::GOLD => $material->equals(VanillaItems::GOLD_INGOT(), false, false),
+			ToolTier::COPPER => $material->equals(VanillaItems::COPPER_INGOT(), false, false),
+			ToolTier::IRON => $material->equals(VanillaItems::IRON_INGOT(), false, false),
+			ToolTier::DIAMOND => $material->equals(VanillaItems::DIAMOND(), false, false),
+			ToolTier::NETHERITE => $material->equals(VanillaItems::NETHERITE_INGOT(), false, false)
+		};
 	}
 }

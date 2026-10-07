@@ -82,6 +82,22 @@ class Armor extends Durable implements DyeableItem{
 		return $this->armorInfo->getMaterial();
 	}
 
+	public function isValidRepairMaterial(Item $material) : bool{
+		$repairItem = match($this->getMaterial()){
+			VanillaArmorMaterials::LEATHER() => VanillaItems::LEATHER(),
+			VanillaArmorMaterials::CHAINMAIL(), VanillaArmorMaterials::IRON() => VanillaItems::IRON_INGOT(),
+			VanillaArmorMaterials::GOLD() => VanillaItems::GOLD_INGOT(),
+			VanillaArmorMaterials::COPPER() => VanillaItems::COPPER_INGOT(),
+			VanillaArmorMaterials::DIAMOND() => VanillaItems::DIAMOND(),
+			VanillaArmorMaterials::NETHERITE() => VanillaItems::NETHERITE_INGOT(),
+			VanillaArmorMaterials::TURTLE() => VanillaItems::SCUTE(),
+			VanillaArmorMaterials::ELYTRA() => VanillaItems::PHANTOM_MEMBRANE(),
+			default => null
+		};
+
+		return $repairItem !== null && $material->equals($repairItem, false, false);
+	}
+
 	public function getTrim() : ?ArmorTrim{
 		return $this->trim;
 	}

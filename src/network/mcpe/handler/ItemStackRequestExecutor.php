@@ -25,8 +25,10 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
+use pocketmine\block\inventory\AnvilInventory;
 use pocketmine\block\inventory\EnchantInventory;
 use pocketmine\block\inventory\SmithingTableInventory;
+use pocketmine\block\utils\AnvilHelper;
 use pocketmine\crafting\CraftingResultTransfer;
 use pocketmine\crafting\ShapelessRecipe;
 use pocketmine\crafting\SmithingTrimRecipe;
@@ -35,6 +37,7 @@ use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\CreateItemAction;
 use pocketmine\inventory\transaction\action\DestroyItemAction;
 use pocketmine\inventory\transaction\action\DropItemAction;
+use pocketmine\inventory\transaction\AnvilTransaction;
 use pocketmine\inventory\transaction\CraftingTransaction;
 use pocketmine\inventory\transaction\EnchantingTransaction;
 use pocketmine\inventory\transaction\InventoryTransaction;
@@ -52,6 +55,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\FullContainerName;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\CraftingConsumeInputStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\CraftingCreateSpecificResultStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\CraftRecipeAutoStackRequestAction;
+use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\CraftRecipeOptionalStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\CraftRecipeStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\CreativeCreateStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\DeprecatedCraftingResultsStackRequestAction;
@@ -326,6 +330,42 @@ class ItemStackRequestExecutor{
 	/**
 	 * @throws ItemStackRequestProcessException
 	 */
+	private function beginAnvil(int $filterStringIndex) : void{
+		$window = $this->player->getCurrentWindow();
+		if(!$window instanceof AnvilInventory){
+			throw new ItemStackRequestProcessException("The optional recipe requires an open anvil");
+		}
+
+		$name = $this->request->getFilterStrings()[$filterStringIndex] ?? null;
+		if($name !== null){
+			try{
+				Utils::checkUTF8($name);
+			}catch(\InvalidArgumentException $e){
+				throw new ItemStackRequestProcessException("Invalid anvil item name: " . $e->getMessage(), 0, $e);
+			}
+			$name = AnvilHelper::sanitizeName($name);
+		}
+
+		$result = AnvilHelper::calculateResult(
+			$window->getItem(AnvilInventory::SLOT_INPUT),
+			$window->getItem(AnvilInventory::SLOT_MATERIAL),
+			$name,
+			!$this->player->hasFiniteResources()
+		);
+		if($result === null){
+			throw new ItemStackRequestProcessException("The items in the anvil cannot be combined");
+		}
+
+		$this->specialTransaction = new AnvilTransaction($this->player, $result);
+
+		$output = $result->getOutput();
+		$this->craftingResults = [$output];
+		$this->setNextCreatedItem($output);
+	}
+
+	/**
+	 * @throws ItemStackRequestProcessException
+	 */
 	protected function takeCreatedItem(int $count) : Item{
 		if($count < 1){
 			//this should be impossible at the protocol level, but in case of buggy core code this will prevent exploits
@@ -359,7 +399,8 @@ class ItemStackRequestExecutor{
 		if(
 			!$this->specialTransaction instanceof CraftingTransaction &&
 			!$this->specialTransaction instanceof EnchantingTransaction &&
-			!$this->specialTransaction instanceof SmithingTrimTransaction
+			!$this->specialTransaction instanceof SmithingTrimTransaction &&
+			!$this->specialTransaction instanceof AnvilTransaction
 		){
 			if($this->specialTransaction === null){
 				throw new ItemStackRequestProcessException("Expected CraftRecipe or CraftRecipeAuto action to precede this action");
@@ -418,6 +459,8 @@ class ItemStackRequestExecutor{
 			}
 		}elseif($action instanceof CraftRecipeAutoStackRequestAction){
 			$this->beginCrafting($action->getRecipeId(), $action->getRepetitions());
+		}elseif($action instanceof CraftRecipeOptionalStackRequestAction){
+			$this->beginAnvil($action->getFilterStringIndex());
 		}elseif($action instanceof CraftingConsumeInputStackRequestAction){
 			$this->assertDoingCrafting();
 			$consumed = $this->removeItemFromSlot($action->getSource(), $action->getCount());

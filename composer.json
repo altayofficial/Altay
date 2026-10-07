@@ -34,7 +34,7 @@
       "altayofficial/bedrock-data": "dev-bedrock-1.26.60",
       "altayofficial/bedrock-protocol": "dev-bedrock-1.26.60",
       "altayofficial/nbt": "~1.3.0",
-      "altayofficial/network": "~1.2.0",
+      "altayofficial/network": "~1.3.0",
       "altayofficial/webrtc": "^1.2.0",
       "altayofficial/worldupgraderschemas": "dev-bedrock-1.26.60",
       "netresearch/jsonmapper": "~v5.0.0",

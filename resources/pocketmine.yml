@@ -93,9 +93,10 @@ network:
     #above the player count when everyone arrives through one address, such as behind a proxy.
     max-pending-negotiations: 64
     max-negotiations-per-address: 32
-    #Of the addresses gathered above, the ones players joining by address can actually reach. The
-    #others are kept out of the answer, so those players do not spend a connectivity check on each.
-    #Leave empty to offer every gathered address.
+    #The addresses players joining by address can actually reach. Gathered addresses that are not
+    #listed are kept out of the answer, so those players do not spend a connectivity check on each,
+    #and a listed address that was never gathered, such as the public address of a forwarded port,
+    #is offered on the same port as the gathered ones. Leave empty to offer every gathered address.
     advertise-addresses: []
     #TCP port the join endpoint listens on, which is where the Servers tab asks for the MOTD and
     #posts its offer. Set to 0 to serve it on the server port.

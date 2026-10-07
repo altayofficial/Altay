@@ -64,9 +64,6 @@ memory:
     chunk-radius: 4
 
 network:
-  # Network transport
-  # Options: raknet or nethernet
-  transport: raknet
   #Settings for the NetherNet transport.
   nethernet:
     #Name shown to players the first time their client is asked to trust this server's identity.
@@ -126,16 +123,6 @@ network:
   async-compression-threshold: 10000
   #Experimental. Use UPnP to automatically port forward
   upnp-forwarding: false
-  #Maximum size in bytes of packets sent over the network (default 1492 bytes). Packets larger than this will be
-  #fragmented or split into smaller parts. Clients can request MTU sizes up to but not more than this number.
-  max-mtu-size: 1492
-  #Maximum number of fragments a single incoming packet may be split into. A client on a low MTU link splits the same
-  #payload into far more parts, so this is not a size limit; raise it if legitimate players are dropped with
-  #"received packet split into more parts than allowed". Worst-case reassembly memory per session is roughly
-  #max-split-packet-parts * max-concurrent-split-packets * max-mtu-size.
-  max-split-packet-parts: 192
-  #Maximum number of split packets a single session may reassemble at once.
-  max-concurrent-split-packets: 4
   #Enable encryption of Minecraft network traffic. This has an impact on performance, but prevents hackers from stealing sessions and pretending to be other players.
   #DO NOT DISABLE THIS unless you understand the risks involved.
   enable-encryption: true

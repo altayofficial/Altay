@@ -29,7 +29,7 @@ use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 
 /**
- * Called when a network interface is registered into the network, for example the RakLib interface.
+ * Called when a network interface is registered into the network, for example the NetherNet interface.
  */
 class NetworkInterfaceRegisterEvent extends NetworkInterfaceEvent implements Cancellable{
 	use CancellableTrait;

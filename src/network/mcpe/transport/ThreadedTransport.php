@@ -73,7 +73,8 @@ final class ThreadedTransport implements NameableTransport, RawPacketTransport, 
 	}
 
 	public function getServerId() : ?int{
-		return $this->factory instanceof RakNetTransportFactory ? $this->factory->getServerId() : null;
+		//NetherNet identifies a server by its network ID and has no RakNet style GUID
+		return null;
 	}
 
 	public function start(TransportListener $listener) : void{

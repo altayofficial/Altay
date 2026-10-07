@@ -30,12 +30,7 @@ use altay\network\nethernet\discovery\DiscoveryRequestPacket;
 use altay\network\nethernet\discovery\DiscoveryResponsePacket;
 use altay\network\nethernet\NetherNetTransport;
 use altay\network\nethernet\ServerData;
-use altay\network\raknet\protocol\MessageIdentifiers;
-use altay\network\raknet\protocol\PacketSerializer;
-use altay\network\raknet\protocol\UnconnectedPing;
-use altay\network\raknet\protocol\UnconnectedPong;
 use pocketmine\utils\BinaryDataException;
-use pocketmine\utils\BinaryStream;
 use pocketmine\utils\Utils;
 use function bin2hex;
 use function count;
@@ -44,7 +39,6 @@ use function gethostbynamel;
 use function hrtime;
 use function intdiv;
 use function mt_rand;
-use function ord;
 use function sleep;
 use function socket_bind;
 use function socket_close;
@@ -56,7 +50,6 @@ use function socket_select;
 use function socket_sendto;
 use function socket_strerror;
 use function strlen;
-use function strtolower;
 use function time;
 use function trim;
 use const AF_INET;
@@ -68,11 +61,6 @@ use const SOL_UDP;
 use const STDIN;
 
 require_once 'vendor/autoload.php';
-
-const TRANSPORT_RAKNET = "raknet";
-const TRANSPORT_NETHERNET = "nethernet";
-
-const RAKNET_DEFAULT_PORT = 19132;
 
 function hrtime_ms() : int{
 	return intdiv(hrtime(true), 1_000_000);
@@ -115,33 +103,6 @@ function send_datagram(\Socket $socket, string $payload, string $serverIp, int $
 		return false;
 	}
 	\GlobalLogger::get()->info("Ping sent to $serverIp on port $serverPort, waiting for response (press CTRL+C to abort)");
-	return true;
-}
-
-function ping_raknet(\Socket $socket, string $serverIp, int $serverPort, int $timeoutSeconds, int $clientId) : bool{
-	$ping = new UnconnectedPing();
-	$ping->sendPingTime = hrtime_ms();
-	$ping->clientId = $clientId;
-	$serializer = new PacketSerializer();
-	$ping->encode($serializer);
-	if(!send_datagram($socket, $serializer->getBuffer(), $serverIp, $serverPort)){
-		return false;
-	}
-
-	$recvBuffer = await_response($socket, $serverIp, $serverPort, $timeoutSeconds);
-	if($recvBuffer === null){
-		return false;
-	}
-	if($recvBuffer === "" || ord($recvBuffer[0]) !== MessageIdentifiers::ID_UNCONNECTED_PONG){
-		\GlobalLogger::get()->debug("Unexpected packet: " . bin2hex($recvBuffer));
-		return false;
-	}
-
-	$pong = new UnconnectedPong();
-	$pong->decode(new PacketSerializer($recvBuffer));
-	\GlobalLogger::get()->info("--- Response received ---");
-	\GlobalLogger::get()->info("Payload: $pong->serverName");
-	\GlobalLogger::get()->info("Response time: " . (hrtime_ms() - $pong->sendPingTime) . " ms");
 	return true;
 }
 
@@ -200,9 +161,8 @@ function decode_server_data(string $data) : ?array{
 }
 
 $argv ??= [];
-if(count($argv) > 4){
-	echo "Usage: " . PHP_BINARY . " " . __FILE__ . " [server IP] [server port] [transport]\n";
-	echo "Transport may be \"nethernet\" (default) or \"raknet\".\n";
+if(count($argv) > 3){
+	echo "Usage: " . PHP_BINARY . " " . __FILE__ . " [server IP] [server port]\n";
 	exit(1);
 }
 
@@ -225,19 +185,7 @@ if(count($serverIps) > 1){
 $server = $serverIps[0];
 \GlobalLogger::get()->info("Resolved hostname to $server");
 
-if(count($argv) > 3){
-	$transport = strtolower($argv[3]);
-}elseif(count($argv) > 1){
-	$transport = TRANSPORT_NETHERNET;
-}else{
-	$transportRaw = strtolower(read_stdin("Transport, nethernet or raknet (empty for nethernet)"));
-	$transport = $transportRaw === "" ? TRANSPORT_NETHERNET : $transportRaw;
-}
-if($transport !== TRANSPORT_NETHERNET && $transport !== TRANSPORT_RAKNET){
-	\GlobalLogger::get()->critical("Unknown transport \"$transport\", expected \"nethernet\" or \"raknet\"");
-	exit(1);
-}
-$defaultPort = $transport === TRANSPORT_NETHERNET ? NetherNetTransport::DISCOVERY_PORT : RAKNET_DEFAULT_PORT;
+$defaultPort = NetherNetTransport::DISCOVERY_PORT;
 
 if(count($argv) > 2){
 	$port = (int) $argv[2];
@@ -257,10 +205,7 @@ socket_getsockname($sock, $bindAddr, $bindPort);
 $clientId = mt_rand(0, PHP_INT_MAX);
 $start = time();
 while(time() < $start + 60_000){
-	$success = $transport === TRANSPORT_NETHERNET ?
-		ping_nethernet($sock, $server, $port, 5, $clientId) :
-		ping_raknet($sock, $server, $port, 5, $clientId);
-	if($success){
+	if(ping_nethernet($sock, $server, $port, 5, $clientId)){
 		break;
 	}
 	sleep(1);

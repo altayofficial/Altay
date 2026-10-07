@@ -47,17 +47,12 @@ use pocketmine\player\GameMode;
 use pocketmine\Server;
 use pocketmine\utils\Utils;
 use function addcslashes;
-use function base64_encode;
 use function implode;
 use function rtrim;
-use function substr;
 
 class TransportNetworkInterface implements AdvancedNetworkInterface, TransportListener{
 
-	private const MCPE_PACKET_ID = "\xfe";
-
 	private Network $network;
-	private bool $rakNetFraming;
 
 	/** @var NetworkSession[] */
 	private array $sessions = [];
@@ -70,9 +65,7 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 		private PacketBroadcaster $packetBroadcaster,
 		private EntityEventBroadcaster $entityEventBroadcaster,
 		private TypeConverter $typeConverter
-	){
-		$this->rakNetFraming = $transport->getName() === "raknet";
-	}
+	){}
 
 	public function start() : void{
 		try{
@@ -99,7 +92,7 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 			$this->server,
 			$this->network->getSessionManager(),
 			PacketPool::getInstance(),
-			new TransportPacketSender($session, $this, $this->rakNetFraming),
+			new TransportPacketSender($session, $this),
 			$this->packetBroadcaster,
 			$this->entityEventBroadcaster,
 			ZlibCompressor::getInstance(),
@@ -108,7 +101,7 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 			$session->getPort(),
 			//NetherNet connections are already encrypted at the DTLS layer, vanilla clients
 			//do not use Bedrock-layer encryption on top of it
-			$this->rakNetFraming,
+			false,
 			$session->getAuthenticatedPublicKey()
 		);
 		$this->sessions[$session->getId()] = $networkSession;
@@ -140,23 +133,14 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 	public function onPacketReceive(Transport $transport, TransportSession $session, string $payload) : void{
 		$sessionId = $session->getId();
 		if(isset($this->sessions[$sessionId])){
-			if($this->rakNetFraming){
-				if($payload === "" || $payload[0] !== self::MCPE_PACKET_ID){
-					$this->sessions[$sessionId]->getLogger()->debug("Non-FE packet received: " . base64_encode($payload));
-					return;
-				}
-				$buf = substr($payload, 1);
-			}else{
-				if($payload === ""){
-					return;
-				}
-				$buf = $payload;
+			if($payload === ""){
+				return;
 			}
 			$networkSession = $this->sessions[$sessionId];
 			$address = $networkSession->getIp();
 			$name = $networkSession->getDisplayName();
 			try{
-				$networkSession->handleEncoded($buf);
+				$networkSession->handleEncoded($payload);
 			}catch(PacketHandlingException $e){
 				$logger = $networkSession->getLogger();
 

@@ -66,7 +66,6 @@ use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\CompressionAlgorithm;
 use altay\network\nethernet\NetherNetTransport;
 use pocketmine\network\mcpe\transport\NetherNetTransportFactory;
-use pocketmine\network\mcpe\transport\RakNetTransportFactory;
 use pocketmine\network\mcpe\transport\ThreadedTransport;
 use pocketmine\network\mcpe\transport\TransportNetworkInterface;
 use pocketmine\network\mcpe\StandardEntityEventBroadcaster;
@@ -158,7 +157,6 @@ use function is_string;
 use function json_decode;
 use function max;
 use function microtime;
-use function mt_rand;
 use function min;
 use function mkdir;
 use function ob_end_flush;
@@ -1403,41 +1401,9 @@ class Server {
 		TypeConverter $typeConverter
 	) : bool{
 		$prettyIp = $ipV6 ? "[$ip]" : $ip;
-		$transportMode = strtolower($this->configGroup->getPropertyString(Yml::NETWORK_TRANSPORT, "raknet"));
-		if($transportMode !== "raknet" && $transportMode !== "nethernet"){
-			$this->logger->warning("Unknown network transport \"$transportMode\", defaulting to \"raknet\"");
-			$transportMode = "raknet";
-		}
-		$useRakNet = $transportMode === "raknet";
-		$useNetherNet = $transportMode === "nethernet" && !$ipV6; //nethernet discovery uses a single broadcast socket, a separate IPv6 bind is not needed
-		if($useRakNet && !$ipV6){ //only warn once, on the primary IPv4 pass
-			$this->logger->warning("----------------------------------------");
-			$this->logger->warning("The RakNet transport is deprecated and may be removed in a future release.");
-			$this->logger->warning("Consider switching \"network.transport\" to \"nethernet\" in pocketmine.yml.");
-			$this->logger->warning("----------------------------------------");
-		}
-		$rakNetRegistered = false;
 		try{
-			if($useRakNet){
-				$transport = new ThreadedTransport(
-					$this->logger,
-					new RakNetTransportFactory(
-						$ip,
-						$port,
-						$ipV6,
-						$this->configGroup->getPropertyInt(Yml::NETWORK_MAX_MTU_SIZE, 1492),
-						mt_rand(0, PHP_INT_MAX),
-						max(1, $this->configGroup->getPropertyInt(Yml::NETWORK_MAX_SPLIT_PACKET_PARTS, 192)),
-						max(1, $this->configGroup->getPropertyInt(Yml::NETWORK_MAX_CONCURRENT_SPLIT_PACKETS, 4))
-					),
-					$this->tickSleeper
-				);
-				$rakNetRegistered = $this->network->registerInterface(new TransportNetworkInterface($this, $transport, $packetBroadcaster, $entityEventBroadcaster, $typeConverter));
-				if($rakNetRegistered){
-					$this->logger->info($this->language->translate(KnownTranslationFactory::pocketmine_server_networkStart($prettyIp, (string) $port)));
-				}
-			}
-			if($useNetherNet){
+			//NetherNet discovery uses a single broadcast socket, so the IPv6 pass has no transport to start
+			if(!$ipV6){
 				[$requireIdentity, $requireEndpointIdentity] = $this->getNetherNetIdentityPolicy();
 				//the Servers tab asks for the MOTD and posts its offer over HTTP, and it does that on
 				//the server port unless the operator moved the endpoint somewhere else
@@ -1450,7 +1416,7 @@ class Server {
 					new NetherNetTransportFactory(
 						Binary::readLLong(substr(hash("sha256", $this->getServerUniqueId()->getBytes(), true), 0, 8)),
 						$this->getMotd(),
-						//the second line of the server card, kept on the same source as the RakNet pong
+						//the second line of the server card
 						$this->getName(),
 						$this->getMaxPlayers(),
 						$ip,
@@ -1489,11 +1455,7 @@ class Server {
 			return false;
 		}
 		if($useQuery){
-			if(!$rakNetRegistered){
-				//RakNet would normally handle the transport for Query packets on the server port
-				//if it's not registered we need to make sure Query still works
-				$this->network->registerInterface(new DedicatedQueryNetworkInterface($ip, $port, $ipV6, new \PrefixedLogger($this->logger, "Dedicated Query Interface")));
-			}
+			$this->network->registerInterface(new DedicatedQueryNetworkInterface($ip, $port, $ipV6, new \PrefixedLogger($this->logger, "Dedicated Query Interface")));
 			$this->logger->info($this->language->translate(KnownTranslationFactory::pocketmine_server_query_running($prettyIp, (string) $port)));
 		}
 		return true;

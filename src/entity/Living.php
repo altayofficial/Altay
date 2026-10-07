@@ -456,7 +456,8 @@ abstract class Living extends Entity{
 		}
 		if($source->canBeReducedByArmor()){
 			//MCPE uses the same system as PC did pre-1.9
-			$source->setModifier(-$source->getFinalDamage() * $this->getArmorPoints() * 0.04, EntityDamageEvent::MODIFIER_ARMOR);
+			//custom items can push defense points past 20, and past 25 the reduction flips the damage negative
+			$source->setModifier(-$source->getFinalDamage() * min($this->getArmorPoints(), 20) * 0.04, EntityDamageEvent::MODIFIER_ARMOR);
 		}
 
 		$cause = $source->getCause();

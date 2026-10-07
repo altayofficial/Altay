@@ -811,12 +811,6 @@ parameters:
 			path: ../../../src/network/mcpe/NetworkSession.php
 
 		-
-			message: '#^Parameter \#1 \$clientPub of class pocketmine\\network\\mcpe\\encryption\\PrepareEncryptionTask constructor expects string, string\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/network/mcpe/NetworkSession.php
-
-		-
 			message: '#^Parameter \#1 \$for of method pocketmine\\network\\mcpe\\NetworkSession\:\:syncAbilities\(\) expects pocketmine\\player\\Player, pocketmine\\player\\Player\|null given\.$#'
 			identifier: argument.type
 			count: 2
@@ -893,12 +887,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/network/mcpe/compression/CompressBatchTask.php
-
-		-
-			message: '#^Property pocketmine\\network\\mcpe\\encryption\\PrepareEncryptionTask\:\:\$serverPrivateKey \(string\) does not accept string\|null\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/network/mcpe/encryption/PrepareEncryptionTask.php
 
 		-
 			message: '#^Method pocketmine\\permission\\DefaultPermissions\:\:registerPermission\(\) should return pocketmine\\permission\\Permission but returns pocketmine\\permission\\Permission\|null\.$#'

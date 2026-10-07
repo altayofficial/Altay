@@ -123,9 +123,6 @@ network:
   async-compression-threshold: 10000
   #Experimental. Use UPnP to automatically port forward
   upnp-forwarding: false
-  #Enable encryption of Minecraft network traffic. This has an impact on performance, but prevents hackers from stealing sessions and pretending to be other players.
-  #DO NOT DISABLE THIS unless you understand the risks involved.
-  enable-encryption: true
 
 debug:
   #If > 1, it will show debug messages in the console

@@ -54,11 +54,13 @@ abstract class Timings{
 	public static TimingsHandler $playerNetworkSendCompress;
 	public static TimingsHandler $playerNetworkSendCompressBroadcast;
 	public static TimingsHandler $playerNetworkSendCompressSessionBuffer;
+	/** @deprecated Bedrock-layer encryption is gone, nothing is timed here any more */
 	public static TimingsHandler $playerNetworkSendEncrypt;
 	public static TimingsHandler $playerNetworkSendInventorySync;
 	public static TimingsHandler $playerNetworkSendPreSpawnGameData;
 	public static TimingsHandler $playerNetworkReceive;
 	public static TimingsHandler $playerNetworkReceiveDecompress;
+	/** @deprecated Bedrock-layer encryption is gone, nothing is timed here any more */
 	public static TimingsHandler $playerNetworkReceiveDecrypt;
 	public static TimingsHandler $playerChunkOrder;
 	public static TimingsHandler $playerChunkSend;

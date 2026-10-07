@@ -47,11 +47,7 @@ use pocketmine\network\mcpe\compression\CompressBatchPromise;
 use pocketmine\network\mcpe\compression\Compressor;
 use pocketmine\network\mcpe\compression\DecompressionException;
 use pocketmine\network\mcpe\convert\TypeConverter;
-use pocketmine\network\mcpe\encryption\DecryptionException;
-use pocketmine\network\mcpe\encryption\EncryptionContext;
-use pocketmine\network\mcpe\encryption\PrepareEncryptionTask;
 use pocketmine\network\mcpe\handler\DeathPacketHandler;
-use pocketmine\network\mcpe\handler\HandshakePacketHandler;
 use pocketmine\network\mcpe\handler\InGamePacketHandler;
 use pocketmine\network\mcpe\handler\LoginPacketHandler;
 use pocketmine\network\mcpe\handler\PacketHandler;
@@ -80,7 +76,6 @@ use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\serializer\AvailableCommandsPacketAssembler;
 use pocketmine\network\mcpe\protocol\serializer\PacketBatch;
 use pocketmine\network\mcpe\protocol\ServerboundPacket;
-use pocketmine\network\mcpe\protocol\ServerToClientHandshakePacket;
 use pocketmine\network\mcpe\protocol\SetDifficultyPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\SetSpawnPositionPacket;
@@ -179,7 +174,6 @@ class NetworkSession{
 	private int $connectTime;
 	private ?CompoundTag $cachedOfflinePlayerData = null;
 
-	private ?EncryptionContext $cipher = null;
 
 	/**
 	 * @var string[]
@@ -226,7 +220,6 @@ class NetworkSession{
 		private TypeConverter $typeConverter,
 		private string $ip,
 		private int $port,
-		private bool $enableEncryption = true,
 		private ?string $expectedIdentityPublicKey = null
 	){
 		$this->logger = new \PrefixedLogger($this->server->getLogger(), $this->getLogPrefix());
@@ -401,18 +394,6 @@ class NetworkSession{
 		Timings::$playerNetworkReceive->startTiming();
 		try{
 			$this->packetBatchLimiter->decrement();
-
-			if($this->cipher !== null){
-				Timings::$playerNetworkReceiveDecrypt->startTiming();
-				try{
-					$payload = $this->cipher->decrypt($payload);
-				}catch(DecryptionException $e){
-					$this->logger->debug("Encrypted packet: " . base64_encode($payload));
-					throw PacketHandlingException::wrap($e, "Packet decryption error");
-				}finally{
-					Timings::$playerNetworkReceiveDecrypt->stopTiming();
-				}
-			}
 
 			if(strlen($payload) < 1){
 				throw new PacketHandlingException("No bytes in payload");
@@ -771,12 +752,6 @@ class NetworkSession{
 	 * @phpstan-param list<PromiseResolver<true>> $ackPromises
 	 */
 	private function sendEncoded(string $payload, bool $immediate, array $ackPromises) : void{
-		if($this->cipher !== null){
-			Timings::$playerNetworkSendEncrypt->startTiming();
-			$payload = $this->cipher->encrypt($payload);
-			Timings::$playerNetworkSendEncrypt->stopTiming();
-		}
-
 		if(count($ackPromises) > 0){
 			$ackReceiptId = $this->nextAckReceiptId++;
 			$this->ackPromisesByReceiptId[$ackReceiptId] = $ackPromises;
@@ -988,21 +963,8 @@ class NetworkSession{
 			}
 		}
 
-		if(EncryptionContext::$ENABLED && $this->enableEncryption){
-			$this->server->getAsyncPool()->submitTask(new PrepareEncryptionTask($clientPubKey, function(string $encryptionKey, string $handshakeJwt) : void{
-				if(!$this->connected){
-					return;
-				}
-				$this->sendDataPacket(ServerToClientHandshakePacket::create($handshakeJwt), true); //make sure this gets sent before encryption is enabled
-
-				$this->cipher = EncryptionContext::fakeGCM($encryptionKey);
-
-				$this->setHandler(new HandshakePacketHandler($this->onServerLoginSuccess(...)));
-				$this->logger->debug("Enabled encryption");
-			}));
-		}else{
-			$this->onServerLoginSuccess();
-		}
+		//NetherNet already encrypts everything at the DTLS layer, so there is no Bedrock handshake on top
+		$this->onServerLoginSuccess();
 	}
 
 	private function onServerLoginSuccess() : void{

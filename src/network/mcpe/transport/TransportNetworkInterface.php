@@ -99,9 +99,6 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 			$this->typeConverter,
 			$session->getAddress(),
 			$session->getPort(),
-			//NetherNet connections are already encrypted at the DTLS layer, vanilla clients
-			//do not use Bedrock-layer encryption on top of it
-			false,
 			$session->getAuthenticatedPublicKey()
 		);
 		$this->sessions[$session->getId()] = $networkSession;

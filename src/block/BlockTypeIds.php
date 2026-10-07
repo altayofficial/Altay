@@ -930,8 +930,10 @@ final class BlockTypeIds{
 	public const ORANGE_POPLAR_LEAVES = 10897;
 	public const RED_POPLAR_LEAVES = 10898;
 	public const YELLOW_POPLAR_LEAVES = 10899;
+	public const COMPOSTER = 10900;
+	public const SCAFFOLDING = 10901;
 
-	public const FIRST_UNUSED_BLOCK_ID = 10900;
+	public const FIRST_UNUSED_BLOCK_ID = 10902;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_BLOCK_ID;
 

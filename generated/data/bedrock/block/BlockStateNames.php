@@ -123,7 +123,11 @@ final class BlockStateNames{
 	public const PROPAGULE_STAGE = "propagule_stage";
 	public const RAIL_DATA_BIT = "rail_data_bit";
 	public const RAIL_DIRECTION = "rail_direction";
+	public const REDSTONE_EAST = "redstone_east";
+	public const REDSTONE_NORTH = "redstone_north";
 	public const REDSTONE_SIGNAL = "redstone_signal";
+	public const REDSTONE_SOUTH = "redstone_south";
+	public const REDSTONE_WEST = "redstone_west";
 	public const REHYDRATION_LEVEL = "rehydration_level";
 	public const REPEATER_DELAY = "repeater_delay";
 	public const RESPAWN_ANCHOR_CHARGE = "respawn_anchor_charge";

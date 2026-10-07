@@ -65,7 +65,6 @@ class LegacySkinAdapter implements SkinAdapter{
 		$geometryData = $skin->getGeometryData();
 		return new SkinData(
 			$skin->getSkinId(),
-			"", //TODO: playfab ID
 			json_encode(["geometry" => ["default" => $geometryName]], JSON_THROW_ON_ERROR),
 			SkinImage::fromLegacy($skin->getSkinData()), [],
 			$capeImage,

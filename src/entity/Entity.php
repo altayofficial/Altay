@@ -1669,7 +1669,8 @@ abstract class Entity{
 			}, $this->attributeMap->getAll()),
 			$this->getAllNetworkData(),
 			new PropertySyncData([], []),
-			$this->getNetworkLinks()
+			$this->getNetworkLinks(),
+			null
 		));
 	}
 

@@ -29,6 +29,7 @@ use pocketmine\block\utils\Ageable;
 use pocketmine\block\utils\AgeableTrait;
 use pocketmine\block\utils\BlockEventHelper;
 use pocketmine\block\utils\SupportType;
+use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\event\block\BlockBurnEvent;
 use pocketmine\math\Facing;
 use pocketmine\world\format\Chunk;
@@ -38,10 +39,42 @@ use function max;
 use function min;
 use function mt_rand;
 
-class Fire extends BaseFire implements Ageable{
+class Fire extends BaseFire implements Ageable, StateDeriving{
 	use AgeableTrait;
 
 	public const MAX_AGE = 15;
+
+	/**
+	 * Sides the fire is licking at, only ever set when it is not sitting on a floor.
+	 * @var int[]
+	 * @phpstan-var array<int, int>
+	 */
+	protected array $connections = [];
+	protected bool $connectedUp = false;
+
+	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
+		$w->boundedIntAuto(0, self::MAX_AGE, $this->age);
+		$w->horizontalFacingFlags($this->connections);
+		$w->bool($this->connectedUp);
+	}
+
+	public function isConnected(int $facing) : bool{
+		return $facing === Facing::UP ? $this->connectedUp : isset($this->connections[$facing]);
+	}
+
+	/** @return $this */
+	public function setConnected(int $facing, bool $connected) : self{
+		if($facing === Facing::UP){
+			$this->connectedUp = $connected;
+		}elseif($facing === Facing::DOWN){
+			throw new \InvalidArgumentException("Fire cannot connect downwards");
+		}elseif($connected){
+			$this->connections[$facing] = $facing;
+		}else{
+			unset($this->connections[$facing]);
+		}
+		return $this;
+	}
 
 	protected function getFireDamage() : int{
 		return 1;
@@ -59,8 +92,30 @@ class Fire extends BaseFire implements Ageable{
 		}elseif(!$this->canBeSupportedBy($this->getSide(Facing::DOWN)) && !$this->hasAdjacentFlammableBlocks()){
 			$world->setBlock($this->position, VanillaBlocks::AIR());
 		}else{
+			if($this->deriveStateFromWorld()){
+				$world->setBlock($this->position, $this);
+			}
 			$world->scheduleDelayedBlockUpdate($this->position, mt_rand(30, 40));
 		}
+	}
+
+	/**
+	 * Fire resting on a floor stays flat. Without one it clings to whatever flammable blocks are
+	 * around it, which is what these connections show.
+	 */
+	public function deriveStateFromWorld() : bool{
+		$down = $this->getSide(Facing::DOWN);
+		$onFloor = $down->isFlammable() || $this->canBeSupportedBy($down);
+
+		$changed = false;
+		foreach([...Facing::HORIZONTAL, Facing::UP] as $facing){
+			$connected = !$onFloor && $this->getSide($facing)->isFlammable();
+			if($connected !== $this->isConnected($facing)){
+				$this->setConnected($facing, $connected);
+				$changed = true;
+			}
+		}
+		return $changed;
 	}
 
 	public function ticksRandomly() : bool{

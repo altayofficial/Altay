@@ -37,6 +37,7 @@ use pocketmine\data\bedrock\block\upgrade\BlockStateUpgrader;
 use pocketmine\data\bedrock\block\upgrade\BlockStateUpgradeSchemaUtils;
 use pocketmine\data\bedrock\block\upgrade\HorizontalConnectionUpgradeSchema;
 use pocketmine\data\bedrock\block\upgrade\LegacyBlockIdToStringIdMap;
+use pocketmine\data\bedrock\block\upgrade\NeighbourConnectionUpgradeSchema;
 use pocketmine\utils\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use const PHP_INT_MAX;
@@ -80,6 +81,7 @@ final class GlobalBlockStateHandlers{
 				PHP_INT_MAX
 			));
 			$blockStateUpgrader->addSchema(HorizontalConnectionUpgradeSchema::create());
+			$blockStateUpgrader->addSchema(NeighbourConnectionUpgradeSchema::create());
 			self::$blockDataUpgrader = new BlockDataUpgrader(
 				BlockIdMetaUpgrader::loadFromString(
 					Filesystem::fileGetContents(Path::join(

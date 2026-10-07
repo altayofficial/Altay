@@ -23,17 +23,14 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\world\sound;
+namespace pocketmine\block\utils;
 
-use pocketmine\math\Vector3;
-use pocketmine\network\mcpe\protocol\ClientboundUpdateSoundDataPacket;
-use pocketmine\network\mcpe\protocol\types\sound\StopSoundData;
-
-class RecordStopSound implements Sound{
-
-	public function __construct(private int $serverSoundHandle){}
-
-	public function encode(Vector3 $pos) : array{
-		return [ClientboundUpdateSoundDataPacket::create($this->serverSoundHandle, new StopSoundData())];
-	}
+/**
+ * How a piece of redstone wire reaches towards one of its horizontal neighbours
+ */
+enum RedstoneWireConnection{
+	case NONE;
+	case SIDE;
+	//climbs the face of the neighbouring block to wire sitting on top of it
+	case UP;
 }

@@ -43,6 +43,7 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\FilterNoisyPacketException;
 use pocketmine\network\mcpe\cache\ChunkCache;
+use pocketmine\network\mcpe\cache\EncodedPacketCache;
 use pocketmine\network\mcpe\compression\CompressBatchPromise;
 use pocketmine\network\mcpe\compression\Compressor;
 use pocketmine\network\mcpe\compression\DecompressionException;
@@ -600,6 +601,8 @@ class NetworkSession{
 		$timings = Timings::getSendDataPacketTimings($packet);
 		$timings->startTiming();
 		try{
+			$cachedEncoding = null;
+			$encodingCache = null;
 			if(DataPacketSendEvent::hasHandlers()){
 				$ev = new DataPacketSendEvent([$this], [$packet]);
 				$ev->call();
@@ -608,16 +611,26 @@ class NetworkSession{
 				}
 				$packets = $ev->getPackets();
 			}else{
+				//with nobody able to swap or tweak the packet per player, an immutable one can reuse the bytes from
+				//last time. With send handlers around we stay out of the way entirely
+				$encodingCache = EncodedPacketCache::getInstance();
+				$cachedEncoding = $encodingCache->get($packet);
 				$packets = [$packet];
 			}
 
 			if($ackReceiptResolver !== null){
 				$this->sendBufferAckPromises[] = $ackReceiptResolver;
 			}
-			$writer = new ByteBufferWriter();
-			foreach($packets as $evPacket){
-				$writer->clear(); //memory reuse let's gooooo
-				$this->addToSendBuffer(self::encodePacketTimed($writer, $evPacket));
+			if($cachedEncoding !== null){
+				$this->addToSendBuffer($cachedEncoding);
+			}else{
+				$writer = new ByteBufferWriter();
+				foreach($packets as $evPacket){
+					$writer->clear(); //memory reuse let's gooooo
+					$encoded = self::encodePacketTimed($writer, $evPacket);
+					$encodingCache?->remember($evPacket, $encoded);
+					$this->addToSendBuffer($encoded);
+				}
 			}
 			if($immediate){
 				$this->flushGamePacketQueue();

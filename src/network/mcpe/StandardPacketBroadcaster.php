@@ -88,6 +88,12 @@ final class StandardPacketBroadcaster implements PacketBroadcaster{
 				foreach($compressorTargets as $target){
 					$target->queueCompressed($batch);
 				}
+			}elseif(count($packetBuffers) === 1){
+				//the usual case, a single movement or event packet going to everyone who can see it
+				$packetBuffer = $packetBuffers[0];
+				foreach($compressorTargets as $target){
+					$target->addToSendBuffer($packetBuffer);
+				}
 			}else{
 				foreach($compressorTargets as $target){
 					foreach($packetBuffers as $packetBuffer){

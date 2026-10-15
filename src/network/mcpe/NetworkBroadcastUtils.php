@@ -46,33 +46,36 @@ final class NetworkBroadcastUtils{
 			throw new \InvalidArgumentException("Cannot broadcast empty list of packets");
 		}
 
-		return Timings::$broadcastPackets->time(function() use ($recipients, $packets) : bool{
-			/** @var NetworkSession[] $sessions */
-			$sessions = [];
+		//every entity movement goes through here once per tick with all its viewers, so this stays a single pass
+		//without the closure Timings::time() would need
+		Timings::$broadcastPackets->startTiming();
+		try{
+			/** @phpstan-var array<int, PacketBroadcaster> $uniqueBroadcasters */
+			$uniqueBroadcasters = [];
+			/** @phpstan-var array<int, array<int, NetworkSession>> $broadcasterTargets */
+			$broadcasterTargets = [];
 			foreach($recipients as $player){
-				if($player->isConnected()){
-					$sessions[] = $player->getNetworkSession();
+				$session = $player->getConnectedNetworkSession();
+				if($session === null){
+					continue;
 				}
+				$broadcaster = $session->getBroadcaster();
+				$broadcasterId = spl_object_id($broadcaster);
+				$uniqueBroadcasters[$broadcasterId] = $broadcaster;
+				$broadcasterTargets[$broadcasterId][spl_object_id($session)] = $session;
 			}
-			if(count($sessions) === 0){
+			if(count($uniqueBroadcasters) === 0){
 				return false;
 			}
 
-			/** @var PacketBroadcaster[] $uniqueBroadcasters */
-			$uniqueBroadcasters = [];
-			/** @var NetworkSession[][] $broadcasterTargets */
-			$broadcasterTargets = [];
-			foreach($sessions as $recipient){
-				$broadcaster = $recipient->getBroadcaster();
-				$uniqueBroadcasters[spl_object_id($broadcaster)] = $broadcaster;
-				$broadcasterTargets[spl_object_id($broadcaster)][spl_object_id($recipient)] = $recipient;
-			}
-			foreach($uniqueBroadcasters as $broadcaster){
-				$broadcaster->broadcastPackets($broadcasterTargets[spl_object_id($broadcaster)], $packets);
+			foreach($uniqueBroadcasters as $broadcasterId => $broadcaster){
+				$broadcaster->broadcastPackets($broadcasterTargets[$broadcasterId], $packets);
 			}
 
 			return true;
-		});
+		}finally{
+			Timings::$broadcastPackets->stopTiming();
+		}
 	}
 
 	/**

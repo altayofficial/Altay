@@ -28,9 +28,10 @@ namespace pocketmine\network\mcpe\convert;
 use pocketmine\data\bedrock\block\BlockStateData;
 use pocketmine\data\bedrock\block\BlockTypeNames;
 use pocketmine\nbt\BigEndianNbtSerializer;
+use pocketmine\nbt\NBT;
 use pocketmine\nbt\NbtDataException;
 use pocketmine\nbt\tag\CompoundTag;
-use pocketmine\nbt\tag\ListTag;
+use pocketmine\nbt\tag\Tag;
 use pocketmine\nbt\TreeRoot;
 use pocketmine\network\mcpe\protocol\serializer\NetworkNbtSerializer;
 use pocketmine\utils\Utils;
@@ -42,6 +43,10 @@ use function is_array;
 use function is_int;
 use function is_string;
 use function json_decode;
+use function ord;
+use function strlen;
+use function substr;
+use function unpack;
 use function zlib_decode;
 use const JSON_THROW_ON_ERROR;
 
@@ -186,16 +191,77 @@ final class BlockStateDictionary{
 	}
 
 	/**
-	 * Decompresses the gzipped big-endian NBT block palette (bedrock-network-data block_palette.nbt) and returns its
-	 * raw "blocks" list. Each entry carries its hashed network runtime ID (network_id), name and states.
+	 * Walks the "blocks" list of the gzipped big-endian NBT block palette (bedrock-network-data block_palette.nbt) one
+	 * entry at a time. Each entry carries its hashed network runtime ID (network_id), name and states.
+	 *
+	 * Decoding the whole tree up front peaks at ~50 MB for a 4.5 MB palette, and every async worker that serializes
+	 * chunks builds this dictionary, so we only ever hold one entry in memory here.
+	 *
+	 * @return \Generator<int, Tag, void, void>
 	 */
-	private static function loadBlocksFromString(string $blockPaletteContents) : ListTag{
-		$paletteRaw = zlib_decode($blockPaletteContents);
-		if($paletteRaw === false){
+	private static function streamBlocksFromString(string $blockPaletteContents) : \Generator{
+		$raw = zlib_decode($blockPaletteContents);
+		if($raw === false){
 			throw new \InvalidArgumentException("Failed to decompress block palette");
 		}
-		return (new BigEndianNbtSerializer())->read($paletteRaw)->mustGetCompoundTag()->getListTag("blocks") ??
-			throw new \InvalidArgumentException("Missing \"blocks\" list in block palette");
+		$length = strlen($raw);
+		$serializer = new BigEndianNbtSerializer();
+
+		$readName = static function(int &$offset) use ($raw, $length) : string{
+			if($offset + 2 > $length){
+				throw new \InvalidArgumentException("Unexpected end of block palette");
+			}
+			$unpacked = unpack("n", $raw, $offset);
+			if($unpacked === false){
+				throw new \InvalidArgumentException("Unexpected end of block palette");
+			}
+			$nameLength = $unpacked[1];
+			$name = substr($raw, $offset + 2, $nameLength);
+			$offset += 2 + $nameLength;
+			return $name;
+		};
+
+		$offset = 0;
+		if($length === 0 || ord($raw[$offset++]) !== NBT::TAG_Compound){
+			throw new \InvalidArgumentException("Block palette root must be a TAG_Compound");
+		}
+		$readName($offset);
+
+		try{
+			while($offset < $length){
+				$type = ord($raw[$offset++]);
+				if($type === NBT::TAG_End){
+					break;
+				}
+				$name = $readName($offset);
+				if($name !== "blocks" || $type !== NBT::TAG_List){
+					//not ours, decode it only to step over it
+					$serializer->readHeadless($raw, $type, $offset);
+					continue;
+				}
+
+				if($offset + 5 > $length){
+					throw new \InvalidArgumentException("Unexpected end of block palette");
+				}
+				$elementType = ord($raw[$offset]);
+				$unpacked = unpack("N", $raw, $offset + 1);
+				if($unpacked === false){
+					throw new \InvalidArgumentException("Unexpected end of block palette");
+				}
+				$count = $unpacked[1];
+				$offset += 5;
+				if($count > 0 && $elementType !== NBT::TAG_Compound){
+					throw new \InvalidArgumentException("Expected \"blocks\" to be a list of TAG_Compound");
+				}
+				for($i = 0; $i < $count; ++$i){
+					yield $i => $serializer->readHeadless($raw, NBT::TAG_Compound, $offset);
+				}
+				return;
+			}
+		}catch(NbtDataException $e){
+			throw new \InvalidArgumentException("Corrupted block palette: " . $e->getMessage(), 0, $e);
+		}
+		throw new \InvalidArgumentException("Missing \"blocks\" list in block palette");
 	}
 
 	/**
@@ -207,7 +273,7 @@ final class BlockStateDictionary{
 	 */
 	public static function loadStatesFromPalette(string $blockPaletteContents) : array{
 		$states = [];
-		foreach(self::loadBlocksFromString($blockPaletteContents) as $i => $blockTag){
+		foreach(self::streamBlocksFromString($blockPaletteContents) as $i => $blockTag){
 			if(!($blockTag instanceof CompoundTag)){
 				throw new \InvalidArgumentException("Invalid block palette entry at offset $i, expected TAG_Compound, got " . get_debug_type($blockTag));
 			}
@@ -228,8 +294,6 @@ final class BlockStateDictionary{
 			throw new \InvalidArgumentException("Invalid metaMap, expected array for root type, got " . get_debug_type($metaMap));
 		}
 
-		$blocks = self::loadBlocksFromString($blockPaletteContents);
-
 		$entries = [];
 
 		$uniqueNames = [];
@@ -242,7 +306,7 @@ final class BlockStateDictionary{
 			}
 		}
 
-		foreach($blocks as $i => $blockTag){
+		foreach(self::streamBlocksFromString($blockPaletteContents) as $i => $blockTag){
 			if(!($blockTag instanceof CompoundTag)){
 				throw new \InvalidArgumentException("Invalid block palette entry at offset $i, expected TAG_Compound, got " . get_debug_type($blockTag));
 			}

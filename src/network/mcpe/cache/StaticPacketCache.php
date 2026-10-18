@@ -300,10 +300,9 @@ class StaticPacketCache{
 		private VoxelShapesPacket $voxelShapesPacket,
 		private array $blockDefinitions
 	){
-		$encodedCache = EncodedPacketCache::getInstance();
-		$encodedCache->markImmutable($this->biomeDefinitionList);
-		$encodedCache->markImmutable($this->availableActorIdentifiers);
-		$encodedCache->markImmutable($this->voxelShapesPacket);
+		//hmm, plugins registering custom entities or biomes edit the actor identifier and biome packets in place
+		//through the getters, even after players joined, so those two have to be encoded fresh on every send
+		EncodedPacketCache::getInstance()->markImmutable($this->voxelShapesPacket);
 	}
 
 	public function getBiomeDefinitionList() : BiomeDefinitionListPacket{

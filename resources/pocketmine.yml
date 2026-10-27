@@ -108,6 +108,10 @@ network:
     #UDP ports a player's media may use, written as "first-last" and at least 100 ports wide. Leave
     #empty to let the system pick, which is fine until the ports have to be forwarded.
     udp-port-range: ""
+    #One UDP port every player's media shares, so it is the only one that has to be forwarded. This
+    #wins over udp-port-range. It may be the server port as long as enable-query is off, since query
+    #listens on that one. Set to 0 to give each player a port of their own.
+    udp-port: 0
     #Log what the ICE, DTLS and SCTP layers have to say about every connection, which is a line per
     #datagram and only worth turning on while taking a failing connection apart. Needs debug level 2.
     verbose-logging: false

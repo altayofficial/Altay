@@ -104,6 +104,7 @@ final class YmlServerProperties{
 	public const NETWORK_NETHERNET_SIGNALLING_PORT = 'network.nethernet.signalling-port';
 	public const NETWORK_NETHERNET_TLS_CERTIFICATE = 'network.nethernet.tls-certificate';
 	public const NETWORK_NETHERNET_TLS_KEY = 'network.nethernet.tls-key';
+	public const NETWORK_NETHERNET_UDP_PORT = 'network.nethernet.udp-port';
 	public const NETWORK_NETHERNET_UDP_PORT_RANGE = 'network.nethernet.udp-port-range';
 	public const NETWORK_NETHERNET_VERBOSE_LOGGING = 'network.nethernet.verbose-logging';
 	public const NETWORK_UPNP_FORWARDING = 'network.upnp-forwarding';

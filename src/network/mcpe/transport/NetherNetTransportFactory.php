@@ -70,7 +70,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private int $maxPendingNegotiations = 64,
 		private int $maxNegotiationsPerAddress = 32,
 		private bool $verboseLogging = false,
-		private int $handshakeTimeout = NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT
+		private int $handshakeTimeout = NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT,
+		private ?int $udpPort = null
 	){}
 
 	public function getName() : string{
@@ -134,6 +135,7 @@ final class NetherNetTransportFactory implements TransportFactory{
 		);
 		$transport->setNegotiationLimits($this->maxPendingNegotiations, $this->maxNegotiationsPerAddress);
 		$transport->setHandshakeTimeout($this->handshakeTimeout);
+		$transport->setUdpPort($this->udpPort);
 		return $transport;
 	}
 }

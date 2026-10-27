@@ -53,6 +53,10 @@ class Mace extends Tool{
 		return 500;
 	}
 
+	public function isValidRepairMaterial(Item $material) : bool{
+		return $material->equals(VanillaItems::BREEZE_ROD(), false, false);
+	}
+
 	public function getAttackPoints() : int{
 		return self::BASE_ATTACK_POINTS;
 	}

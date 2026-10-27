@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use pocketmine\block\Planks;
 use pocketmine\block\utils\DyeColor;
 use pocketmine\data\bedrock\DyeColorIdMap;
 use pocketmine\nbt\tag\CompoundTag;
@@ -46,6 +47,10 @@ class Shield extends Durable{
 
 	public function getMaxDurability() : int{
 		return 336;
+	}
+
+	public function isValidRepairMaterial(Item $material) : bool{
+		return $material->getBlock() instanceof Planks;
 	}
 
 	public function hasBannerPattern() : bool{

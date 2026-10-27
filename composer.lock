@@ -96,12 +96,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "64c6eda2745f70014377a8a4f2c62a8feca8fec7"
+                "reference": "3f074f2a0b02bffcfdb116b60c0159d7dd88950b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/64c6eda2745f70014377a8a4f2c62a8feca8fec7",
-                "reference": "64c6eda2745f70014377a8a4f2c62a8feca8fec7",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/3f074f2a0b02bffcfdb116b60c0159d7dd88950b",
+                "reference": "3f074f2a0b02bffcfdb116b60c0159d7dd88950b",
                 "shasum": ""
             },
             "require": {
@@ -136,7 +136,7 @@
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues",
                 "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.60"
             },
-            "time": "2026-10-07T17:05:19+00:00"
+            "time": "2026-10-27T14:32:29+00:00"
         },
         {
             "name": "altayofficial/dtls",

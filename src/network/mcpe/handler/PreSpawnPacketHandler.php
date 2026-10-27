@@ -100,6 +100,7 @@ class PreSpawnPacketHandler extends PacketHandler{
 			$levelSettings->hasAchievementsDisabled = true;
 			$levelSettings->time = $world->getTime();
 			$levelSettings->eduEditionOffer = 0;
+			$levelSettings->hasEduFeaturesEnabled = true; //hmm, the client only loads the chemistry pack with this on, otherwise the education blocks get no creative icon
 			$levelSettings->rainLevel = 0; //TODO: implement these properly
 			$levelSettings->lightningLevel = 0;
 			$levelSettings->commandsEnabled = true;

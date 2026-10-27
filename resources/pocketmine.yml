@@ -70,10 +70,11 @@ network:
     #Leave empty to use the MOTD.
     identity-domain: ""
     #Reject connections that do not carry a signed identity assertion. That signature is what ties a
-    #connection to the account it logs in with, so "auto" requires it from players joining by address
-    #whenever xbox-auth is on, and never from players who found the server on the local network,
-    #where clients do not sign. true or false apply to both. If players cannot join, the debug log
-    #names every connection that arrived without one.
+    #connection to the account it logs in with, and without it a captured login can be replayed, so
+    #"auto" requires it from everyone whenever xbox-auth is on. Clients that do not sign their offers
+    #on the local network cannot join then; set this to false to let them in anyway. true or false
+    #apply to everyone. If players cannot join, the debug log names every connection that arrived
+    #without one.
     require-identity: auto
     #STUN and TURN servers used to find a path to players who cannot be reached directly.
     #Host candidates are enough on a local network, so this can be left empty there.

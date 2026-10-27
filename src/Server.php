@@ -1271,10 +1271,12 @@ class Server {
 	 * Whether a connection has to carry a signed identity assertion, for players found on the local
 	 * network and for players joining by address.
 	 *
-	 * A client that joins by address is signed in and signs its offer, and that signature is the only
-	 * thing tying the connection to the identity it then logs in with - so with xbox-auth on it is
-	 * required by default. A client that broadcasts on the local network does not sign, so requiring
-	 * it there is left to whoever knows their players.
+	 * NetherNet skips the encryption handshake that binds a login chain on RakNet, so the signature on
+	 * the offer is the only thing tying the connection to the identity it then logs in with. Without
+	 * it a chain captured elsewhere can be replayed, so with xbox-auth on it is required by default,
+	 * on the local network as much as by address. A client that does not sign its broadcast offer
+	 * cannot join such a server over the local network, so turning that off is left to whoever
+	 * knows their players.
 	 *
 	 * @return array{bool, bool}
 	 */
@@ -1286,7 +1288,7 @@ class Server {
 		if(!is_string($configured) || strtolower($configured) !== "auto"){
 			$this->logger->warning("Ignoring " . Yml::NETWORK_NETHERNET_REQUIRE_IDENTITY . ", expected true, false or auto");
 		}
-		return [false, $this->getOnlineMode()];
+		return [$this->getOnlineMode(), $this->getOnlineMode()];
 	}
 
 	/**

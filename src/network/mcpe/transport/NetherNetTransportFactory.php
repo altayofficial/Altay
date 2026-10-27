@@ -106,8 +106,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 			),
 			bindAddress: $this->bindAddress,
 			port: $this->port,
-			//vanilla clients do not attach identity assertions to the offers they broadcast on the
-			//local network, so holding them to one is left to the operator
+			//the assertion is what binds the login chain on NetherNet, so it is held to the same
+			//policy on the local network as by address unless the operator says otherwise
 			requireIdentity: $this->requireIdentity,
 			credentials: $this->credentials(),
 			//the server list reaches a NetherNet server over HTTP on the server port, the same way

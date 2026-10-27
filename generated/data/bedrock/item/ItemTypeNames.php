@@ -336,7 +336,6 @@ final class ItemTypeNames{
 	public const HOST_ARMOR_TRIM_SMITHING_TEMPLATE = "minecraft:host_armor_trim_smithing_template";
 	public const HOWL_POTTERY_SHERD = "minecraft:howl_pottery_sherd";
 	public const HUSK_SPAWN_EGG = "minecraft:husk_spawn_egg";
-	public const ICE_BALL = "minecraft:ice_ball";
 	public const ICE_BOMB = "minecraft:ice_bomb";
 	public const ICE_CRYSTAL = "minecraft:ice_crystal";
 	public const ICICLE = "minecraft:icicle";

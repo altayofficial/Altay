@@ -69,7 +69,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private ?string $tlsKeyPath = null,
 		private int $maxPendingNegotiations = 64,
 		private int $maxNegotiationsPerAddress = 32,
-		private bool $verboseLogging = false
+		private bool $verboseLogging = false,
+		private int $handshakeTimeout = NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT
 	){}
 
 	public function getName() : string{
@@ -132,6 +133,7 @@ final class NetherNetTransportFactory implements TransportFactory{
 			verboseLogging: $this->verboseLogging
 		);
 		$transport->setNegotiationLimits($this->maxPendingNegotiations, $this->maxNegotiationsPerAddress);
+		$transport->setHandshakeTimeout($this->handshakeTimeout);
 		return $transport;
 	}
 }

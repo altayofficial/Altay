@@ -94,6 +94,9 @@ network:
     #above the player count when everyone arrives through one address, such as behind a proxy.
     max-pending-negotiations: 64
     max-negotiations-per-address: 32
+    #Seconds a player has from sending their offer until the connection is up. Players relayed over
+    #TURN or on slow mobile links need longer than players on the local network.
+    handshake-timeout: 30
     #The addresses players joining by address can actually reach. Gathered addresses that are not
     #listed are kept out of the answer, so those players do not spend a connectivity check on each,
     #and a listed address that was never gathered, such as the public address of a forwarded port,

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "69e2daf391ff4ac7f2b89ccffc4b5ff1",
+    "content-hash": "4b9407090c3e0500f8ca99df574981b7",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -273,16 +273,16 @@
         },
         {
             "name": "altayofficial/webrtc",
-            "version": "1.7.0",
+            "version": "1.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/webrtc.git",
-                "reference": "c1ed7c8fc6ca76dcf1078a73334e5806bcc82d14"
+                "reference": "11c81e35dba218e44caacbc07c8011dc37312e5d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/c1ed7c8fc6ca76dcf1078a73334e5806bcc82d14",
-                "reference": "c1ed7c8fc6ca76dcf1078a73334e5806bcc82d14",
+                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/11c81e35dba218e44caacbc07c8011dc37312e5d",
+                "reference": "11c81e35dba218e44caacbc07c8011dc37312e5d",
                 "shasum": ""
             },
             "require": {
@@ -345,9 +345,9 @@
             "description": "A WebRTC library designed special for Altay family",
             "support": {
                 "issues": "https://github.com/altayofficial/webrtc/issues",
-                "source": "https://github.com/altayofficial/webrtc/tree/1.7.0"
+                "source": "https://github.com/altayofficial/webrtc/tree/1.8.0"
             },
-            "time": "2026-10-27T13:33:34+00:00"
+            "time": "2026-10-28T12:09:02+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",

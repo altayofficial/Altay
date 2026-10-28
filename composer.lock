@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "418fc749d86ffc64a9e43d4128141716",
+    "content-hash": "69e2daf391ff4ac7f2b89ccffc4b5ff1",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -222,16 +222,16 @@
         },
         {
             "name": "altayofficial/network",
-            "version": "1.4.0",
+            "version": "1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/Network.git",
-                "reference": "0f34aa8624a7552039ecef1470e67b3b033b5a38"
+                "reference": "e51d142f077fd4df4c4ebc03c2ff030fdf2ddce5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/Network/zipball/0f34aa8624a7552039ecef1470e67b3b033b5a38",
-                "reference": "0f34aa8624a7552039ecef1470e67b3b033b5a38",
+                "url": "https://api.github.com/repos/altayofficial/Network/zipball/e51d142f077fd4df4c4ebc03c2ff030fdf2ddce5",
+                "reference": "e51d142f077fd4df4c4ebc03c2ff030fdf2ddce5",
                 "shasum": ""
             },
             "require": {
@@ -245,7 +245,7 @@
                 "react/event-loop": "^1.5"
             },
             "require-dev": {
-                "altayofficial/webrtc": "^1.2.0",
+                "altayofficial/webrtc": "^1.7.0",
                 "phpstan/phpstan": "^2.0",
                 "phpunit/phpunit": "^10.5",
                 "react/http": "^1.11"
@@ -267,9 +267,9 @@
             "description": "Central network library for Altay family written in PHP",
             "support": {
                 "issues": "https://github.com/altayofficial/Network/issues",
-                "source": "https://github.com/altayofficial/Network/tree/1.4.0"
+                "source": "https://github.com/altayofficial/Network/tree/1.5.0"
             },
-            "time": "2026-10-27T13:31:15+00:00"
+            "time": "2026-10-28T19:23:00+00:00"
         },
         {
             "name": "altayofficial/webrtc",

@@ -508,7 +508,7 @@ abstract class Living extends Entity{
 	protected function applyPostDamageEffects(EntityDamageEvent $source) : void{
 		$this->setAbsorption(max(0, $this->getAbsorption() + $source->getModifier(EntityDamageEvent::MODIFIER_ABSORPTION)));
 		if($source->canBeReducedByArmor()){
-			$this->damageArmor($source->getFinalDamage());
+			$this->damageArmor($source->getBaseDamage());
 		}
 
 		if($source instanceof EntityDamageByEntityEvent && ($attacker = $source->getDamager()) !== null){

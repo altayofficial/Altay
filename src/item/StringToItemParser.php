@@ -1334,6 +1334,7 @@ final class StringToItemParser extends StringToTParser{
 
 			$result->register($prefix("cushion"), fn() => Items::CUSHION()->setColor($color));
 			$result->register($prefix("dye"), fn() => Items::DYE()->setColor($color));
+			$result->register($prefix("harness"), fn() => Items::HARNESS()->setColor($color));
 		}
 
 		foreach(GoatHornType::cases() as $goatHornType){

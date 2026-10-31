@@ -43,6 +43,7 @@ use pocketmine\data\bedrock\PotterySherdTypeIdMap;
 use pocketmine\data\bedrock\SuspiciousStewTypeIdMap;
 use pocketmine\item\Banner;
 use pocketmine\item\Cushion;
+use pocketmine\item\Harness;
 use pocketmine\item\Dye;
 use pocketmine\item\FireworkStar;
 use pocketmine\item\GoatHorn;
@@ -649,6 +650,12 @@ final class ItemSerializerDeserializerRegistrar{
 			$this->deserializer?->map($id, fn() => Items::CUSHION()->setColor($color));
 		}
 		$this->serializer?->map(Items::CUSHION(), fn(Cushion $item) => new Data("minecraft:" . strtolower($item->getColor()->name) . "_cushion"));
+		//same deal for harnesses, one id per colour
+		foreach(DyeColor::cases() as $color){
+			$id = "minecraft:" . strtolower($color->name) . "_harness";
+			$this->deserializer?->map($id, fn() => Items::HARNESS()->setColor($color));
+		}
+		$this->serializer?->map(Items::HARNESS(), fn(Harness $item) => new Data("minecraft:" . strtolower($item->getColor()->name) . "_harness"));
 
 		$this->deserializer?->map(Ids::BANNER, function(Data $data) : Item{
 			$type = $data->getTag()?->getInt(TileBanner::TAG_TYPE, TileBanner::TYPE_NORMAL) ?? TileBanner::TYPE_NORMAL;

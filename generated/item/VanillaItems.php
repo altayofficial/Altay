@@ -220,6 +220,7 @@ final class VanillaItems{
 	private static Item $_mGOLD_NUGGET;
 	private static Item $_mGUNPOWDER;
 	private static BannerPattern $_mGUSTER_BANNER_PATTERN;
+	private static Harness $_mHARNESS;
 	private static Item $_mHEART_OF_THE_SEA;
 	private static Item $_mHONEYCOMB;
 	private static HoneyBottle $_mHONEY_BOTTLE;
@@ -617,6 +618,7 @@ final class VanillaItems{
 			"gold_nugget" => fn(Item $v) => self::$_mGOLD_NUGGET = $v,
 			"gunpowder" => fn(Item $v) => self::$_mGUNPOWDER = $v,
 			"guster_banner_pattern" => fn(BannerPattern $v) => self::$_mGUSTER_BANNER_PATTERN = $v,
+			"harness" => fn(Harness $v) => self::$_mHARNESS = $v,
 			"heart_of_the_sea" => fn(Item $v) => self::$_mHEART_OF_THE_SEA = $v,
 			"honeycomb" => fn(Item $v) => self::$_mHONEYCOMB = $v,
 			"honey_bottle" => fn(HoneyBottle $v) => self::$_mHONEY_BOTTLE = $v,
@@ -1736,6 +1738,11 @@ final class VanillaItems{
 	public static function GUSTER_BANNER_PATTERN() : BannerPattern{
 		if(!isset(self::$_mGUSTER_BANNER_PATTERN)){ self::init(); }
 		return clone self::$_mGUSTER_BANNER_PATTERN;
+	}
+
+	public static function HARNESS() : Harness{
+		if(!isset(self::$_mHARNESS)){ self::init(); }
+		return clone self::$_mHARNESS;
 	}
 
 	public static function HEART_OF_THE_SEA() : Item{

@@ -568,6 +568,9 @@ class InGamePacketHandler extends PacketHandler{
 				}
 				return true;
 			case UseItemTransactionData::ACTION_USE_AS_ATTACK:
+				if($this->player->jabWithHeldSpear()){
+					return true;
+				}
 				$face = $data->getFace();
 				if($face !== 255 && in_array($face, Facing::ALL, true)){
 					$blockPos = $data->getBlockPosition();

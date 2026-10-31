@@ -63,16 +63,16 @@ use const PHP_FLOAT_MAX;
 
 class Spear extends TieredTool implements Releasable{
 
-	/** Minimum movement speed required for a stab or a sweep to actually connect. */
+	/** Minimum movement speed required for a charge sweep to actually connect. */
 	public const MINIMUM_SPEED = 0.13;
 	/** Minimum food level required to lunge, in gamemodes with finite resources. */
 	public const MINIMUM_LUNGE_FOOD = 6;
 	/** Exhaustion applied per level of Lunge. */
 	public const BASE_LUNGE_EXHAUST = 4.0;
-	/** Cooldown applied to the item after a stab, in ticks. */
-	public const STAB_COOLDOWN_TICKS = 20;
 	/** How often (in ticks) the sweep check runs while the item is being held. */
 	public const SWEEP_INTERVAL_TICKS = 5;
+	/** Ticks a charge has to wait before it can hit the same entity again. */
+	public const CHARGE_CONTACT_COOLDOWN_TICKS = 10;
 	/** Maximum reach of a stab, in blocks. */
 	public const MAX_STAB_DISTANCE = 5.0;
 
@@ -111,27 +111,22 @@ class Spear extends TieredTool implements Releasable{
 	}
 
 	/**
-	 * Called when the player releases the "use item" button, performing a stab in the direction they are looking.
+	 * Jabs in the direction the player is looking. This is the spear's left click, and it's also what Lunge hooks
+	 * into. Returns false if nothing happened, e.g. the spear is still cooling down.
 	 */
-	public function onReleaseUsing(Player $player, array &$returnedItems) : ItemUseResult{
+	public function jab(Player $player) : bool{
 		if($player->hasItemCooldown($this)){
-			return ItemUseResult::FAIL;
+			return false;
 		}
 
 		$event = new PlayerSpearStabEvent($player, $this, $player->getMovementSpeed());
 		$event->call();
 		if($event->isCancelled()){
-			return ItemUseResult::FAIL;
+			return false;
 		}
 
-		$player->resetItemCooldown($this, self::STAB_COOLDOWN_TICKS);
+		$player->resetItemCooldown($this, $this->getJabCooldownTicks());
 		$this->applyLunge($player);
-
-		if($player->getMovementSpeed() < self::MINIMUM_SPEED || !$player->isSprinting()){
-			$player->getWorld()->addSound($player->getPosition(), $this->getMissSound());
-
-			return ItemUseResult::SUCCESS;
-		}
 
 		$target = $this->findStabTarget($player);
 		if($target !== null){
@@ -148,14 +143,17 @@ class Spear extends TieredTool implements Releasable{
 
 		$this->applyDamage(1);
 
-		return ItemUseResult::SUCCESS;
+		return true;
 	}
 
 	/**
 	 * Called every tick while the player holds the "use item" button, sweeping anything they charge into.
+	 * Like vanilla, the charge only bites after a short wind-up and stops doing damage once it's been held too long.
 	 */
 	public function whileSpearUsing(Player $player) : void{
-		if($player->getItemUseDuration() % self::SWEEP_INTERVAL_TICKS !== 0){
+		$duration = $player->getItemUseDuration();
+		[$delay, $damageTicks] = $this->getChargeTiming();
+		if($duration < $delay || $duration > $delay + $damageTicks || $duration % self::SWEEP_INTERVAL_TICKS !== 0){
 			return;
 		}
 
@@ -169,6 +167,7 @@ class Spear extends TieredTool implements Releasable{
 			return;
 		}
 
+		$player->setSpearContactCooldown($target, self::CHARGE_CONTACT_COOLDOWN_TICKS);
 		$target->attack(new EntityDamageByEntityEvent(
 			$player,
 			$target,
@@ -267,7 +266,7 @@ class Spear extends TieredTool implements Releasable{
 		$closestDistance = PHP_FLOAT_MAX;
 
 		foreach($player->getWorld()->getNearbyEntities($searchBox, $player) as $entity){
-			if(!$entity instanceof Living || !$entity->isAlive()){
+			if(!$entity instanceof Living || !$entity->isAlive() || $player->hasSpearContactCooldown($entity)){
 				continue;
 			}
 
@@ -281,6 +280,37 @@ class Spear extends TieredTool implements Releasable{
 		}
 
 		return $target;
+	}
+
+	/**
+	 * Attack cooldown after a jab, from the vanilla item data for each tier.
+	 */
+	public function getJabCooldownTicks() : int{
+		return match($this->tier){
+			ToolTier::WOOD => 13,
+			ToolTier::STONE => 15,
+			ToolTier::COPPER => 17,
+			ToolTier::IRON, ToolTier::GOLD => 19,
+			ToolTier::DIAMOND => 21,
+			ToolTier::NETHERITE => 23,
+		};
+	}
+
+	/**
+	 * Returns the wind-up before a charge can hit and how long it keeps doing damage after that, both in ticks.
+	 *
+	 * @return int[]
+	 * @phpstan-return array{int, int}
+	 */
+	private function getChargeTiming() : array{
+		return match($this->tier){
+			ToolTier::WOOD => [15, 300],
+			ToolTier::STONE, ToolTier::GOLD => [14, 275],
+			ToolTier::COPPER => [13, 250],
+			ToolTier::IRON => [12, 225],
+			ToolTier::DIAMOND => [10, 200],
+			ToolTier::NETHERITE => [8, 175],
+		};
 	}
 
 	private function getLungeSound(int $lungeLevel) : Sound{

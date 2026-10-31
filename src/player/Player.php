@@ -202,6 +202,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * never run one.
 	 */
 	private const CHUNK_RELEASE_RETRY_INTERVAL = 10;
+	/** Ticks after a crossbow loads during which the client's click-air echo is ignored. */
+	private const CROSSBOW_LOAD_CLICK_ECHO_TICKS = 5;
 
 	public const DEFAULT_FLIGHT_SPEED_MULTIPLIER = 0.05;
 
@@ -337,6 +339,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	private int $ignoreChargeableClickAirUntilTick = -1;
 	private bool $awaitingConsumableRelease = false;
+	/**
+	 * @var int[] entity runtime ID => server tick from which a spear charge may hit that entity again
+	 * @phpstan-var array<int, int>
+	 */
+	private array $spearContactCooldowns = [];
 
 	/**
 	 * @phpstan-var array<int|string, int>
@@ -817,6 +824,23 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	public function clearAwaitingConsumableRelease() : void{
 		$this->awaitingConsumableRelease = false;
+	}
+
+	public function hasSpearContactCooldown(Entity $entity) : bool{
+		return ($this->spearContactCooldowns[$entity->getId()] ?? 0) > $this->server->getTick();
+	}
+
+	/**
+	 * Stops this player's spear charge from hitting the given entity again for the given number of ticks.
+	 */
+	public function setSpearContactCooldown(Entity $entity, int $ticks) : void{
+		$currentTick = $this->server->getTick();
+		foreach($this->spearContactCooldowns as $entityId => $untilTick){
+			if($untilTick <= $currentTick){
+				unset($this->spearContactCooldowns[$entityId]);
+			}
+		}
+		$this->spearContactCooldowns[$entity->getId()] = $currentTick + $ticks;
 	}
 
 	/**
@@ -1801,7 +1825,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				}
 			}
 			if($item instanceof Crossbow && $this->isUsingItem() && $this->getItemUseDuration() >= $item->getChargeDuration()){
-				$this->releaseHeldItem();
+				if($this->releaseHeldItem()){
+					//the client sends its own click-air the moment it finishes drawing, which would fire the bolt
+					//straight away, so swallow that echo
+					$this->ignoreChargeableClickAirForTicks(self::CROSSBOW_LOAD_CLICK_ECHO_TICKS);
+				}
 			}
 
 			if(!$this->isSpectator() && $this->isAlive()){
@@ -2333,6 +2361,27 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$this->hungerManager->exhaust(0.1, PlayerExhaustEvent::CAUSE_ATTACK);
 		}
 
+		return true;
+	}
+
+	/**
+	 * Jabs with the held spear, which is what a left click does with one instead of a plain swing.
+	 *
+	 * @return bool whether the held item was a spear, even if the jab itself didn't go through (e.g. on cooldown)
+	 */
+	public function jabWithHeldSpear() : bool{
+		$item = $this->inventory->getItemInHand();
+		if(!$item instanceof Spear){
+			return false;
+		}
+
+		$oldItem = clone $item;
+		if(!$item->jab($this)){
+			return true;
+		}
+
+		$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
+		$this->returnItemsFromAction($oldItem, $item, []);
 		return true;
 	}
 

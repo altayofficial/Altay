@@ -230,7 +230,9 @@ final class VanillaBlocks{
 	private static CopperBars $_mCOPPER_BARS;
 	private static CopperBulb $_mCOPPER_BULB;
 	private static CopperChain $_mCOPPER_CHAIN;
+	private static CopperChest $_mCOPPER_CHEST;
 	private static CopperDoor $_mCOPPER_DOOR;
+	private static CopperGolemStatue $_mCOPPER_GOLEM_STATUE;
 	private static CopperGrate $_mCOPPER_GRATE;
 	private static CopperLantern $_mCOPPER_LANTERN;
 	private static CopperOre $_mCOPPER_ORE;
@@ -1155,7 +1157,9 @@ final class VanillaBlocks{
 			"copper_bars" => fn(CopperBars $v) => self::$_mCOPPER_BARS = $v,
 			"copper_bulb" => fn(CopperBulb $v) => self::$_mCOPPER_BULB = $v,
 			"copper_chain" => fn(CopperChain $v) => self::$_mCOPPER_CHAIN = $v,
+			"copper_chest" => fn(CopperChest $v) => self::$_mCOPPER_CHEST = $v,
 			"copper_door" => fn(CopperDoor $v) => self::$_mCOPPER_DOOR = $v,
+			"copper_golem_statue" => fn(CopperGolemStatue $v) => self::$_mCOPPER_GOLEM_STATUE = $v,
 			"copper_grate" => fn(CopperGrate $v) => self::$_mCOPPER_GRATE = $v,
 			"copper_lantern" => fn(CopperLantern $v) => self::$_mCOPPER_LANTERN = $v,
 			"copper_ore" => fn(CopperOre $v) => self::$_mCOPPER_ORE = $v,
@@ -2844,9 +2848,19 @@ final class VanillaBlocks{
 		return clone self::$_mCOPPER_CHAIN;
 	}
 
+	public static function COPPER_CHEST() : CopperChest{
+		if(!isset(self::$_mCOPPER_CHEST)){ self::init(); }
+		return clone self::$_mCOPPER_CHEST;
+	}
+
 	public static function COPPER_DOOR() : CopperDoor{
 		if(!isset(self::$_mCOPPER_DOOR)){ self::init(); }
 		return clone self::$_mCOPPER_DOOR;
+	}
+
+	public static function COPPER_GOLEM_STATUE() : CopperGolemStatue{
+		if(!isset(self::$_mCOPPER_GOLEM_STATUE)){ self::init(); }
+		return clone self::$_mCOPPER_GOLEM_STATUE;
 	}
 
 	public static function COPPER_GRATE() : CopperGrate{

@@ -116,6 +116,8 @@ final class StringToItemParser extends StringToTParser{
 				$register("copper_bars", fn() => Blocks::COPPER_BARS()->setOxidation($oxidation)->setWaxed($waxed));
 				$register("copper_chain", fn() => Blocks::COPPER_CHAIN()->setOxidation($oxidation)->setWaxed($waxed));
 				$register("copper_lantern", fn() => Blocks::COPPER_LANTERN()->setOxidation($oxidation)->setWaxed($waxed));
+				$register("copper_chest", fn() => Blocks::COPPER_CHEST()->setOxidation($oxidation)->setWaxed($waxed));
+				$register("copper_golem_statue", fn() => Blocks::COPPER_GOLEM_STATUE()->setOxidation($oxidation)->setWaxed($waxed));
 				$register("lightning_rod", fn() => Blocks::LIGHTNING_ROD()->setOxidation($oxidation)->setWaxed($waxed));
 			}
 		}

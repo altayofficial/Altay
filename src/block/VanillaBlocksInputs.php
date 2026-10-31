@@ -40,6 +40,7 @@ use pocketmine\block\tile\BrewingStand as TileBrewingStand;
 use pocketmine\block\tile\Campfire as TileCampfire;
 use pocketmine\block\tile\Cauldron as TileCauldron;
 use pocketmine\block\tile\Chest as TileChest;
+use pocketmine\block\tile\CopperGolemStatue as TileCopperGolemStatue;
 use pocketmine\block\tile\ChiseledBookshelf as TileChiseledBookshelf;
 use pocketmine\block\tile\Comparator as TileComparator;
 use pocketmine\block\tile\DaylightSensor as TileDaylightSensor;
@@ -1108,6 +1109,8 @@ final class VanillaBlocksInputs extends RegistrySource{
 
 		self::register("copper_door", fn(BID $id) => new CopperDoor($id, "Copper Door", new Info(BreakInfo::pickaxe(3.0, blastResistance: 30.0))));
 		self::register("copper_trapdoor", fn(BID $id) => new CopperTrapdoor($id, "Copper Trapdoor", new Info(BreakInfo::pickaxe(3.0, ToolTier::STONE, 30.0))));
+		self::register("copper_chest", fn(BID $id) => new CopperChest($id, "Copper Chest", $copperBreakInfo), TileChest::class);
+		self::register("copper_golem_statue", fn(BID $id) => new CopperGolemStatue($id, "Copper Golem Statue", new Info(BreakInfo::pickaxe(3.0, blastResistance: 30.0))), TileCopperGolemStatue::class);
 
 		$candleBreakInfo = new Info(new BreakInfo(0.1));
 		self::register("candle", fn(BID $id) => new Candle($id, "Candle", $candleBreakInfo));

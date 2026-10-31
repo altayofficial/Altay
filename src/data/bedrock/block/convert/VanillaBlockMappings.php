@@ -750,6 +750,14 @@ final class VanillaBlockMappings{
 				new BoolProperty(StateNames::HANGING, fn(CopperLantern $b) => $b->isHanging(), fn(CopperLantern $b, bool $v) => $b->setHanging($v))
 			])
 		);
+		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::COPPER_CHEST())
+			->idComponents([...$commonProperties->copperIdPrefixes, "copper_chest"])
+			->properties([$commonProperties->horizontalFacingCardinal])
+		);
+		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::COPPER_GOLEM_STATUE())
+			->idComponents([...$commonProperties->copperIdPrefixes, "copper_golem_statue"])
+			->properties([$commonProperties->horizontalFacingCardinal])
+		);
 		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::LIGHTNING_ROD())
 			->idComponents([...$commonProperties->copperIdPrefixes, "lightning_rod"])
 			->properties([

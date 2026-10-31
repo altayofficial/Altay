@@ -948,8 +948,10 @@ final class BlockTypeIds{
 	public const BAMBOO_SHELF = 10915;
 	public const POPLAR_SHELF = 10916;
 	public const SULFUR_SPIKE = 10917;
+	public const COPPER_CHEST = 10918;
+	public const COPPER_GOLEM_STATUE = 10919;
 
-	public const FIRST_UNUSED_BLOCK_ID = 10918;
+	public const FIRST_UNUSED_BLOCK_ID = 10920;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_BLOCK_ID;
 

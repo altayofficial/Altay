@@ -51,6 +51,7 @@ final class VanillaBlocks{
 	private static Planks $_mACACIA_PLANKS;
 	private static WoodenPressurePlate $_mACACIA_PRESSURE_PLATE;
 	private static Sapling $_mACACIA_SAPLING;
+	private static Shelf $_mACACIA_SHELF;
 	private static FloorSign $_mACACIA_SIGN;
 	private static WoodenSlab $_mACACIA_SLAB;
 	private static WoodenStairs $_mACACIA_STAIRS;
@@ -88,6 +89,7 @@ final class VanillaBlocks{
 	private static Planks $_mBAMBOO_PLANKS;
 	private static WoodenPressurePlate $_mBAMBOO_PRESSURE_PLATE;
 	private static BambooSapling $_mBAMBOO_SAPLING;
+	private static Shelf $_mBAMBOO_SHELF;
 	private static FloorSign $_mBAMBOO_SIGN;
 	private static WoodenSlab $_mBAMBOO_SLAB;
 	private static WoodenStairs $_mBAMBOO_STAIRS;
@@ -116,6 +118,7 @@ final class VanillaBlocks{
 	private static Planks $_mBIRCH_PLANKS;
 	private static WoodenPressurePlate $_mBIRCH_PRESSURE_PLATE;
 	private static Sapling $_mBIRCH_SAPLING;
+	private static Shelf $_mBIRCH_SHELF;
 	private static FloorSign $_mBIRCH_SIGN;
 	private static WoodenSlab $_mBIRCH_SLAB;
 	private static WoodenStairs $_mBIRCH_STAIRS;
@@ -171,6 +174,7 @@ final class VanillaBlocks{
 	private static Planks $_mCHERRY_PLANKS;
 	private static WoodenPressurePlate $_mCHERRY_PRESSURE_PLATE;
 	private static Sapling $_mCHERRY_SAPLING;
+	private static Shelf $_mCHERRY_SHELF;
 	private static FloorSign $_mCHERRY_SIGN;
 	private static WoodenSlab $_mCHERRY_SLAB;
 	private static WoodenStairs $_mCHERRY_STAIRS;
@@ -254,6 +258,7 @@ final class VanillaBlocks{
 	private static Planks $_mCRIMSON_PLANKS;
 	private static WoodenPressurePlate $_mCRIMSON_PRESSURE_PLATE;
 	private static NetherRoots $_mCRIMSON_ROOTS;
+	private static Shelf $_mCRIMSON_SHELF;
 	private static FloorSign $_mCRIMSON_SIGN;
 	private static WoodenSlab $_mCRIMSON_SLAB;
 	private static WoodenStairs $_mCRIMSON_STAIRS;
@@ -281,6 +286,7 @@ final class VanillaBlocks{
 	private static Planks $_mDARK_OAK_PLANKS;
 	private static WoodenPressurePlate $_mDARK_OAK_PRESSURE_PLATE;
 	private static Sapling $_mDARK_OAK_SAPLING;
+	private static Shelf $_mDARK_OAK_SHELF;
 	private static FloorSign $_mDARK_OAK_SIGN;
 	private static WoodenSlab $_mDARK_OAK_SLAB;
 	private static WoodenStairs $_mDARK_OAK_STAIRS;
@@ -528,6 +534,7 @@ final class VanillaBlocks{
 	private static Planks $_mJUNGLE_PLANKS;
 	private static WoodenPressurePlate $_mJUNGLE_PRESSURE_PLATE;
 	private static Sapling $_mJUNGLE_SAPLING;
+	private static Shelf $_mJUNGLE_SHELF;
 	private static FloorSign $_mJUNGLE_SIGN;
 	private static WoodenSlab $_mJUNGLE_SLAB;
 	private static WoodenStairs $_mJUNGLE_STAIRS;
@@ -567,6 +574,7 @@ final class VanillaBlocks{
 	private static Planks $_mMANGROVE_PLANKS;
 	private static WoodenPressurePlate $_mMANGROVE_PRESSURE_PLATE;
 	private static MangroveRoots $_mMANGROVE_ROOTS;
+	private static Shelf $_mMANGROVE_SHELF;
 	private static FloorSign $_mMANGROVE_SIGN;
 	private static WoodenSlab $_mMANGROVE_SLAB;
 	private static WoodenStairs $_mMANGROVE_STAIRS;
@@ -623,6 +631,7 @@ final class VanillaBlocks{
 	private static Planks $_mOAK_PLANKS;
 	private static WoodenPressurePlate $_mOAK_PRESSURE_PLATE;
 	private static Sapling $_mOAK_SAPLING;
+	private static Shelf $_mOAK_SHELF;
 	private static FloorSign $_mOAK_SIGN;
 	private static WoodenSlab $_mOAK_SLAB;
 	private static WoodenStairs $_mOAK_STAIRS;
@@ -649,6 +658,7 @@ final class VanillaBlocks{
 	private static Wood $_mPALE_OAK_LOG;
 	private static Planks $_mPALE_OAK_PLANKS;
 	private static WoodenPressurePlate $_mPALE_OAK_PRESSURE_PLATE;
+	private static Shelf $_mPALE_OAK_SHELF;
 	private static FloorSign $_mPALE_OAK_SIGN;
 	private static WoodenSlab $_mPALE_OAK_SLAB;
 	private static WoodenStairs $_mPALE_OAK_STAIRS;
@@ -708,6 +718,7 @@ final class VanillaBlocks{
 	private static Wood $_mPOPLAR_LOG;
 	private static Planks $_mPOPLAR_PLANKS;
 	private static WoodenPressurePlate $_mPOPLAR_PRESSURE_PLATE;
+	private static Shelf $_mPOPLAR_SHELF;
 	private static FloorSign $_mPOPLAR_SIGN;
 	private static WoodenSlab $_mPOPLAR_SLAB;
 	private static WoodenStairs $_mPOPLAR_STAIRS;
@@ -826,6 +837,7 @@ final class VanillaBlocks{
 	private static Planks $_mSPRUCE_PLANKS;
 	private static WoodenPressurePlate $_mSPRUCE_PRESSURE_PLATE;
 	private static Sapling $_mSPRUCE_SAPLING;
+	private static Shelf $_mSPRUCE_SHELF;
 	private static FloorSign $_mSPRUCE_SIGN;
 	private static WoodenSlab $_mSPRUCE_SLAB;
 	private static WoodenStairs $_mSPRUCE_STAIRS;
@@ -857,6 +869,7 @@ final class VanillaBlocks{
 	private static Stair $_mSULFUR_BRICK_STAIRS;
 	private static Wall $_mSULFUR_BRICK_WALL;
 	private static Slab $_mSULFUR_SLAB;
+	private static SulfurSpike $_mSULFUR_SPIKE;
 	private static Stair $_mSULFUR_STAIRS;
 	private static Wall $_mSULFUR_WALL;
 	private static DoublePlant $_mSUNFLOWER;
@@ -896,6 +909,7 @@ final class VanillaBlocks{
 	private static Planks $_mWARPED_PLANKS;
 	private static WoodenPressurePlate $_mWARPED_PRESSURE_PLATE;
 	private static NetherRoots $_mWARPED_ROOTS;
+	private static Shelf $_mWARPED_SHELF;
 	private static FloorSign $_mWARPED_SIGN;
 	private static WoodenSlab $_mWARPED_SLAB;
 	private static WoodenStairs $_mWARPED_STAIRS;
@@ -962,6 +976,7 @@ final class VanillaBlocks{
 			"acacia_planks" => fn(Planks $v) => self::$_mACACIA_PLANKS = $v,
 			"acacia_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mACACIA_PRESSURE_PLATE = $v,
 			"acacia_sapling" => fn(Sapling $v) => self::$_mACACIA_SAPLING = $v,
+			"acacia_shelf" => fn(Shelf $v) => self::$_mACACIA_SHELF = $v,
 			"acacia_sign" => fn(FloorSign $v) => self::$_mACACIA_SIGN = $v,
 			"acacia_slab" => fn(WoodenSlab $v) => self::$_mACACIA_SLAB = $v,
 			"acacia_stairs" => fn(WoodenStairs $v) => self::$_mACACIA_STAIRS = $v,
@@ -999,6 +1014,7 @@ final class VanillaBlocks{
 			"bamboo_planks" => fn(Planks $v) => self::$_mBAMBOO_PLANKS = $v,
 			"bamboo_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mBAMBOO_PRESSURE_PLATE = $v,
 			"bamboo_sapling" => fn(BambooSapling $v) => self::$_mBAMBOO_SAPLING = $v,
+			"bamboo_shelf" => fn(Shelf $v) => self::$_mBAMBOO_SHELF = $v,
 			"bamboo_sign" => fn(FloorSign $v) => self::$_mBAMBOO_SIGN = $v,
 			"bamboo_slab" => fn(WoodenSlab $v) => self::$_mBAMBOO_SLAB = $v,
 			"bamboo_stairs" => fn(WoodenStairs $v) => self::$_mBAMBOO_STAIRS = $v,
@@ -1027,6 +1043,7 @@ final class VanillaBlocks{
 			"birch_planks" => fn(Planks $v) => self::$_mBIRCH_PLANKS = $v,
 			"birch_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mBIRCH_PRESSURE_PLATE = $v,
 			"birch_sapling" => fn(Sapling $v) => self::$_mBIRCH_SAPLING = $v,
+			"birch_shelf" => fn(Shelf $v) => self::$_mBIRCH_SHELF = $v,
 			"birch_sign" => fn(FloorSign $v) => self::$_mBIRCH_SIGN = $v,
 			"birch_slab" => fn(WoodenSlab $v) => self::$_mBIRCH_SLAB = $v,
 			"birch_stairs" => fn(WoodenStairs $v) => self::$_mBIRCH_STAIRS = $v,
@@ -1082,6 +1099,7 @@ final class VanillaBlocks{
 			"cherry_planks" => fn(Planks $v) => self::$_mCHERRY_PLANKS = $v,
 			"cherry_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mCHERRY_PRESSURE_PLATE = $v,
 			"cherry_sapling" => fn(Sapling $v) => self::$_mCHERRY_SAPLING = $v,
+			"cherry_shelf" => fn(Shelf $v) => self::$_mCHERRY_SHELF = $v,
 			"cherry_sign" => fn(FloorSign $v) => self::$_mCHERRY_SIGN = $v,
 			"cherry_slab" => fn(WoodenSlab $v) => self::$_mCHERRY_SLAB = $v,
 			"cherry_stairs" => fn(WoodenStairs $v) => self::$_mCHERRY_STAIRS = $v,
@@ -1165,6 +1183,7 @@ final class VanillaBlocks{
 			"crimson_planks" => fn(Planks $v) => self::$_mCRIMSON_PLANKS = $v,
 			"crimson_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mCRIMSON_PRESSURE_PLATE = $v,
 			"crimson_roots" => fn(NetherRoots $v) => self::$_mCRIMSON_ROOTS = $v,
+			"crimson_shelf" => fn(Shelf $v) => self::$_mCRIMSON_SHELF = $v,
 			"crimson_sign" => fn(FloorSign $v) => self::$_mCRIMSON_SIGN = $v,
 			"crimson_slab" => fn(WoodenSlab $v) => self::$_mCRIMSON_SLAB = $v,
 			"crimson_stairs" => fn(WoodenStairs $v) => self::$_mCRIMSON_STAIRS = $v,
@@ -1192,6 +1211,7 @@ final class VanillaBlocks{
 			"dark_oak_planks" => fn(Planks $v) => self::$_mDARK_OAK_PLANKS = $v,
 			"dark_oak_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mDARK_OAK_PRESSURE_PLATE = $v,
 			"dark_oak_sapling" => fn(Sapling $v) => self::$_mDARK_OAK_SAPLING = $v,
+			"dark_oak_shelf" => fn(Shelf $v) => self::$_mDARK_OAK_SHELF = $v,
 			"dark_oak_sign" => fn(FloorSign $v) => self::$_mDARK_OAK_SIGN = $v,
 			"dark_oak_slab" => fn(WoodenSlab $v) => self::$_mDARK_OAK_SLAB = $v,
 			"dark_oak_stairs" => fn(WoodenStairs $v) => self::$_mDARK_OAK_STAIRS = $v,
@@ -1439,6 +1459,7 @@ final class VanillaBlocks{
 			"jungle_planks" => fn(Planks $v) => self::$_mJUNGLE_PLANKS = $v,
 			"jungle_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mJUNGLE_PRESSURE_PLATE = $v,
 			"jungle_sapling" => fn(Sapling $v) => self::$_mJUNGLE_SAPLING = $v,
+			"jungle_shelf" => fn(Shelf $v) => self::$_mJUNGLE_SHELF = $v,
 			"jungle_sign" => fn(FloorSign $v) => self::$_mJUNGLE_SIGN = $v,
 			"jungle_slab" => fn(WoodenSlab $v) => self::$_mJUNGLE_SLAB = $v,
 			"jungle_stairs" => fn(WoodenStairs $v) => self::$_mJUNGLE_STAIRS = $v,
@@ -1478,6 +1499,7 @@ final class VanillaBlocks{
 			"mangrove_planks" => fn(Planks $v) => self::$_mMANGROVE_PLANKS = $v,
 			"mangrove_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mMANGROVE_PRESSURE_PLATE = $v,
 			"mangrove_roots" => fn(MangroveRoots $v) => self::$_mMANGROVE_ROOTS = $v,
+			"mangrove_shelf" => fn(Shelf $v) => self::$_mMANGROVE_SHELF = $v,
 			"mangrove_sign" => fn(FloorSign $v) => self::$_mMANGROVE_SIGN = $v,
 			"mangrove_slab" => fn(WoodenSlab $v) => self::$_mMANGROVE_SLAB = $v,
 			"mangrove_stairs" => fn(WoodenStairs $v) => self::$_mMANGROVE_STAIRS = $v,
@@ -1534,6 +1556,7 @@ final class VanillaBlocks{
 			"oak_planks" => fn(Planks $v) => self::$_mOAK_PLANKS = $v,
 			"oak_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mOAK_PRESSURE_PLATE = $v,
 			"oak_sapling" => fn(Sapling $v) => self::$_mOAK_SAPLING = $v,
+			"oak_shelf" => fn(Shelf $v) => self::$_mOAK_SHELF = $v,
 			"oak_sign" => fn(FloorSign $v) => self::$_mOAK_SIGN = $v,
 			"oak_slab" => fn(WoodenSlab $v) => self::$_mOAK_SLAB = $v,
 			"oak_stairs" => fn(WoodenStairs $v) => self::$_mOAK_STAIRS = $v,
@@ -1560,6 +1583,7 @@ final class VanillaBlocks{
 			"pale_oak_log" => fn(Wood $v) => self::$_mPALE_OAK_LOG = $v,
 			"pale_oak_planks" => fn(Planks $v) => self::$_mPALE_OAK_PLANKS = $v,
 			"pale_oak_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mPALE_OAK_PRESSURE_PLATE = $v,
+			"pale_oak_shelf" => fn(Shelf $v) => self::$_mPALE_OAK_SHELF = $v,
 			"pale_oak_sign" => fn(FloorSign $v) => self::$_mPALE_OAK_SIGN = $v,
 			"pale_oak_slab" => fn(WoodenSlab $v) => self::$_mPALE_OAK_SLAB = $v,
 			"pale_oak_stairs" => fn(WoodenStairs $v) => self::$_mPALE_OAK_STAIRS = $v,
@@ -1619,6 +1643,7 @@ final class VanillaBlocks{
 			"poplar_log" => fn(Wood $v) => self::$_mPOPLAR_LOG = $v,
 			"poplar_planks" => fn(Planks $v) => self::$_mPOPLAR_PLANKS = $v,
 			"poplar_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mPOPLAR_PRESSURE_PLATE = $v,
+			"poplar_shelf" => fn(Shelf $v) => self::$_mPOPLAR_SHELF = $v,
 			"poplar_sign" => fn(FloorSign $v) => self::$_mPOPLAR_SIGN = $v,
 			"poplar_slab" => fn(WoodenSlab $v) => self::$_mPOPLAR_SLAB = $v,
 			"poplar_stairs" => fn(WoodenStairs $v) => self::$_mPOPLAR_STAIRS = $v,
@@ -1737,6 +1762,7 @@ final class VanillaBlocks{
 			"spruce_planks" => fn(Planks $v) => self::$_mSPRUCE_PLANKS = $v,
 			"spruce_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mSPRUCE_PRESSURE_PLATE = $v,
 			"spruce_sapling" => fn(Sapling $v) => self::$_mSPRUCE_SAPLING = $v,
+			"spruce_shelf" => fn(Shelf $v) => self::$_mSPRUCE_SHELF = $v,
 			"spruce_sign" => fn(FloorSign $v) => self::$_mSPRUCE_SIGN = $v,
 			"spruce_slab" => fn(WoodenSlab $v) => self::$_mSPRUCE_SLAB = $v,
 			"spruce_stairs" => fn(WoodenStairs $v) => self::$_mSPRUCE_STAIRS = $v,
@@ -1768,6 +1794,7 @@ final class VanillaBlocks{
 			"sulfur_brick_stairs" => fn(Stair $v) => self::$_mSULFUR_BRICK_STAIRS = $v,
 			"sulfur_brick_wall" => fn(Wall $v) => self::$_mSULFUR_BRICK_WALL = $v,
 			"sulfur_slab" => fn(Slab $v) => self::$_mSULFUR_SLAB = $v,
+			"sulfur_spike" => fn(SulfurSpike $v) => self::$_mSULFUR_SPIKE = $v,
 			"sulfur_stairs" => fn(Stair $v) => self::$_mSULFUR_STAIRS = $v,
 			"sulfur_wall" => fn(Wall $v) => self::$_mSULFUR_WALL = $v,
 			"sunflower" => fn(DoublePlant $v) => self::$_mSUNFLOWER = $v,
@@ -1807,6 +1834,7 @@ final class VanillaBlocks{
 			"warped_planks" => fn(Planks $v) => self::$_mWARPED_PLANKS = $v,
 			"warped_pressure_plate" => fn(WoodenPressurePlate $v) => self::$_mWARPED_PRESSURE_PLATE = $v,
 			"warped_roots" => fn(NetherRoots $v) => self::$_mWARPED_ROOTS = $v,
+			"warped_shelf" => fn(Shelf $v) => self::$_mWARPED_SHELF = $v,
 			"warped_sign" => fn(FloorSign $v) => self::$_mWARPED_SIGN = $v,
 			"warped_slab" => fn(WoodenSlab $v) => self::$_mWARPED_SLAB = $v,
 			"warped_stairs" => fn(WoodenStairs $v) => self::$_mWARPED_STAIRS = $v,
@@ -1919,6 +1947,11 @@ final class VanillaBlocks{
 	public static function ACACIA_SAPLING() : Sapling{
 		if(!isset(self::$_mACACIA_SAPLING)){ self::init(); }
 		return clone self::$_mACACIA_SAPLING;
+	}
+
+	public static function ACACIA_SHELF() : Shelf{
+		if(!isset(self::$_mACACIA_SHELF)){ self::init(); }
+		return clone self::$_mACACIA_SHELF;
 	}
 
 	public static function ACACIA_SIGN() : FloorSign{
@@ -2106,6 +2139,11 @@ final class VanillaBlocks{
 		return clone self::$_mBAMBOO_SAPLING;
 	}
 
+	public static function BAMBOO_SHELF() : Shelf{
+		if(!isset(self::$_mBAMBOO_SHELF)){ self::init(); }
+		return clone self::$_mBAMBOO_SHELF;
+	}
+
 	public static function BAMBOO_SIGN() : FloorSign{
 		if(!isset(self::$_mBAMBOO_SIGN)){ self::init(); }
 		return clone self::$_mBAMBOO_SIGN;
@@ -2244,6 +2282,11 @@ final class VanillaBlocks{
 	public static function BIRCH_SAPLING() : Sapling{
 		if(!isset(self::$_mBIRCH_SAPLING)){ self::init(); }
 		return clone self::$_mBIRCH_SAPLING;
+	}
+
+	public static function BIRCH_SHELF() : Shelf{
+		if(!isset(self::$_mBIRCH_SHELF)){ self::init(); }
+		return clone self::$_mBIRCH_SHELF;
 	}
 
 	public static function BIRCH_SIGN() : FloorSign{
@@ -2519,6 +2562,11 @@ final class VanillaBlocks{
 	public static function CHERRY_SAPLING() : Sapling{
 		if(!isset(self::$_mCHERRY_SAPLING)){ self::init(); }
 		return clone self::$_mCHERRY_SAPLING;
+	}
+
+	public static function CHERRY_SHELF() : Shelf{
+		if(!isset(self::$_mCHERRY_SHELF)){ self::init(); }
+		return clone self::$_mCHERRY_SHELF;
 	}
 
 	public static function CHERRY_SIGN() : FloorSign{
@@ -2936,6 +2984,11 @@ final class VanillaBlocks{
 		return clone self::$_mCRIMSON_ROOTS;
 	}
 
+	public static function CRIMSON_SHELF() : Shelf{
+		if(!isset(self::$_mCRIMSON_SHELF)){ self::init(); }
+		return clone self::$_mCRIMSON_SHELF;
+	}
+
 	public static function CRIMSON_SIGN() : FloorSign{
 		if(!isset(self::$_mCRIMSON_SIGN)){ self::init(); }
 		return clone self::$_mCRIMSON_SIGN;
@@ -3069,6 +3122,11 @@ final class VanillaBlocks{
 	public static function DARK_OAK_SAPLING() : Sapling{
 		if(!isset(self::$_mDARK_OAK_SAPLING)){ self::init(); }
 		return clone self::$_mDARK_OAK_SAPLING;
+	}
+
+	public static function DARK_OAK_SHELF() : Shelf{
+		if(!isset(self::$_mDARK_OAK_SHELF)){ self::init(); }
+		return clone self::$_mDARK_OAK_SHELF;
 	}
 
 	public static function DARK_OAK_SIGN() : FloorSign{
@@ -4306,6 +4364,11 @@ final class VanillaBlocks{
 		return clone self::$_mJUNGLE_SAPLING;
 	}
 
+	public static function JUNGLE_SHELF() : Shelf{
+		if(!isset(self::$_mJUNGLE_SHELF)){ self::init(); }
+		return clone self::$_mJUNGLE_SHELF;
+	}
+
 	public static function JUNGLE_SIGN() : FloorSign{
 		if(!isset(self::$_mJUNGLE_SIGN)){ self::init(); }
 		return clone self::$_mJUNGLE_SIGN;
@@ -4499,6 +4562,11 @@ final class VanillaBlocks{
 	public static function MANGROVE_ROOTS() : MangroveRoots{
 		if(!isset(self::$_mMANGROVE_ROOTS)){ self::init(); }
 		return clone self::$_mMANGROVE_ROOTS;
+	}
+
+	public static function MANGROVE_SHELF() : Shelf{
+		if(!isset(self::$_mMANGROVE_SHELF)){ self::init(); }
+		return clone self::$_mMANGROVE_SHELF;
 	}
 
 	public static function MANGROVE_SIGN() : FloorSign{
@@ -4781,6 +4849,11 @@ final class VanillaBlocks{
 		return clone self::$_mOAK_SAPLING;
 	}
 
+	public static function OAK_SHELF() : Shelf{
+		if(!isset(self::$_mOAK_SHELF)){ self::init(); }
+		return clone self::$_mOAK_SHELF;
+	}
+
 	public static function OAK_SIGN() : FloorSign{
 		if(!isset(self::$_mOAK_SIGN)){ self::init(); }
 		return clone self::$_mOAK_SIGN;
@@ -4909,6 +4982,11 @@ final class VanillaBlocks{
 	public static function PALE_OAK_PRESSURE_PLATE() : WoodenPressurePlate{
 		if(!isset(self::$_mPALE_OAK_PRESSURE_PLATE)){ self::init(); }
 		return clone self::$_mPALE_OAK_PRESSURE_PLATE;
+	}
+
+	public static function PALE_OAK_SHELF() : Shelf{
+		if(!isset(self::$_mPALE_OAK_SHELF)){ self::init(); }
+		return clone self::$_mPALE_OAK_SHELF;
 	}
 
 	public static function PALE_OAK_SIGN() : FloorSign{
@@ -5204,6 +5282,11 @@ final class VanillaBlocks{
 	public static function POPLAR_PRESSURE_PLATE() : WoodenPressurePlate{
 		if(!isset(self::$_mPOPLAR_PRESSURE_PLATE)){ self::init(); }
 		return clone self::$_mPOPLAR_PRESSURE_PLATE;
+	}
+
+	public static function POPLAR_SHELF() : Shelf{
+		if(!isset(self::$_mPOPLAR_SHELF)){ self::init(); }
+		return clone self::$_mPOPLAR_SHELF;
 	}
 
 	public static function POPLAR_SIGN() : FloorSign{
@@ -5796,6 +5879,11 @@ final class VanillaBlocks{
 		return clone self::$_mSPRUCE_SAPLING;
 	}
 
+	public static function SPRUCE_SHELF() : Shelf{
+		if(!isset(self::$_mSPRUCE_SHELF)){ self::init(); }
+		return clone self::$_mSPRUCE_SHELF;
+	}
+
 	public static function SPRUCE_SIGN() : FloorSign{
 		if(!isset(self::$_mSPRUCE_SIGN)){ self::init(); }
 		return clone self::$_mSPRUCE_SIGN;
@@ -5949,6 +6037,11 @@ final class VanillaBlocks{
 	public static function SULFUR_SLAB() : Slab{
 		if(!isset(self::$_mSULFUR_SLAB)){ self::init(); }
 		return clone self::$_mSULFUR_SLAB;
+	}
+
+	public static function SULFUR_SPIKE() : SulfurSpike{
+		if(!isset(self::$_mSULFUR_SPIKE)){ self::init(); }
+		return clone self::$_mSULFUR_SPIKE;
 	}
 
 	public static function SULFUR_STAIRS() : Stair{
@@ -6144,6 +6237,11 @@ final class VanillaBlocks{
 	public static function WARPED_ROOTS() : NetherRoots{
 		if(!isset(self::$_mWARPED_ROOTS)){ self::init(); }
 		return clone self::$_mWARPED_ROOTS;
+	}
+
+	public static function WARPED_SHELF() : Shelf{
+		if(!isset(self::$_mWARPED_SHELF)){ self::init(); }
+		return clone self::$_mWARPED_SHELF;
 	}
 
 	public static function WARPED_SIGN() : FloorSign{

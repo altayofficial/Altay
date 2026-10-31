@@ -108,8 +108,8 @@ class PointedDripstone extends Transparent implements Fallable{
 			//isolated block with nothing above/below it isn't a valid placement
 			return false;
 		}
-		$aboveIsSame = $above instanceof PointedDripstone;
-		$belowIsSame = $below instanceof PointedDripstone;
+		$aboveIsSame = $this->isSameSpike($above);
+		$belowIsSame = $this->isSameSpike($below);
 
 		if($aboveIsSame && $belowIsSame){
 			$this->thickness = DripstoneThickness::MERGE;
@@ -146,19 +146,28 @@ class PointedDripstone extends Transparent implements Fallable{
 			//merging into an existing chain doesn't change the taper of the segments around it
 			return;
 		}
-		self::updateTaper($this->position->getWorld(), $this->position, $this->hanging);
+		$this->updateTaper($this->position->getWorld(), $this->position, $this->hanging);
+	}
+
+	/**
+	 * Only blocks of the exact same type chain together, so a sulfur spike never merges into dripstone.
+	 *
+	 * @phpstan-assert-if-true PointedDripstone $block
+	 */
+	protected function isSameSpike(Block $block) : bool{
+		return $block instanceof PointedDripstone && $block->hasSameTypeId($this);
 	}
 
 	/**
 	 * Re-tapers the 1-2 segments between a newly placed/grown tip and the rest of its stalactite/stalagmite chain
 	 * (if any), matching vanilla's frustum/base/middle progression.
 	 */
-	private static function updateTaper(World $world, Vector3 $tipPos, bool $hanging) : void{
+	private function updateTaper(World $world, Vector3 $tipPos, bool $hanging) : void{
 		$towardAnchor = $hanging ? Facing::UP : Facing::DOWN;
 
 		$length = 0;
 		$pos = $tipPos->getSide($towardAnchor);
-		while($length < self::MAX_DRIP_SEARCH_DISTANCE && $world->getBlock($pos) instanceof PointedDripstone){
+		while($length < self::MAX_DRIP_SEARCH_DISTANCE && $this->isSameSpike($world->getBlock($pos))){
 			$length++;
 			$pos = $pos->getSide($towardAnchor);
 		}
@@ -168,14 +177,14 @@ class PointedDripstone extends Transparent implements Fallable{
 
 		$frustumPos = $tipPos->getSide($towardAnchor);
 		$frustumBlock = $world->getBlock($frustumPos);
-		if($frustumBlock instanceof PointedDripstone && $frustumBlock->getThickness() !== DripstoneThickness::MERGE){
+		if($this->isSameSpike($frustumBlock) && $frustumBlock->getThickness() !== DripstoneThickness::MERGE){
 			$world->setBlock($frustumPos, (clone $frustumBlock)->setThickness(DripstoneThickness::FRUSTUM));
 		}
 
 		if($length >= 2){
 			$secondPos = $frustumPos->getSide($towardAnchor);
 			$secondBlock = $world->getBlock($secondPos);
-			if($secondBlock instanceof PointedDripstone && $secondBlock->getThickness() !== DripstoneThickness::MERGE){
+			if($this->isSameSpike($secondBlock) && $secondBlock->getThickness() !== DripstoneThickness::MERGE){
 				$world->setBlock($secondPos, (clone $secondBlock)->setThickness($length === 2 ? DripstoneThickness::BASE : DripstoneThickness::MIDDLE));
 			}
 		}
@@ -185,7 +194,7 @@ class PointedDripstone extends Transparent implements Fallable{
 		$world = $this->position->getWorld();
 		$supportPos = $this->hanging ? $this->position->up() : $this->position->down();
 		$support = $world->getBlock($supportPos);
-		if($support instanceof PointedDripstone && $support->isHanging() === $this->hanging){
+		if($this->isSameSpike($support) && $support->isHanging() === $this->hanging){
 			return; //still attached to the rest of the stalactite/stalagmite chain
 		}
 		if($support->getTypeId() !== BlockTypeIds::AIR){
@@ -251,23 +260,23 @@ class PointedDripstone extends Transparent implements Fallable{
 		if($world->getBlock($targetPos)->getTypeId() !== BlockTypeIds::AIR){
 			return;
 		}
-		if(self::getChainLength($world, $this->position, $this->hanging) >= self::MAX_HEIGHT){
+		if($this->getChainLength($world, $this->position, $this->hanging) >= self::MAX_HEIGHT){
 			return;
 		}
 
-		$world->setBlock($targetPos, VanillaBlocks::POINTED_DRIPSTONE()->setThickness(DripstoneThickness::TIP)->setHanging($this->hanging));
-		self::updateTaper($world, $targetPos, $this->hanging);
+		$world->setBlock($targetPos, (clone $this)->setThickness(DripstoneThickness::TIP));
+		$this->updateTaper($world, $targetPos, $this->hanging);
 	}
 
 	/**
-	 * Counts how many contiguous {@link PointedDripstone} blocks (including the tip at $tipPos) make up the
+	 * Counts how many contiguous blocks of this type (including the tip at $tipPos) make up the
 	 * stalactite/stalagmite chain, i.e. its current height.
 	 */
-	private static function getChainLength(World $world, Vector3 $tipPos, bool $hanging) : int{
+	private function getChainLength(World $world, Vector3 $tipPos, bool $hanging) : int{
 		$towardAnchor = $hanging ? Facing::UP : Facing::DOWN;
 		$length = 1;
 		$pos = $tipPos->getSide($towardAnchor);
-		while($length < self::MAX_HEIGHT && $world->getBlock($pos) instanceof PointedDripstone){
+		while($length < self::MAX_HEIGHT && $this->isSameSpike($world->getBlock($pos))){
 			$length++;
 			$pos = $pos->getSide($towardAnchor);
 		}

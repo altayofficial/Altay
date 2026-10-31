@@ -57,6 +57,7 @@ use pocketmine\block\tile\MobHead as TileMobHead;
 use pocketmine\block\tile\MonsterSpawner as TileMonsterSpawner;
 use pocketmine\block\tile\NormalFurnace as TileNormalFurnace;
 use pocketmine\block\tile\Note as TileNote;
+use pocketmine\block\tile\Shelf as TileShelf;
 use pocketmine\block\tile\ShulkerBox as TileShulkerBox;
 use pocketmine\block\tile\Sign as TileSign;
 use pocketmine\block\tile\Smoker as TileSmoker;
@@ -725,6 +726,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 		$woodenDoorBreakInfo = new Info(BreakInfo::axe(3.0, null, 15.0));
 		$woodenButtonBreakInfo = new Info(BreakInfo::axe(0.5));
 		$woodenPressurePlateBreakInfo = new Info(BreakInfo::axe(0.5));
+		$shelfBreakInfo = new Info(BreakInfo::axe(2.0, null, 15.0));
 
 		foreach(WoodType::cases() as $woodType){
 			$name = $woodType->getDisplayName();
@@ -749,6 +751,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 			self::register($idName("button"), fn(BID $id) => new WoodenButton($id, $name . " Button", $woodenButtonBreakInfo, $woodType));
 			self::register($idName("pressure_plate"), fn(BID $id) => new WoodenPressurePlate($id, $name . " Pressure Plate", $woodenPressurePlateBreakInfo, $woodType, 20));
 			self::register($idName("trapdoor"), fn(BID $id) => new WoodenTrapdoor($id, $name . " Trapdoor", $woodenDoorBreakInfo, $woodType));
+			self::register($idName("shelf"), fn(BID $id) => new Shelf($id, $name . " Shelf", $shelfBreakInfo, $woodType), TileShelf::class);
 
 			self::registerDelayed($idName("sign"), fn(string $idName) : FloorSign => new FloorSign(self::makeBID($idName, TileSign::class), $name . " Sign", $signBreakInfo, $woodType, self::getSignItemCallback($woodType)));
 			self::registerDelayed($idName("wall_sign"), fn(string $idName) : WallSign => new WallSign(self::makeBID($idName, TileSign::class), $name . " Wall Sign", $signBreakInfo, $woodType, self::getSignItemCallback($woodType)));
@@ -1194,6 +1197,8 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("polished_sulfur_slab", fn(BID $id) => new Slab($id, "Polished Sulfur", $sulfurBreakInfo));
 		self::register("polished_sulfur_stairs", fn(BID $id) => new Stair($id, "Polished Sulfur Stairs", $sulfurBreakInfo));
 		self::register("polished_sulfur_wall", fn(BID $id) => new Wall($id, "Polished Sulfur Wall", $sulfurBreakInfo));
+
+		self::register("sulfur_spike", fn(BID $id) => new SulfurSpike($id, "Sulfur Spike", new Info(BreakInfo::pickaxe(1.5, ToolTier::WOOD, 15.0))));
 	}
 
 	private function registerCinnabarBlocks() : void{

@@ -91,6 +91,7 @@ use pocketmine\block\Sapling;
 use pocketmine\block\Scaffolding;
 use pocketmine\block\Seagrass;
 use pocketmine\block\SeaPickle;
+use pocketmine\block\Shelf;
 use pocketmine\block\ShelfMushroom;
 use pocketmine\block\SmallDripleaf;
 use pocketmine\block\SnowLayer;
@@ -117,6 +118,7 @@ use pocketmine\block\utils\LeverFacing;
 use pocketmine\block\utils\MobHeadType;
 use pocketmine\block\utils\MushroomBlockType;
 use pocketmine\block\utils\PoweredByRedstone;
+use pocketmine\block\utils\PoweredShelfType;
 use pocketmine\block\utils\RedstoneWireConnection;
 use pocketmine\block\utils\SeagrassType;
 use pocketmine\block\VanillaBlocks as Blocks;
@@ -1321,6 +1323,29 @@ final class VanillaBlockMappings{
 		] as [$block, $id]){
 			$reg->mapModel(Model::create($block, $id)->properties([$commonProperties->horizontalFacingClassic]));
 		}
+
+		//shelves
+		foreach([
+			[Blocks::ACACIA_SHELF(), Ids::ACACIA_SHELF],
+			[Blocks::BAMBOO_SHELF(), Ids::BAMBOO_SHELF],
+			[Blocks::BIRCH_SHELF(), Ids::BIRCH_SHELF],
+			[Blocks::CHERRY_SHELF(), Ids::CHERRY_SHELF],
+			[Blocks::CRIMSON_SHELF(), Ids::CRIMSON_SHELF],
+			[Blocks::DARK_OAK_SHELF(), Ids::DARK_OAK_SHELF],
+			[Blocks::JUNGLE_SHELF(), Ids::JUNGLE_SHELF],
+			[Blocks::MANGROVE_SHELF(), Ids::MANGROVE_SHELF],
+			[Blocks::OAK_SHELF(), Ids::OAK_SHELF],
+			[Blocks::PALE_OAK_SHELF(), Ids::PALE_OAK_SHELF],
+			[Blocks::POPLAR_SHELF(), Ids::POPLAR_SHELF],
+			[Blocks::SPRUCE_SHELF(), Ids::SPRUCE_SHELF],
+			[Blocks::WARPED_SHELF(), Ids::WARPED_SHELF]
+		] as [$block, $id]){
+			$reg->mapModel(Model::create($block, $id)->properties([
+				$commonProperties->horizontalFacingCardinal,
+				new BoolProperty(StateNames::POWERED_BIT, fn(Shelf $b) => $b->isPowered(), fn(Shelf $b, bool $v) => $b->setPowered($v)),
+				new ValueFromIntProperty(StateNames::POWERED_SHELF_TYPE, ValueMappings::getInstance()->poweredShelfType, fn(Shelf $b) => $b->getPoweredShelfType(), fn(Shelf $b, PoweredShelfType $v) => $b->setPoweredShelfType($v)),
+			]));
+		}
 	}
 
 	private static function registerTorchMappings(BlockSerializerDeserializerRegistrar $reg, CommonProperties $commonProperties) : void{
@@ -1477,6 +1502,10 @@ final class VanillaBlockMappings{
 			new IntProperty(StateNames::RAIL_DIRECTION, 0, 5, fn(StraightOnlyRail $b) => $b->getShape(), fn(StraightOnlyRail $b, int $v) => $b->setShape($v)) //TODO: shared with ActivatorRail
 		]));
 		$reg->mapModel(Model::create(Blocks::POINTED_DRIPSTONE(), Ids::POINTED_DRIPSTONE)->properties([
+			new ValueFromStringProperty(StateNames::DRIPSTONE_THICKNESS, ValueMappings::getInstance()->dripstoneThickness, fn(PointedDripstone $b) => $b->getThickness(), fn(PointedDripstone $b, DripstoneThickness $v) => $b->setThickness($v)),
+			new BoolProperty(StateNames::HANGING, fn(PointedDripstone $b) => $b->isHanging(), fn(PointedDripstone $b, bool $v) => $b->setHanging($v)),
+		]));
+		$reg->mapModel(Model::create(Blocks::SULFUR_SPIKE(), Ids::SULFUR_SPIKE)->properties([
 			new ValueFromStringProperty(StateNames::DRIPSTONE_THICKNESS, ValueMappings::getInstance()->dripstoneThickness, fn(PointedDripstone $b) => $b->getThickness(), fn(PointedDripstone $b, DripstoneThickness $v) => $b->setThickness($v)),
 			new BoolProperty(StateNames::HANGING, fn(PointedDripstone $b) => $b->isHanging(), fn(PointedDripstone $b, bool $v) => $b->setHanging($v)),
 		]));

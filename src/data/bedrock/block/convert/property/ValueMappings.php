@@ -35,6 +35,7 @@ use pocketmine\block\utils\FroglightType;
 use pocketmine\block\utils\LeverFacing;
 use pocketmine\block\utils\MobHeadType;
 use pocketmine\block\utils\MushroomBlockType;
+use pocketmine\block\utils\PoweredShelfType;
 use pocketmine\block\utils\RedstoneWireConnection;
 use pocketmine\block\utils\SeagrassType;
 use pocketmine\block\utils\StairShape;
@@ -76,6 +77,8 @@ final class ValueMappings{
 
 	/** @phpstan-var EnumFromRawStateMap<MushroomBlockType, int> */
 	public readonly EnumFromRawStateMap $mushroomBlockType;
+	/** @phpstan-var EnumFromRawStateMap<PoweredShelfType, int> */
+	public readonly EnumFromRawStateMap $poweredShelfType;
 
 	/** @phpstan-var IntFromRawStateMap<string> */
 	public readonly IntFromRawStateMap $cardinalDirection;
@@ -206,6 +209,13 @@ final class ValueMappings{
 			RedstoneWireConnection::NONE => StringValues::REDSTONE_NORTH_NONE,
 			RedstoneWireConnection::SIDE => StringValues::REDSTONE_NORTH_SIDE,
 			RedstoneWireConnection::UP => StringValues::REDSTONE_NORTH_UP,
+		});
+
+		$this->poweredShelfType = EnumFromRawStateMap::int(PoweredShelfType::class, fn(PoweredShelfType $case) => match ($case) {
+			PoweredShelfType::UNCONNECTED => 0,
+			PoweredShelfType::RIGHT => 1,
+			PoweredShelfType::CENTER => 2,
+			PoweredShelfType::LEFT => 3,
 		});
 
 		$this->mushroomBlockType = EnumFromRawStateMap::int(

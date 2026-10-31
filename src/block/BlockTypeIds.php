@@ -934,8 +934,22 @@ final class BlockTypeIds{
 	public const MOSS_CARPET = 10901;
 	public const COMPOSTER = 10902;
 	public const SCAFFOLDING = 10903;
+	public const OAK_SHELF = 10904;
+	public const SPRUCE_SHELF = 10905;
+	public const BIRCH_SHELF = 10906;
+	public const JUNGLE_SHELF = 10907;
+	public const ACACIA_SHELF = 10908;
+	public const DARK_OAK_SHELF = 10909;
+	public const MANGROVE_SHELF = 10910;
+	public const CRIMSON_SHELF = 10911;
+	public const WARPED_SHELF = 10912;
+	public const CHERRY_SHELF = 10913;
+	public const PALE_OAK_SHELF = 10914;
+	public const BAMBOO_SHELF = 10915;
+	public const POPLAR_SHELF = 10916;
+	public const SULFUR_SPIKE = 10917;
 
-	public const FIRST_UNUSED_BLOCK_ID = 10904;
+	public const FIRST_UNUSED_BLOCK_ID = 10918;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_BLOCK_ID;
 

@@ -100,7 +100,8 @@ network:
     #The addresses players joining by address can actually reach. Gathered addresses that are not
     #listed are kept out of the answer, so those players do not spend a connectivity check on each,
     #and a listed address that was never gathered, such as the public address of a forwarded port,
-    #is offered on the same port as the gathered ones. Leave empty to offer every gathered address.
+    #is offered on the same port as the gathered ones. Leave empty to offer every gathered address,
+    #plus the address a player typed in to join, which is how a server behind NAT finds its public one.
     advertise-addresses: []
     #TCP port the join endpoint listens on, which is where the Servers tab asks for the MOTD and
     #posts its offer. Set to 0 to serve it on the server port.
@@ -109,8 +110,9 @@ network:
     #empty to let the system pick, which is fine until the ports have to be forwarded.
     udp-port-range: ""
     #One UDP port every player's media shares, so it is the only one that has to be forwarded. This
-    #wins over udp-port-range. It may be the server port as long as enable-query is off, since query
-    #listens on that one. Set to 0 to give each player a port of their own.
+    #wins over udp-port-range. 0 shares the server port, which hosts already forward, and serves query
+    #on it too; if something else holds that port, each player gets a port of their own instead.
+    #Set to -1 to always give each player a port of their own.
     udp-port: 0
     #Log what the ICE, DTLS and SCTP layers have to say about every connection, which is a line per
     #datagram and only worth turning on while taking a failing connection apart. Needs debug level 2.

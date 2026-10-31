@@ -1352,23 +1352,26 @@ class Server {
 	}
 
 	/**
-	 * The one UDP port every player's media shares, or null to give each player their own.
+	 * The one UDP port every player's media shares, or null to give each player their own, and
+	 * whether failing to bind it should stop the server. By default that is the server port, since
+	 * it is the one port every host already forwards, and query is served through it as well.
+	 *
+	 * @return array{?int, bool}
 	 */
-	private function getNetherNetUdpPort(int $serverPort, bool $useQuery) : ?int{
+	private function getNetherNetUdpPort(int $serverPort) : array{
 		$configured = $this->configGroup->getPropertyInt(Yml::NETWORK_NETHERNET_UDP_PORT, 0);
 		if($configured === 0){
-			return null;
+			//yeah, nobody asked for this port, so if something else holds it we just fall back
+			return [$serverPort, false];
+		}
+		if($configured === -1){
+			return [null, false];
 		}
 		if($configured < 1 || $configured > 65535){
-			$this->logger->warning("Ignoring " . Yml::NETWORK_NETHERNET_UDP_PORT . ", it must be between 1 and 65535");
-			return null;
+			$this->logger->warning("Ignoring " . Yml::NETWORK_NETHERNET_UDP_PORT . ", it must be between 1 and 65535, 0 or -1");
+			return [$serverPort, false];
 		}
-		if($configured === $serverPort && $useQuery){
-			//query owns the UDP side of the server port, and binding it twice would take the whole network down
-			$this->logger->warning("Ignoring " . Yml::NETWORK_NETHERNET_UDP_PORT . ", query already listens on udp/$serverPort. Pick another port or turn enable-query off");
-			return null;
-		}
-		return $configured;
+		return [$configured, true];
 	}
 
 	/**
@@ -1420,6 +1423,7 @@ class Server {
 		TypeConverter $typeConverter
 	) : bool{
 		$prettyIp = $ipV6 ? "[$ip]" : $ip;
+		$queryOnMediaPort = false;
 		try{
 			//NetherNet discovery uses a single broadcast socket, so the IPv6 pass has no transport to start
 			if(!$ipV6){
@@ -1430,6 +1434,9 @@ class Server {
 				if($signallingPort < 1 || $signallingPort > 65535){
 					$signallingPort = $port;
 				}
+				[$udpPort, $udpPortRequired] = $this->getNetherNetUdpPort($port);
+				//query rides on the media port when they are the same one, binding it twice would fail
+				$queryOnMediaPort = $udpPort === $port;
 				$transport = new ThreadedTransport(
 					$this->logger,
 					new NetherNetTransportFactory(
@@ -1459,7 +1466,8 @@ class Server {
 						$this->getNetherNetLimit(Yml::NETWORK_NETHERNET_MAX_NEGOTIATIONS_PER_ADDRESS, 32),
 						$this->configGroup->getPropertyBool(Yml::NETWORK_NETHERNET_VERBOSE_LOGGING, false),
 						$this->getNetherNetLimit(Yml::NETWORK_NETHERNET_HANDSHAKE_TIMEOUT, NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT),
-						$this->getNetherNetUdpPort($port, $useQuery)
+						$udpPort,
+						$udpPortRequired
 					),
 					$this->tickSleeper
 				);
@@ -1476,7 +1484,9 @@ class Server {
 			return false;
 		}
 		if($useQuery){
-			$this->network->registerInterface(new DedicatedQueryNetworkInterface($ip, $port, $ipV6, new \PrefixedLogger($this->logger, "Dedicated Query Interface")));
+			if(!$queryOnMediaPort){
+				$this->network->registerInterface(new DedicatedQueryNetworkInterface($ip, $port, $ipV6, new \PrefixedLogger($this->logger, "Dedicated Query Interface")));
+			}
 			$this->logger->info($this->language->translate(KnownTranslationFactory::pocketmine_server_query_running($prettyIp, (string) $port)));
 		}
 		return true;

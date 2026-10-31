@@ -33,7 +33,7 @@ use function str_repeat;
 
 final class VersionInfo{
 	public const NAME = "Altay";
-	public const BASE_VERSION = "5.44.5";
+	public const BASE_VERSION = "5.45.0";
 	public const IS_DEVELOPMENT_BUILD = true;
 	public const BUILD_CHANNEL = "master";
 	public const GITHUB_URL = "https://github.com/altayofficial/Altay";
@@ -47,7 +47,7 @@ final class VersionInfo{
 	 * (entities, tiles, blocks, biomes etc.). For example, if PM accidentally saved a block with its facing value
 	 * swapped, we would bump this, but not if Mojang did the same change.
 	 */
-	public const WORLD_DATA_VERSION = 1;
+	public const WORLD_DATA_VERSION = 2;
 	/**
 	 * Name of the NBT tag used to store the world data version.
 	 */

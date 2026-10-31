@@ -36,6 +36,7 @@ use function array_map;
 class Chunk{
 	public const DIRTY_FLAG_BLOCKS = 1 << 0;
 	public const DIRTY_FLAG_BIOMES = 1 << 3;
+	public const DIRTY_FLAG_DATA_VERSION = 1 << 4;
 
 	public const DIRTY_FLAGS_ALL = ~0;
 	public const DIRTY_FLAGS_NONE = 0;

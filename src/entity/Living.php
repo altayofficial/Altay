@@ -147,6 +147,19 @@ abstract class Living extends Entity{
 	protected bool $swimming = false;
 
 	private ?int $frostWalkerLevel = null;
+	/** null until the armour changes and someone asks again */
+	private ?bool $wearsTickedArmor = null;
+	/** set while several armour slots change at once, so viewers get one update with the end result */
+	private bool $deferArmorBroadcast = false;
+	private bool $armorBroadcastPending = false;
+
+	/**
+	 * Which item classes actually override onTickWorn(). Almost no armour does, so knowing this lets us skip
+	 * cloning the whole armour inventory every tick for every living entity.
+	 * @var bool[]
+	 * @phpstan-var array<class-string<Item>, bool>
+	 */
+	private static array $tickWornOverrides = [];
 
 	protected function getInitialDragMultiplier() : float{ return 0.02; }
 
@@ -167,17 +180,24 @@ abstract class Living extends Entity{
 
 		$this->armorInventory = new ArmorInventory($this);
 		//TODO: load/save armor inventory contents
-		$this->armorInventory->getListeners()->add(CallbackInventoryListener::onAnyChange(fn() => NetworkBroadcastUtils::broadcastEntityEvent(
-			$this->getViewers(),
-			fn(EntityEventBroadcaster $broadcaster, array $recipients) => $broadcaster->onMobArmorChange($recipients, $this)
-		)));
+		$this->armorInventory->getListeners()->add(CallbackInventoryListener::onAnyChange(function() : void{
+			if($this->deferArmorBroadcast){
+				$this->armorBroadcastPending = true;
+			}else{
+				$this->broadcastArmorChange();
+			}
+		}));
 		$this->armorInventory->getListeners()->add(new CallbackInventoryListener(
 			onSlotChange: function(Inventory $inventory, int $slot) : void{
 				if($slot === ArmorInventory::SLOT_FEET){
 					$this->frostWalkerLevel = null;
 				}
+				$this->wearsTickedArmor = null;
 			},
-			onContentChange: function() : void{ $this->frostWalkerLevel = null; }
+			onContentChange: function() : void{
+				$this->frostWalkerLevel = null;
+				$this->wearsTickedArmor = null;
+			}
 		));
 		$this->armorInventory->getListeners()->add(CallbackInventoryListener::onAnyChange(
 			fn() => $this->updateArmorKnockbackResistance()
@@ -611,7 +631,8 @@ abstract class Living extends Entity{
 		$armorEfficiency = $this->getArmorEfficiencyAgainst($source);
 		if($source->canBeReducedByArmor()){
 			//MCPE uses the same system as PC did pre-1.9
-			$source->setModifier(-$source->getFinalDamage() * $this->getArmorPoints() * 0.04 * $armorEfficiency, EntityDamageEvent::MODIFIER_ARMOR);
+			//custom items can push defense points past 20, and past 25 the reduction flips the damage negative
+			$source->setModifier(-$source->getFinalDamage() * min($this->getArmorPoints(), 20) * 0.04 * $armorEfficiency, EntityDamageEvent::MODIFIER_ARMOR);
 		}
 
 		$cause = $source->getCause();
@@ -682,16 +703,34 @@ abstract class Living extends Entity{
 	public function damageArmor(float $damage) : void{
 		$durabilityRemoved = (int) max(floor($damage / 4), 1);
 
-		$armor = $this->armorInventory->getContents();
-		foreach($armor as $slotId => $item){
-			if($item instanceof Armor){
-				$oldItem = clone $item;
-				$this->damageItem($item, $durabilityRemoved);
-				if(!$item->equalsExact($oldItem)){
-					$this->armorInventory->setItem($slotId, $item);
+		//every worn piece loses durability on the same hit. Sending the whole armour set to every viewer once per
+		//piece was most of the cost of a PvP hit, and only the last of those updates ever mattered
+		$this->deferArmorBroadcast = true;
+		try{
+			$armor = $this->armorInventory->getContents();
+			foreach($armor as $slotId => $item){
+				if($item instanceof Armor){
+					$oldItem = clone $item;
+					$this->damageItem($item, $durabilityRemoved);
+					if(!$item->equalsExact($oldItem)){
+						$this->armorInventory->setItem($slotId, $item);
+					}
 				}
 			}
+		}finally{
+			$this->deferArmorBroadcast = false;
+			if($this->armorBroadcastPending){
+				$this->armorBroadcastPending = false;
+				$this->broadcastArmorChange();
+			}
 		}
+	}
+
+	private function broadcastArmorChange() : void{
+		NetworkBroadcastUtils::broadcastEntityEvent(
+			$this->getViewers(),
+			fn(EntityEventBroadcaster $broadcaster, array $recipients) => $broadcaster->onMobArmorChange($recipients, $this)
+		);
 	}
 
 	private function damageItem(Durable $item, int $durabilityRemoved) : void{
@@ -845,12 +884,14 @@ abstract class Living extends Entity{
 				$hasUpdate = true;
 			}
 
-			foreach($this->armorInventory->getContents() as $index => $item){
-				$oldItem = clone $item;
-				if($item->onTickWorn($this)){
-					$hasUpdate = true;
-					if(!$item->equalsExact($oldItem)){
-						$this->armorInventory->setItem($index, $item);
+			if($this->wearsTickedArmor ??= $this->computeWearsTickedArmor()){
+				foreach($this->armorInventory->getContents() as $index => $item){
+					$oldItem = clone $item;
+					if($item->onTickWorn($this)){
+						$hasUpdate = true;
+						if(!$item->equalsExact($oldItem)){
+							$this->armorInventory->setItem($index, $item);
+						}
 					}
 				}
 			}
@@ -870,6 +911,16 @@ abstract class Living extends Entity{
 		Timings::$livingEntityBaseTick->stopTiming();
 
 		return $hasUpdate;
+	}
+
+	private function computeWearsTickedArmor() : bool{
+		foreach($this->armorInventory->getContents() as $item){
+			$class = $item::class;
+			if(self::$tickWornOverrides[$class] ??= (new \ReflectionMethod($item, "onTickWorn"))->getDeclaringClass()->getName() !== Item::class){
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected function move(float $dx, float $dy, float $dz) : void{

@@ -29,11 +29,14 @@ use pocketmine\color\Color;
 use pocketmine\data\bedrock\BedrockDataFiles;
 use pocketmine\data\SavedDataLoadingException;
 use pocketmine\nbt\BigEndianNbtSerializer;
+use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\network\mcpe\protocol\AvailableActorIdentifiersPacket;
 use pocketmine\network\mcpe\protocol\BiomeDefinitionListPacket;
+use pocketmine\network\mcpe\protocol\JigsawStructureDataPacket;
 use pocketmine\network\mcpe\protocol\types\biome\BiomeDefinitionEntry;
 use pocketmine\network\mcpe\protocol\types\BlockPaletteEntry;
 use pocketmine\network\mcpe\protocol\types\CacheableNbt;
@@ -296,7 +299,11 @@ class StaticPacketCache{
 		private AvailableActorIdentifiersPacket $availableActorIdentifiers,
 		private VoxelShapesPacket $voxelShapesPacket,
 		private array $blockDefinitions
-	){}
+	){
+		//hmm, plugins registering custom entities or biomes edit the actor identifier and biome packets in place
+		//through the getters, even after players joined, so those two have to be encoded fresh on every send
+		EncodedPacketCache::getInstance()->markImmutable($this->voxelShapesPacket);
+	}
 
 	public function getBiomeDefinitionList() : BiomeDefinitionListPacket{
 		return $this->biomeDefinitionList;
@@ -308,6 +315,24 @@ class StaticPacketCache{
 
 	public function getVoxelShapes() : VoxelShapesPacket {
 		return $this->voxelShapesPacket;
+	}
+
+	private ?JigsawStructureDataPacket $jigsawStructureData = null;
+
+	/**
+	 * Every joining player gets the same (empty) jigsaw data, so build it once instead of on each login.
+	 */
+	public function getJigsawStructureData() : JigsawStructureDataPacket{
+		if($this->jigsawStructureData === null){
+			$this->jigsawStructureData = JigsawStructureDataPacket::create(new CacheableNbt(CompoundTag::create()
+				->setTag("processors", new ListTag([], NBT::TAG_Compound))
+				->setTag("template_pools", new ListTag([], NBT::TAG_Compound))
+				->setTag("jigsaws", new ListTag([], NBT::TAG_Compound))
+				->setTag("structure_sets", new ListTag([], NBT::TAG_Compound))
+			)); // TODO: Custom jigsaw structure support
+			EncodedPacketCache::getInstance()->markImmutable($this->jigsawStructureData);
+		}
+		return $this->jigsawStructureData;
 	}
 
 	/**

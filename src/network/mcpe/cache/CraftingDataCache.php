@@ -77,6 +77,7 @@ final class CraftingDataCache{
 				unset($this->caches[$id]);
 			});
 			$this->caches[$id] = $this->buildCraftingDataCache($manager);
+			EncodedPacketCache::getInstance()->markImmutable($this->caches[$id]);
 		}
 		return $this->caches[$id];
 	}

@@ -23,8 +23,14 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\encryption;
+namespace pocketmine\block\utils;
 
-final class DecryptionException extends \RuntimeException{
-
+/**
+ * How a piece of redstone wire reaches towards one of its horizontal neighbours
+ */
+enum RedstoneWireConnection{
+	case NONE;
+	case SIDE;
+	//climbs the face of the neighbouring block to wire sitting on top of it
+	case UP;
 }

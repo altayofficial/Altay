@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\block\utils\StaticSupportTrait;
+use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\item\Item;
 use pocketmine\item\VanillaItems;
 use pocketmine\math\Axis;
@@ -33,14 +34,32 @@ use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
 use function mt_rand;
 
-final class ChorusPlant extends Flowable{
+final class ChorusPlant extends Flowable implements StateDeriving{
 	use StaticSupportTrait;
 
 	/**
-	 * @var true[]
-	 * @phpstan-var array<int, true>
+	 * @var int[]
+	 * @phpstan-var array<int, int>
 	 */
 	protected array $connections = [];
+
+	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
+		$w->facingFlags($this->connections);
+	}
+
+	public function isConnected(int $facing) : bool{
+		return isset($this->connections[$facing]);
+	}
+
+	/** @return $this */
+	public function setConnected(int $facing, bool $connected) : self{
+		if($connected){
+			$this->connections[$facing] = $facing;
+		}else{
+			unset($this->connections[$facing]);
+		}
+		return $this;
+	}
 
 	protected function recalculateCollisionBoxes() : array{
 		$bb = AxisAlignedBB::one();
@@ -58,19 +77,34 @@ final class ChorusPlant extends Flowable{
 
 		$this->collisionBoxes = null;
 
+		return $this;
+	}
+
+	public function onNearbyBlockChange() : void{
+		$world = $this->position->getWorld();
+		if(!$this->canBeSupportedAt($this)){
+			$world->useBreakOn($this->position);
+		}elseif($this->deriveStateFromWorld()){
+			$world->setBlock($this->position, $this);
+		}
+	}
+
+	public function deriveStateFromWorld() : bool{
+		$changed = false;
 		foreach(Facing::ALL as $facing){
-			$block = $this->getSide($facing);
-			if(match($block->getTypeId()){
+			$connected = match($this->getSide($facing)->getTypeId()){
 				BlockTypeIds::END_STONE, BlockTypeIds::CHORUS_FLOWER, $this->getTypeId() => true,
 				default => false
-			}){
-				$this->connections[$facing] = true;
-			}else{
-				unset($this->connections[$facing]);
+			};
+			if($connected !== isset($this->connections[$facing])){
+				$this->setConnected($facing, $connected);
+				$changed = true;
 			}
 		}
-
-		return $this;
+		if($changed){
+			$this->collisionBoxes = null;
+		}
+		return $changed;
 	}
 
 	private function canBeSupportedBy(Block $block) : bool{

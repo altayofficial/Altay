@@ -371,6 +371,16 @@ class World implements ChunkManager{
 	 */
 	private array $randomTickBlocks = [];
 
+	/**
+	 * Y indexes of the sub chunks whose palette holds anything that ticks randomly, keyed by chunk hash. Picking random
+	 * blocks in an empty sub chunk or one made of stone and ores can never do anything, and underground that's most of
+	 * the loaded world, so we remember which ones matter until the chunk changes.
+	 *
+	 * @var int[][]
+	 * @phpstan-var array<ChunkPosHash, list<int>>
+	 */
+	private array $randomTickableSubChunks = [];
+
 	public WorldTimings $timings;
 
 	public float $tickRateTime = 0;
@@ -1202,10 +1212,12 @@ class World implements ChunkManager{
 			throw new \InvalidArgumentException("Cannot do random-tick on unknown block");
 		}
 		$this->randomTickBlocks[$block->getStateId()] = true;
+		$this->randomTickableSubChunks = [];
 	}
 
 	public function removeRandomTickedBlock(Block $block) : void{
 		unset($this->randomTickBlocks[$block->getStateId()]);
+		$this->randomTickableSubChunks = [];
 	}
 
 	/**
@@ -1392,6 +1404,28 @@ class World implements ChunkManager{
 		}
 	}
 
+	/**
+	 * @return int[]
+	 * @phpstan-return list<int>
+	 */
+	private function findRandomTickableSubChunks(Chunk $chunk) : array{
+		$result = [];
+		foreach($chunk->getSubChunks() as $Y => $subChunk){
+			//random ticks only ever look at the first layer, same as SubChunk::getBlockStateId()
+			$layer = $subChunk->getBlockLayers()[0] ?? null;
+			if($layer === null){
+				continue;
+			}
+			foreach($layer->getPalette() as $stateId){
+				if(isset($this->randomTickBlocks[$stateId])){
+					$result[] = $Y;
+					break;
+				}
+			}
+		}
+		return $result;
+	}
+
 	private function tickChunk(int $chunkX, int $chunkZ) : void{
 		$chunk = $this->getChunk($chunkX, $chunkZ);
 		if($chunk === null){
@@ -1403,26 +1437,25 @@ class World implements ChunkManager{
 		}
 
 		$blockFactory = $this->blockStateRegistry;
-		foreach($chunk->getSubChunks() as $Y => $subChunk){
-			if(!$subChunk->isEmptyFast()){
-				$k = 0;
-				for($i = 0; $i < $this->tickedBlocksPerSubchunkPerTick; ++$i){
-					if(($i % 5) === 0){
-						//60 bits will be used by 5 blocks (12 bits each)
-						$k = mt_rand(0, (1 << 60) - 1);
-					}
-					$x = $k & SubChunk::COORD_MASK;
-					$y = ($k >> SubChunk::COORD_BIT_SIZE) & SubChunk::COORD_MASK;
-					$z = ($k >> (SubChunk::COORD_BIT_SIZE * 2)) & SubChunk::COORD_MASK;
-					$k >>= (SubChunk::COORD_BIT_SIZE * 3);
+		foreach($this->randomTickableSubChunks[World::chunkHash($chunkX, $chunkZ)] ??= $this->findRandomTickableSubChunks($chunk) as $Y){
+			$subChunk = $chunk->getSubChunk($Y);
+			$k = 0;
+			for($i = 0; $i < $this->tickedBlocksPerSubchunkPerTick; ++$i){
+				if(($i % 5) === 0){
+					//60 bits will be used by 5 blocks (12 bits each)
+					$k = mt_rand(0, (1 << 60) - 1);
+				}
+				$x = $k & SubChunk::COORD_MASK;
+				$y = ($k >> SubChunk::COORD_BIT_SIZE) & SubChunk::COORD_MASK;
+				$z = ($k >> (SubChunk::COORD_BIT_SIZE * 2)) & SubChunk::COORD_MASK;
+				$k >>= (SubChunk::COORD_BIT_SIZE * 3);
 
-					$state = $subChunk->getBlockStateId($x, $y, $z);
+				$state = $subChunk->getBlockStateId($x, $y, $z);
 
-					if(isset($this->randomTickBlocks[$state])){
-						$block = $blockFactory->fromStateId($state);
-						$block->position($this, $chunkX * Chunk::EDGE_LENGTH + $x, ($Y << SubChunk::COORD_BIT_SIZE) + $y, $chunkZ * Chunk::EDGE_LENGTH + $z);
-						$block->onRandomTick();
-					}
+				if(isset($this->randomTickBlocks[$state])){
+					$block = $blockFactory->fromStateId($state);
+					$block->position($this, $chunkX * Chunk::EDGE_LENGTH + $x, ($Y << SubChunk::COORD_BIT_SIZE) + $y, $chunkZ * Chunk::EDGE_LENGTH + $z);
+					$block->onRandomTick();
 				}
 			}
 		}
@@ -1465,12 +1498,26 @@ class World implements ChunkManager{
 					$chunk->isPopulated(),
 					array_map(fn(Entity $e) => $e->saveNBT(), array_values(array_filter($this->getChunkEntities($chunkX, $chunkZ), fn(Entity $e) => $e->canSaveWithChunk()))),
 					array_map(fn(Tile $t) => $t->saveNBT(), array_values($chunk->getTiles())),
-				), $chunk->getTerrainDirtyFlags());
+				), $this->getChunkSaveDirtyFlags($chunkHash, $chunk));
 				$chunk->clearTerrainDirtyFlags();
 			}
 		}finally{
 			$this->timings->syncChunkSave->stopTiming();
 		}
+	}
+
+	/**
+	 * A pending derived-state migration must not advance the persisted data version. Otherwise an
+	 * autosave could mark the migration complete before the chunk's neighbours are available.
+	 *
+	 * @phpstan-param ChunkPosHash $chunkHash
+	 */
+	private function getChunkSaveDirtyFlags(int $chunkHash, Chunk $chunk) : int{
+		$dirtyFlags = $chunk->getTerrainDirtyFlags();
+		if(isset($this->legacyDerivedStateChunks[$chunkHash])){
+			$dirtyFlags &= ~Chunk::DIRTY_FLAG_DATA_VERSION;
+		}
+		return $dirtyFlags;
 	}
 
 	/**
@@ -1537,48 +1584,48 @@ class World implements ChunkManager{
 		$collides = [];
 
 		$collisionInfo = $this->blockStateRegistry->collisionInfo;
-		if($targetFirst){
-			for($z = $minZ; $z <= $maxZ; ++$z){
-				$zOverflow = $z === $minZ || $z === $maxZ;
-				for($x = $minX; $x <= $maxX; ++$x){
-					$zxOverflow = $zOverflow || $x === $minX || $x === $maxX;
-					for($y = $minY; $y <= $maxY; ++$y){
-						$overflow = $zxOverflow || $y === $minY || $y === $maxY;
+		//this runs for every player movement, so the chunk is looked up once per column and the sub chunk once per
+		//16 blocks of height, instead of hashing and bounds checking every single block like getBlockAt() would
+		$yStart = max($minY, $this->minY);
+		$yEnd = min($maxY, $this->maxY - 1);
+		for($z = $minZ; $z <= $maxZ; ++$z){
+			$zOverflow = $z === $minZ || $z === $maxZ;
+			for($x = $minX; $x <= $maxX; ++$x){
+				$zxOverflow = $zOverflow || $x === $minX || $x === $maxX;
+				if($x > Limits::INT32_MAX || $x < Limits::INT32_MIN || $z > Limits::INT32_MAX || $z < Limits::INT32_MIN){
+					continue;
+				}
+				$chunk = $this->chunks[World::chunkHash($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE)] ?? null;
+				if($chunk === null){
+					//unloaded terrain reads as COLLISION_NONE, which never collides
+					continue;
+				}
+				$subChunkY = null;
+				$subChunk = null;
+				$localX = $x & SubChunk::COORD_MASK;
+				$localZ = $z & SubChunk::COORD_MASK;
+				for($y = $yStart; $y <= $yEnd; ++$y){
+					if($subChunkY !== ($y >> SubChunk::COORD_BIT_SIZE)){
+						$subChunkY = $y >> SubChunk::COORD_BIT_SIZE;
+						$subChunk = $chunk->getSubChunk($subChunkY);
+					}
+					$stateCollisionInfo = $collisionInfo[$subChunk->getBlockStateId($localX, $y & SubChunk::COORD_MASK, $localZ)];
+					if($stateCollisionInfo === RuntimeBlockStateRegistry::COLLISION_NONE){
+						continue;
+					}
 
-						$stateCollisionInfo = $this->getBlockCollisionInfo($x, $y, $z, $collisionInfo);
-						if($overflow ?
-							$stateCollisionInfo === RuntimeBlockStateRegistry::COLLISION_MAY_OVERFLOW && $this->getBlockAt($x, $y, $z)->collidesWithBB($bb) :
-							match ($stateCollisionInfo) {
-								RuntimeBlockStateRegistry::COLLISION_CUBE => true,
-								RuntimeBlockStateRegistry::COLLISION_NONE => false,
-								default => $this->getBlockAt($x, $y, $z)->collidesWithBB($bb)
-							}
-						){
+					$overflow = $zxOverflow || $y === $minY || $y === $maxY;
+					if($overflow ?
+						$stateCollisionInfo === RuntimeBlockStateRegistry::COLLISION_MAY_OVERFLOW && $this->getBlockAt($x, $y, $z)->collidesWithBB($bb) :
+						match ($stateCollisionInfo) {
+							RuntimeBlockStateRegistry::COLLISION_CUBE => true,
+							default => $this->getBlockAt($x, $y, $z)->collidesWithBB($bb)
+						}
+					){
+						if($targetFirst){
 							return [$this->getBlockAt($x, $y, $z)];
 						}
-					}
-				}
-			}
-		}else{
-			//TODO: duplicated code :( this way is better for performance though
-			for($z = $minZ; $z <= $maxZ; ++$z){
-				$zOverflow = $z === $minZ || $z === $maxZ;
-				for($x = $minX; $x <= $maxX; ++$x){
-					$zxOverflow = $zOverflow || $x === $minX || $x === $maxX;
-					for($y = $minY; $y <= $maxY; ++$y){
-						$overflow = $zxOverflow || $y === $minY || $y === $maxY;
-
-						$stateCollisionInfo = $this->getBlockCollisionInfo($x, $y, $z, $collisionInfo);
-						if($overflow ?
-							$stateCollisionInfo === RuntimeBlockStateRegistry::COLLISION_MAY_OVERFLOW && $this->getBlockAt($x, $y, $z)->collidesWithBB($bb) :
-							match ($stateCollisionInfo) {
-								RuntimeBlockStateRegistry::COLLISION_CUBE => true,
-								RuntimeBlockStateRegistry::COLLISION_NONE => false,
-								default => $this->getBlockAt($x, $y, $z)->collidesWithBB($bb)
-							}
-						){
-							$collides[] = $this->getBlockAt($x, $y, $z);
-						}
+						$collides[] = $this->getBlockAt($x, $y, $z);
 					}
 				}
 			}
@@ -1991,10 +2038,17 @@ class World implements ChunkManager{
 	 */
 	public function getBlockAt(int $x, int $y, int $z, bool $cached = true, bool $addToCache = true) : Block{
 		$relativeBlockHash = null;
-		$chunkHash = World::chunkHash($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE);
+		//this is one of the hottest calls in the server, so the hash and bounds helpers are spelled out instead of
+		//paying for three extra calls on every cache hit. Keep these in sync with chunkHash(), chunkBlockHash() and
+		//isInWorld()
+		$chunkHash = morton2d_encode($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE);
 
-		if($this->isInWorld($x, $y, $z)){
-			$relativeBlockHash = World::chunkBlockHash($x, $y, $z);
+		if(
+			$y < $this->maxY && $y >= $this->minY &&
+			$x <= Limits::INT32_MAX && $x >= Limits::INT32_MIN &&
+			$z <= Limits::INT32_MAX && $z >= Limits::INT32_MIN
+		){
+			$relativeBlockHash = morton3d_encode($x, $y, $z);
 
 			if($cached && isset($this->blockCache[$chunkHash][$relativeBlockHash])){
 				return $this->blockCache[$chunkHash][$relativeBlockHash];
@@ -2091,12 +2145,16 @@ class World implements ChunkManager{
 		unset($this->blockCache[$chunkHash][$relativeBlockHash]);
 		$this->blockCacheSize--;
 		unset($this->blockCollisionBoxCache[$chunkHash][$relativeBlockHash]);
+		unset($this->randomTickableSubChunks[$chunkHash]);
 		//blocks like fences have collision boxes that reach into neighbouring blocks, so we need to invalidate the
-		//caches for those blocks as well
-		foreach(Facing::OFFSET as [$offsetX, $offsetY, $offsetZ]){
-			$sideChunkPosHash = World::chunkHash(($x + $offsetX) >> Chunk::COORD_BIT_SIZE, ($z + $offsetZ) >> Chunk::COORD_BIT_SIZE);
-			$sideChunkBlockHash = World::chunkBlockHash($x + $offsetX, $y + $offsetY, $z + $offsetZ);
-			unset($this->blockCollisionBoxCache[$sideChunkPosHash][$sideChunkBlockHash]);
+		//caches for those blocks as well. Nothing to do when nobody has asked for collision boxes yet, which is the
+		//common case for bulk edits away from players
+		if(count($this->blockCollisionBoxCache) !== 0){
+			foreach(Facing::OFFSET as [$offsetX, $offsetY, $offsetZ]){
+				$sideChunkPosHash = World::chunkHash(($x + $offsetX) >> Chunk::COORD_BIT_SIZE, ($z + $offsetZ) >> Chunk::COORD_BIT_SIZE);
+				$sideChunkBlockHash = World::chunkBlockHash($x + $offsetX, $y + $offsetY, $z + $offsetZ);
+				unset($this->blockCollisionBoxCache[$sideChunkPosHash][$sideChunkBlockHash]);
+			}
 		}
 
 		if(!isset($this->changedBlocks[$chunkHash])){
@@ -2697,6 +2755,7 @@ class World implements ChunkManager{
 
 		$this->chunks[$chunkHash] = $chunk;
 		unset($this->knownUngeneratedChunks[$chunkHash]);
+		unset($this->randomTickableSubChunks[$chunkHash]);
 
 		$this->blockCacheSize -= count($this->blockCache[$chunkHash] ?? []);
 		unset($this->blockCache[$chunkHash]);
@@ -3064,6 +3123,7 @@ class World implements ChunkManager{
 		}
 
 		if(!$containsDerivedStates){
+			$chunk->setTerrainDirtyFlag(Chunk::DIRTY_FLAG_DATA_VERSION, true);
 			unset($this->legacyDerivedStateChunks[$chunkHash]);
 			return;
 		}
@@ -3118,6 +3178,7 @@ class World implements ChunkManager{
 		//Even an already-correct block came from an old palette. Rewriting the chunk prevents this
 		//migration from running again on every load.
 		$chunk->setTerrainDirtyFlag(Chunk::DIRTY_FLAG_BLOCKS, true);
+		$chunk->setTerrainDirtyFlag(Chunk::DIRTY_FLAG_DATA_VERSION, true);
 		unset($this->legacyDerivedStateChunks[$chunkHash]);
 	}
 
@@ -3258,7 +3319,7 @@ class World implements ChunkManager{
 						$chunk->isPopulated(),
 						array_map(fn(Entity $e) => $e->saveNBT(), array_values(array_filter($this->getChunkEntities($x, $z), fn(Entity $e) => $e->canSaveWithChunk()))),
 						array_map(fn(Tile $t) => $t->saveNBT(), array_values($chunk->getTiles())),
-					), $chunk->getTerrainDirtyFlags());
+					), $this->getChunkSaveDirtyFlags($chunkHash, $chunk));
 				}finally{
 					$this->timings->syncChunkSave->stopTiming();
 				}
@@ -3280,6 +3341,7 @@ class World implements ChunkManager{
 
 		unset($this->chunks[$chunkHash]);
 		unset($this->legacyDerivedStateChunks[$chunkHash]);
+		unset($this->randomTickableSubChunks[$chunkHash]);
 		$this->blockCacheSize -= count($this->blockCache[$chunkHash] ?? []);
 		unset($this->blockCache[$chunkHash]);
 		unset($this->blockCollisionBoxCache[$chunkHash]);

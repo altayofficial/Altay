@@ -7,7 +7,6 @@
       "php": "^8.1",
       "php-64bit": "*",
       "ext-chunkutils2": "^0.3.1",
-      "ext-crypto": "^0.3.1",
       "ext-ctype": "*",
       "ext-curl": "*",
       "ext-date": "*",
@@ -32,12 +31,12 @@
       "ext-zlib": ">=1.2.11",
       "composer-runtime-api": "^2.0",
       "adhocore/json-comment": "~1.2.0",
-      "altayofficial/bedrock-data": "dev-bedrock-1.26.50",
-      "altayofficial/bedrock-protocol": "dev-bedrock-1.26.50",
-      "altayofficial/nbt": "dev-stable as 1.3.0",
-      "altayofficial/network": "dev-main",
-      "altayofficial/webrtc": "^1.2.0",
-      "altayofficial/worldupgraderschemas": "dev-bedrock-1.26.50",
+      "altayofficial/bedrock-data": "~6.10.0+bedrock-1.26.60",
+      "altayofficial/bedrock-protocol": "~61.0.0+bedrock-1.26.60",
+      "altayofficial/nbt": "~1.3.0",
+      "altayofficial/network": "~1.6.0",
+      "altayofficial/webrtc": "^1.9.1",
+      "altayofficial/worldupgraderschemas": "~1.19.0+bedrock-1.26.60",
       "netresearch/jsonmapper": "~v5.0.0",
       "pocketmine/binaryutils": "^0.2.1",
       "pocketmine/callback-validator": "~1.0.4",
@@ -84,36 +83,6 @@
       "sort-packages": true,
       "platform-check": true
    },
-   "repositories": [
-      {
-         "type": "vcs",
-         "url": "git@github.com:altayofficial/BedrockProtocol.git"
-      },
-      {
-         "type": "vcs",
-         "url": "git@github.com:altayofficial/BedrockData.git"
-      },
-      {
-         "type": "vcs",
-         "url":  "git@github.com:altayofficial/WorldUpgraderSchemas.git"
-      },
-      {
-         "type": "vcs",
-         "url":  "git@github.com:altayofficial/NBT.git"
-      },
-      {
-         "type": "vcs",
-         "url": "git@github.com:altayofficial/Network.git"
-      },
-      {
-         "type": "vcs",
-         "url": "git@github.com:altayofficial/webrtc.git"
-      },
-      {
-         "type": "vcs",
-         "url": "git@github.com:altayofficial/dtls.git"
-      }
-   ],
    "scripts": {
       "make-devtools": "@php -dphar.readonly=0 tests/plugins/DevTools/src/ConsoleScript.php --make ./ --relative tests/plugins/DevTools --out plugins/DevTools.phar",
       "make-server": [

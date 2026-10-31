@@ -100,6 +100,7 @@ use pocketmine\inventory\transaction\TransactionBuilder;
 use pocketmine\inventory\transaction\TransactionCancelledException;
 use pocketmine\inventory\transaction\TransactionValidationException;
 use pocketmine\item\ConsumableItem;
+use pocketmine\item\Crossbow;
 use pocketmine\item\Durable;
 use pocketmine\item\Elytra;
 use pocketmine\item\enchantment\EnchantmentInstance;
@@ -1798,6 +1799,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				if($this->getItemUseDuration() >= $item->getMinUseDuration()){
 					$this->consumeHeldItem();
 				}
+			}
+			if($item instanceof Crossbow && $this->isUsingItem() && $this->getItemUseDuration() >= $item->getChargeDuration()){
+				$this->releaseHeldItem();
 			}
 
 			if(!$this->isSpectator() && $this->isAlive()){

@@ -404,6 +404,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::MELON(), Ids::MELON_BLOCK);
 		$reg->mapSimple(Blocks::MONSTER_SPAWNER(), Ids::MOB_SPAWNER);
 		$reg->mapSimple(Blocks::MOSS_BLOCK(), Ids::MOSS_BLOCK);
+		$reg->mapSimple(Blocks::MOSS_CARPET(), Ids::MOSS_CARPET);
 		$reg->mapSimple(Blocks::MOSSY_COBBLESTONE(), Ids::MOSSY_COBBLESTONE);
 		$reg->mapSimple(Blocks::MOSSY_STONE_BRICKS(), Ids::MOSSY_STONE_BRICKS);
 		$reg->mapSimple(Blocks::MUD(), Ids::MUD);
@@ -420,6 +421,7 @@ final class VanillaBlockMappings{
 		$reg->mapSimple(Blocks::OBSIDIAN(), Ids::OBSIDIAN);
 		$reg->mapSimple(Blocks::PACKED_ICE(), Ids::PACKED_ICE);
 		$reg->mapSimple(Blocks::PACKED_MUD(), Ids::PACKED_MUD);
+		$reg->mapSimple(Blocks::PALE_MOSS_BLOCK(), Ids::PALE_MOSS_BLOCK);
 		$reg->mapSimple(Blocks::PODZOL(), Ids::PODZOL);
 		$reg->mapSimple(Blocks::POLISHED_ANDESITE(), Ids::POLISHED_ANDESITE);
 		$reg->mapSimple(Blocks::POLISHED_BLACKSTONE(), Ids::POLISHED_BLACKSTONE);

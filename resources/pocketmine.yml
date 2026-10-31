@@ -11,6 +11,8 @@ settings:
   query-plugins: true
   #Enable plugin and core profiling by default
   enable-profiling: false
+  #Enable timeline profiling during profiling. This adds more detailed information about where time is spent during ticks, but has a higher performance cost.
+  enable-timeline-profiling: false
   #Will only add results when tick measurement is below or equal to given value (default 20)
   profile-report-trigger: 20
   #Number of AsyncTask workers.

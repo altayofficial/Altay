@@ -1,5 +1,5 @@
 <p align="center">
-			<img src="https://github.com/altayofficial/Altay/blob/master/.github/readme/banner.png" alt="The Altay logo" title="Altay" loading="eager" />
+			<img src="https://github.com/altayofficial/Altay/blob/stable/.github/readme/banner.png" alt="The Altay logo" title="Altay" loading="eager" />
 	<br>
 	<b>Lightweight, OOP based Minecraft: Bedrock Edition server software written in PHP</b>
 </p>

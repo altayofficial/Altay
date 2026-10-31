@@ -63,9 +63,9 @@ jobs:
         key: "php-8.1-composer-${{ hashFiles('**/composer.json') }}"
         restore-keys: "php-8.1-composer-"
 
-    - name: Merge "master" into "dev" and push changes
+    - name: Merge "stable" into "dev" and push changes
       run: |
-        LOWER_BRANCH="master"
+        LOWER_BRANCH="stable"
         TARGET_BRANCH="dev"
         git checkout -f "$TARGET_BRANCH"
         git pull --no-commit --ff origin "$LOWER_BRANCH" || (git diff && exit 1)

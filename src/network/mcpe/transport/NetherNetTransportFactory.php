@@ -72,7 +72,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private bool $verboseLogging = false,
 		private int $handshakeTimeout = NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT,
 		private ?int $udpPort = null,
-		private bool $udpPortRequired = true
+		private bool $udpPortRequired = true,
+		private ?string $ipv6EndpointAddress = null
 	){}
 
 	public function getName() : string{
@@ -137,6 +138,9 @@ final class NetherNetTransportFactory implements TransportFactory{
 		$transport->setNegotiationLimits($this->maxPendingNegotiations, $this->maxNegotiationsPerAddress);
 		$transport->setHandshakeTimeout($this->handshakeTimeout);
 		$transport->setUdpPort($this->udpPort, $this->udpPortRequired);
+		if($this->ipv6EndpointAddress !== null){
+			$transport->addEndpointAddress($this->ipv6EndpointAddress);
+		}
 		return $transport;
 	}
 }

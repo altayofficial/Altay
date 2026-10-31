@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0a997a85589ef69ec7954369075aebea",
+    "content-hash": "5adc7268a9101d0145b2b4fa53e0aafc",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -222,16 +222,16 @@
         },
         {
             "name": "altayofficial/network",
-            "version": "1.5.1",
+            "version": "1.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/Network.git",
-                "reference": "be4778bf670a7cf9135f6f7ebe12c37e375d2180"
+                "reference": "8d5dbf6d77eae07848a014e4e79b0bf382fd713d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/Network/zipball/be4778bf670a7cf9135f6f7ebe12c37e375d2180",
-                "reference": "be4778bf670a7cf9135f6f7ebe12c37e375d2180",
+                "url": "https://api.github.com/repos/altayofficial/Network/zipball/8d5dbf6d77eae07848a014e4e79b0bf382fd713d",
+                "reference": "8d5dbf6d77eae07848a014e4e79b0bf382fd713d",
                 "shasum": ""
             },
             "require": {
@@ -245,7 +245,7 @@
                 "react/event-loop": "^1.5"
             },
             "require-dev": {
-                "altayofficial/webrtc": "^1.9.0",
+                "altayofficial/webrtc": "^1.9.1",
                 "phpstan/phpstan": "^2.0",
                 "phpunit/phpunit": "^10.5",
                 "react/http": "^1.11"
@@ -267,22 +267,22 @@
             "description": "Central network library for Altay family written in PHP",
             "support": {
                 "issues": "https://github.com/altayofficial/Network/issues",
-                "source": "https://github.com/altayofficial/Network/tree/1.5.1"
+                "source": "https://github.com/altayofficial/Network/tree/1.6.0"
             },
-            "time": "2026-10-29T09:12:32+00:00"
+            "time": "2026-10-31T08:40:46+00:00"
         },
         {
             "name": "altayofficial/webrtc",
-            "version": "1.9.0",
+            "version": "1.9.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/webrtc.git",
-                "reference": "f35b559fe1dafa10ff2dd9181d391d61e4b16640"
+                "reference": "f786109361ae5b485cb03f03ae5f3f1e90824ed4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/f35b559fe1dafa10ff2dd9181d391d61e4b16640",
-                "reference": "f35b559fe1dafa10ff2dd9181d391d61e4b16640",
+                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/f786109361ae5b485cb03f03ae5f3f1e90824ed4",
+                "reference": "f786109361ae5b485cb03f03ae5f3f1e90824ed4",
                 "shasum": ""
             },
             "require": {
@@ -345,9 +345,9 @@
             "description": "A WebRTC library designed special for Altay family",
             "support": {
                 "issues": "https://github.com/altayofficial/webrtc/issues",
-                "source": "https://github.com/altayofficial/webrtc/tree/1.9.0"
+                "source": "https://github.com/altayofficial/webrtc/tree/1.9.1"
             },
-            "time": "2026-10-29T09:11:01+00:00"
+            "time": "2026-10-31T08:36:28+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",

@@ -1430,9 +1430,15 @@ class Server {
 				[$requireIdentity, $requireEndpointIdentity] = $this->getNetherNetIdentityPolicy();
 				//the Servers tab asks for the MOTD and posts its offer over HTTP, and it does that on
 				//the server port unless the operator moved the endpoint somewhere else
-				$signallingPort = $this->configGroup->getPropertyInt(Yml::NETWORK_NETHERNET_SIGNALLING_PORT, 0);
-				if($signallingPort < 1 || $signallingPort > 65535){
-					$signallingPort = $port;
+				$configuredSignallingPort = $this->configGroup->getPropertyInt(Yml::NETWORK_NETHERNET_SIGNALLING_PORT, 0);
+				$signallingPortConfigured = $configuredSignallingPort >= 1 && $configuredSignallingPort <= 65535;
+				$signallingPort = $signallingPortConfigured ? $configuredSignallingPort : $port;
+				//a socket only listens on one address family, so players joining over IPv6 get a
+				//listener of their own on this same transport, on the IPv6 server port by default
+				$ipv6Endpoint = null;
+				if($this->configGroup->getConfigBool(ServerProperties::ENABLE_IPV6, true)){
+					$ipv6SignallingPort = $signallingPortConfigured ? $configuredSignallingPort : $this->getPortV6();
+					$ipv6Endpoint = "[" . trim($this->getIpV6(), "[]") . "]:$ipv6SignallingPort";
 				}
 				[$udpPort, $udpPortRequired] = $this->getNetherNetUdpPort($port);
 				//query rides on the media port when they are the same one, binding it twice would fail
@@ -1467,12 +1473,13 @@ class Server {
 						$this->configGroup->getPropertyBool(Yml::NETWORK_NETHERNET_VERBOSE_LOGGING, false),
 						$this->getNetherNetLimit(Yml::NETWORK_NETHERNET_HANDSHAKE_TIMEOUT, NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT),
 						$udpPort,
-						$udpPortRequired
+						$udpPortRequired,
+						$ipv6Endpoint
 					),
 					$this->tickSleeper
 				);
 				if($this->network->registerInterface(new TransportNetworkInterface($this, $transport, $packetBroadcaster, $entityEventBroadcaster, $typeConverter))){
-					$this->logger->info("NetherNet network interface running on $ip:" . NetherNetTransport::DISCOVERY_PORT . ", signalling on $ip:$signallingPort");
+					$this->logger->info("NetherNet network interface running on $ip:" . NetherNetTransport::DISCOVERY_PORT . ", signalling on $ip:$signallingPort" . ($ipv6Endpoint !== null ? " and $ipv6Endpoint" : ""));
 				}
 			}
 		}catch(NetworkInterfaceStartException $e){

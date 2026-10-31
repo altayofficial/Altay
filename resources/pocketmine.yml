@@ -104,7 +104,8 @@ network:
     #plus the address a player typed in to join, which is how a server behind NAT finds its public one.
     advertise-addresses: []
     #TCP port the join endpoint listens on, which is where the Servers tab asks for the MOTD and
-    #posts its offer. Set to 0 to serve it on the server port.
+    #posts its offer. Set to 0 to serve it on the server port. With enable-ipv6 on it also listens on
+    #server-ipv6, on this port or on server-portv6 when this is 0.
     signalling-port: 0
     #UDP ports a player's media may use, written as "first-last" and at least 100 ports wide. Leave
     #empty to let the system pick, which is fine until the ports have to be forwarded.

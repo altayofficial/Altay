@@ -214,7 +214,7 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 				$info->getPlayerCount(),
 				$info->getMaxPlayerCount(),
 				$this->transport->getServerId() ?? 0,
-				$this->server->getName(),
+				rtrim(addcslashes($this->server->getSubMotd(), ";"), '\\'),
 				match($this->server->getGamemode()){
 					GameMode::SURVIVAL => "Survival",
 					GameMode::ADVENTURE => "Adventure",

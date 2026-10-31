@@ -423,6 +423,13 @@ class Server {
 		return $this->configGroup->getConfigString(ServerProperties::MOTD, self::DEFAULT_SERVER_NAME);
 	}
 
+	/**
+	 * Second line shown under the MOTD in the server list.
+	 */
+	public function getSubMotd() : string{
+		return $this->configGroup->getConfigString(ServerProperties::SUB_MOTD, VersionInfo::NAME);
+	}
+
 	public function getLoader() : ThreadSafeClassLoader{
 		return $this->autoloader;
 	}
@@ -819,6 +826,7 @@ class Server {
 				new Config($pocketmineYmlPath, Config::YAML, []),
 				new Config(Path::join($this->dataPath, "server.properties"), Config::PROPERTIES, [
 					ServerProperties::MOTD => self::DEFAULT_SERVER_NAME,
+					ServerProperties::SUB_MOTD => VersionInfo::NAME,
 					ServerProperties::SERVER_PORT_IPV4 => self::DEFAULT_PORT_IPV4,
 					ServerProperties::SERVER_PORT_IPV6 => self::DEFAULT_PORT_IPV6,
 					ServerProperties::ENABLE_IPV6 => true,
@@ -1456,7 +1464,7 @@ class Server {
 						Binary::readLLong(substr(hash("sha256", $this->getServerUniqueId()->getBytes(), true), 0, 8)),
 						$this->getMotd(),
 						//the second line of the server card
-						$this->getName(),
+						$this->getSubMotd(),
 						$this->getMaxPlayers(),
 						$ip,
 						NetherNetTransport::DISCOVERY_PORT,

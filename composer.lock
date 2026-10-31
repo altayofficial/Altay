@@ -2280,7 +2280,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-01T09:25:14+00:00"
+            "time": "2026-04-01T09:25:14+00:00",
+            "published-time": "2026-04-01T09:25:26+00:00"
         },
         {
             "name": "phpstan/phpstan-phpunit",
@@ -3844,5 +3845,5 @@
     "platform-overrides": {
         "php": "8.1.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

@@ -886,12 +886,12 @@ final class BlockTypeIds{
 	public const BORDER_BLOCK = 10853;
 	public const ALLOW = 10854;
 	public const DENY = 10855;
-    public const DECORATED_POT = 10856;
+	public const DECORATED_POT = 10856;
 	public const SEAGRASS = 10857;
 	public const BUBBLE_COLUMN = 10858;
 	public const HONEY_BLOCK = 10859;
 	public const GOLDEN_DANDELION = 10860;
-    public const MOSS_BLOCK = 10861;
+	public const MOSS_BLOCK = 10861;
 	public const DRIPSTONE_BLOCK = 10862;
 	public const POINTED_DRIPSTONE = 10863;
 	public const WILDFLOWERS = 10864;
@@ -930,10 +930,12 @@ final class BlockTypeIds{
 	public const ORANGE_POPLAR_LEAVES = 10897;
 	public const RED_POPLAR_LEAVES = 10898;
 	public const YELLOW_POPLAR_LEAVES = 10899;
-	public const COMPOSTER = 10900;
-	public const SCAFFOLDING = 10901;
+	public const PALE_MOSS_BLOCK = 10900;
+	public const MOSS_CARPET = 10901;
+	public const COMPOSTER = 10902;
+	public const SCAFFOLDING = 10903;
 
-	public const FIRST_UNUSED_BLOCK_ID = 10902;
+	public const FIRST_UNUSED_BLOCK_ID = 10904;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_BLOCK_ID;
 

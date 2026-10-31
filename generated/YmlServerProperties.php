@@ -40,7 +40,6 @@ final class YmlServerProperties{
 	public const ALIASES = 'aliases';
 	public const ANONYMOUS_STATISTICS = 'anonymous-statistics';
 	public const ANONYMOUS_STATISTICS_ENABLED = 'anonymous-statistics.enabled';
-	public const ANONYMOUS_STATISTICS_HOST = 'anonymous-statistics.host';
 	public const AUTO_REPORT = 'auto-report';
 	public const AUTO_REPORT_ENABLED = 'auto-report.enabled';
 	public const AUTO_REPORT_HOST = 'auto-report.host';
@@ -69,6 +68,8 @@ final class YmlServerProperties{
 	public const CONSOLE_TITLE_TICK = 'console.title-tick';
 	public const DEBUG = 'debug';
 	public const DEBUG_LEVEL = 'debug.level';
+	public const EDUCATION = 'education';
+	public const EDUCATION_ENABLED = 'education.enabled';
 	public const LEVEL_SETTINGS = 'level-settings';
 	public const LEVEL_SETTINGS_DEFAULT_FORMAT = 'level-settings.default-format';
 	public const MEMORY = 'memory';
@@ -90,12 +91,9 @@ final class YmlServerProperties{
 	public const NETWORK_ASYNC_COMPRESSION_THRESHOLD = 'network.async-compression-threshold';
 	public const NETWORK_BATCH_THRESHOLD = 'network.batch-threshold';
 	public const NETWORK_COMPRESSION_LEVEL = 'network.compression-level';
-	public const NETWORK_ENABLE_ENCRYPTION = 'network.enable-encryption';
-	public const NETWORK_MAX_CONCURRENT_SPLIT_PACKETS = 'network.max-concurrent-split-packets';
-	public const NETWORK_MAX_MTU_SIZE = 'network.max-mtu-size';
-	public const NETWORK_MAX_SPLIT_PACKET_PARTS = 'network.max-split-packet-parts';
 	public const NETWORK_NETHERNET = 'network.nethernet';
 	public const NETWORK_NETHERNET_ADVERTISE_ADDRESSES = 'network.nethernet.advertise-addresses';
+	public const NETWORK_NETHERNET_HANDSHAKE_TIMEOUT = 'network.nethernet.handshake-timeout';
 	public const NETWORK_NETHERNET_ICE_PASSWORD = 'network.nethernet.ice-password';
 	public const NETWORK_NETHERNET_ICE_SERVERS = 'network.nethernet.ice-servers';
 	public const NETWORK_NETHERNET_ICE_USERNAME = 'network.nethernet.ice-username';
@@ -108,9 +106,9 @@ final class YmlServerProperties{
 	public const NETWORK_NETHERNET_SIGNALLING_PORT = 'network.nethernet.signalling-port';
 	public const NETWORK_NETHERNET_TLS_CERTIFICATE = 'network.nethernet.tls-certificate';
 	public const NETWORK_NETHERNET_TLS_KEY = 'network.nethernet.tls-key';
+	public const NETWORK_NETHERNET_UDP_PORT = 'network.nethernet.udp-port';
 	public const NETWORK_NETHERNET_UDP_PORT_RANGE = 'network.nethernet.udp-port-range';
 	public const NETWORK_NETHERNET_VERBOSE_LOGGING = 'network.nethernet.verbose-logging';
-	public const NETWORK_TRANSPORT = 'network.transport';
 	public const NETWORK_UPNP_FORWARDING = 'network.upnp-forwarding';
 	public const PLAYER = 'player';
 	public const PLAYER_SAVE_PLAYER_DATA = 'player.save-player-data';
@@ -121,6 +119,7 @@ final class YmlServerProperties{
 	public const SETTINGS_ASYNC_WORKERS = 'settings.async-workers';
 	public const SETTINGS_ENABLE_DEV_BUILDS = 'settings.enable-dev-builds';
 	public const SETTINGS_ENABLE_PROFILING = 'settings.enable-profiling';
+	public const SETTINGS_ENABLE_TIMELINE_PROFILING = 'settings.enable-timeline-profiling';
 	public const SETTINGS_FORCE_LANGUAGE = 'settings.force-language';
 	public const SETTINGS_PROFILE_REPORT_TRIGGER = 'settings.profile-report-trigger';
 	public const SETTINGS_QUERY_PLUGINS = 'settings.query-plugins';

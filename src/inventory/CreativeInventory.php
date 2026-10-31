@@ -30,6 +30,7 @@ use pocketmine\data\bedrock\BedrockDataFiles;
 use pocketmine\data\SavedDataLoadingException;
 use pocketmine\errorhandler\ErrorToExceptionHandler;
 use pocketmine\item\Item;
+use pocketmine\lang\KnownTranslationKeys;
 use pocketmine\lang\Translatable;
 use pocketmine\nbt\LittleEndianNbtSerializer;
 use pocketmine\utils\DestructorCallbackTrait;
@@ -56,6 +57,14 @@ final class CreativeInventory{
 
 	/** @phpstan-var ObjectSet<\Closure() : void> */
 	private ObjectSet $contentChangedCallbacks;
+
+	/** @phpstan-var array<string, true> */
+	private const EDUCATION_EDITION_GROUPS = [
+		KnownTranslationKeys::ITEMGROUP_NAME_ELEMENT => true,
+		KnownTranslationKeys::ITEMGROUP_NAME_CHEMISTRYTABLE => true,
+		KnownTranslationKeys::ITEMGROUP_NAME_COMPOUNDS => true,
+		KnownTranslationKeys::ITEMGROUP_NAME_PRODUCTS => true,
+	];
 
 	private function __construct(){
 		$this->contentChangedCallbacks = new ObjectSet();
@@ -144,6 +153,29 @@ final class CreativeInventory{
 			$blockStatesTag,
 			$nbt
 		);
+	}
+
+	/**
+	 * Removes the Education Edition items (chemistry tables, elements, compounds and their products) from the creative menu.
+	 * Note: Players who are already online when this is called will not see this change.
+	 */
+	public function removeEducationEditionContent() : void{
+		$removed = false;
+		foreach($this->creative as $index => $entry){
+			$group = $entry->getGroup();
+			if($group === null){
+				continue;
+			}
+			$name = $group->getName();
+			$name = $name instanceof Translatable ? $name->getText() : $name;
+			if(isset(self::EDUCATION_EDITION_GROUPS[$name])){
+				unset($this->creative[$index]);
+				$removed = true;
+			}
+		}
+		if($removed){
+			$this->onContentChange();
+		}
 	}
 
 	/**

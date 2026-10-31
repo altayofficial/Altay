@@ -23,8 +23,15 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\encryption;
+namespace pocketmine\world\sound;
 
-final class DecryptionException extends \RuntimeException{
+use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
 
+class CrossbowShootSound implements Sound{
+
+	public function encode(Vector3 $pos) : array{
+		return [LevelSoundEventPacket::nonActorSound(LevelSoundEvent::CROSSBOW_SHOOT, $pos, false)];
+	}
 }

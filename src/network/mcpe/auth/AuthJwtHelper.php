@@ -34,6 +34,9 @@ use pocketmine\network\mcpe\protocol\types\login\openid\SelfSignedJwtBody;
 use pocketmine\network\mcpe\protocol\types\login\openid\XboxAuthJwtBody;
 use pocketmine\network\mcpe\protocol\types\login\SelfSignedJwtHeader;
 use function base64_decode;
+use function in_array;
+use function is_array;
+use function is_string;
 use function time;
 
 final class AuthJwtHelper{
@@ -91,7 +94,12 @@ final class AuthJwtHelper{
 			throw new VerifyLoginException("Invalid JWT issuer");
 		}
 
-		if(!isset($claims->aud) || $claims->aud !== $audience){
+		//RFC 7519 lets aud be a single string or an array of them, and the client sends the array form
+		$claimAudiences = $claims->aud ?? null;
+		if(is_string($claimAudiences)){
+			$claimAudiences = [$claimAudiences];
+		}
+		if(!is_array($claimAudiences) || !in_array($audience, $claimAudiences, true)){
 			throw new VerifyLoginException("Invalid JWT audience");
 		}
 

@@ -709,6 +709,17 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	/**
+	 * Same as checking isConnected() and then calling getNetworkSession(), in one call. Broadcasts do this for every
+	 * viewer of every moving entity on every tick, so the saved calls add up.
+	 *
+	 * @internal
+	 */
+	public function getConnectedNetworkSession() : ?NetworkSession{
+		$session = $this->networkSession;
+		return $session !== null && $session->isConnected() ? $session : null;
+	}
+
+	/**
 	 * Gets the username
 	 */
 	public function getName() : string{

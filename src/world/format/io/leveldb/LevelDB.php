@@ -78,6 +78,8 @@ use const LEVELDB_ZLIB_RAW_COMPRESSION;
 
 class LevelDB extends BaseWorldProvider implements WritableWorldProvider{
 
+	private const DERIVED_BLOCK_STATES_DATA_VERSION = 2;
+
 	protected const FINALISATION_NEEDS_INSTATICKING = 0;
 	protected const FINALISATION_NEEDS_POPULATION = 1;
 	protected const FINALISATION_DONE = 2;
@@ -677,7 +679,11 @@ class LevelDB extends BaseWorldProvider implements WritableWorldProvider{
 			return null;
 		}
 
-		//TODO: read PM_DATA_VERSION - we'll need it to fix up old chunks
+		$pmDataVersion = 0;
+		$rawPmDataVersion = $this->db->get($index . ChunkDataKey::PM_DATA_VERSION);
+		if($rawPmDataVersion !== false && strlen($rawPmDataVersion) === 8){
+			$pmDataVersion = LE::unpackSignedLong($rawPmDataVersion);
+		}
 
 		$logger = new \PrefixedLogger($this->logger, "Loading chunk x=$chunkX z=$chunkZ v$chunkVersion");
 
@@ -777,7 +783,9 @@ class LevelDB extends BaseWorldProvider implements WritableWorldProvider{
 			upgraded: $hasBeenUpgraded,
 			//The schema can only add defaults for states which depend on neighbouring blocks. They must
 			//be recomputed after this chunk and its neighbours have entered the world.
-			fixerFlags: $outdatedBlockStates ? LoadedChunkData::FIXER_FLAG_DERIVED_BLOCK_STATES : LoadedChunkData::FIXER_FLAG_NONE
+			fixerFlags: $outdatedBlockStates || $pmDataVersion < self::DERIVED_BLOCK_STATES_DATA_VERSION ?
+				LoadedChunkData::FIXER_FLAG_DERIVED_BLOCK_STATES :
+				LoadedChunkData::FIXER_FLAG_NONE
 		);
 	}
 
@@ -787,8 +795,10 @@ class LevelDB extends BaseWorldProvider implements WritableWorldProvider{
 		$write = new \LevelDBWriteBatch();
 
 		$write->put($index . ChunkDataKey::NEW_VERSION, chr(self::CURRENT_LEVEL_CHUNK_VERSION));
-		$write->put($index . ChunkDataKey::PM_DATA_VERSION, LE::packSignedLong(VersionInfo::WORLD_DATA_VERSION));
 		$write->delete($index . ChunkDataKey::OLD_VERSION);
+		if(($dirtyFlags & Chunk::DIRTY_FLAG_DATA_VERSION) !== 0){
+			$write->put($index . ChunkDataKey::PM_DATA_VERSION, LE::packSignedLong(VersionInfo::WORLD_DATA_VERSION));
+		}
 
 		$subChunks = $chunkData->getSubChunks();
 

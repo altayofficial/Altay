@@ -32,6 +32,7 @@ use pocketmine\entity\Explosive;
 use pocketmine\entity\Living;
 use pocketmine\entity\Location;
 use pocketmine\entity\NeverSavedWithChunkEntity;
+use pocketmine\entity\projectile\Projectile;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\FireworkRocket as FireworkItem;
@@ -49,7 +50,7 @@ use pocketmine\world\sound\FireworkLaunchSound;
 use function count;
 use function sqrt;
 
-class FireworkRocket extends Entity implements Explosive, NeverSavedWithChunkEntity{
+class FireworkRocket extends Projectile implements Explosive, NeverSavedWithChunkEntity{
 
 	public static function getNetworkTypeId() : string{ return EntityIds::FIREWORKS_ROCKET; }
 
@@ -68,7 +69,19 @@ class FireworkRocket extends Entity implements Explosive, NeverSavedWithChunkEnt
 		$this->maxFlightTimeTicks = $maxFlightTimeTicks;
 		$this->setExplosions($explosions);
 
-		parent::__construct($location, $nbt);
+		parent::__construct($location, null, $nbt);
+	}
+
+	protected function initEntity(CompoundTag $nbt) : void{
+		Entity::initEntity($nbt);
+	}
+
+	public function attack(EntityDamageEvent $source) : void{
+		Entity::attack($source);
+	}
+
+	protected function move(float $dx, float $dy, float $dz) : void{
+		Entity::move($dx, $dy, $dz);
 	}
 
 	protected function getInitialSizeInfo() : EntitySizeInfo{ return new EntitySizeInfo(0.25, 0.25); }

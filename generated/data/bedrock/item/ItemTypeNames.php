@@ -273,6 +273,7 @@ final class ItemTypeNames{
 	public const FRAME = "minecraft:frame";
 	public const FRIEND_POTTERY_SHERD = "minecraft:friend_pottery_sherd";
 	public const FROG_SPAWN_EGG = "minecraft:frog_spawn_egg";
+	public const FROSTBITE_SPAWN_EGG = "minecraft:frostbite_spawn_egg";
 	public const GHAST_SPAWN_EGG = "minecraft:ghast_spawn_egg";
 	public const GHAST_TEAR = "minecraft:ghast_tear";
 	public const GLASS_BOTTLE = "minecraft:glass_bottle";
@@ -336,6 +337,8 @@ final class ItemTypeNames{
 	public const HOWL_POTTERY_SHERD = "minecraft:howl_pottery_sherd";
 	public const HUSK_SPAWN_EGG = "minecraft:husk_spawn_egg";
 	public const ICE_BOMB = "minecraft:ice_bomb";
+	public const ICE_CRYSTAL = "minecraft:ice_crystal";
+	public const ICICLE = "minecraft:icicle";
 	public const INK_SAC = "minecraft:ink_sac";
 	public const IRON_AXE = "minecraft:iron_axe";
 	public const IRON_BOOTS = "minecraft:iron_boots";

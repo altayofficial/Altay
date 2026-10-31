@@ -111,7 +111,8 @@ class ResourcePacksPacketHandler extends PacketHandler{
 		private array $resourcePackStack,
 		private array $encryptionKeys,
 		private bool $mustAccept,
-		private \Closure $completionCallback
+		private \Closure $completionCallback,
+		private bool $chemistryResourcePacks = true
 	){
 		$this->requestQueue = new \SplQueue();
 		foreach($resourcePackStack as $pack){
@@ -219,9 +220,11 @@ class ResourcePacksPacketHandler extends PacketHandler{
 					return new ResourcePackStackEntry($pack->getPackId(), $pack->getPackVersion(), ""); //TODO: subpacks
 				}, $this->resourcePackStack);
 
-				//we support chemistry blocks by default, the client should already have these installed
-				foreach(self::CHEMISTRY_RESOURCE_PACKS as [$uuid, $version]){
-					$stack[] = new ResourcePackStackEntry($uuid, $version, "");
+				if($this->chemistryResourcePacks){
+					//the client should already have these installed
+					foreach(self::CHEMISTRY_RESOURCE_PACKS as [$uuid, $version]){
+						$stack[] = new ResourcePackStackEntry($uuid, $version, "");
+					}
 				}
 
 				//we don't force here, because it doesn't have user-facing effects

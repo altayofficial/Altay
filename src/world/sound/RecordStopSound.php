@@ -34,8 +34,6 @@ class RecordStopSound implements Sound{
 	public function __construct(private int $serverSoundHandle){}
 
 	public function encode(Vector3 $pos) : array{
-		$stop = new StopSoundData();
-
-		return [ClientboundUpdateSoundDataPacket::create($this->serverSoundHandle, $stop, $stop, $stop, $stop, $stop, $stop, $stop)];
+		return [ClientboundUpdateSoundDataPacket::create($this->serverSoundHandle, new StopSoundData())];
 	}
 }

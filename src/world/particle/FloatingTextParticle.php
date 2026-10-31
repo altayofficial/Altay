@@ -113,7 +113,8 @@ class FloatingTextParticle implements Particle{
 				[],
 				$actorMetadata,
 				new PropertySyncData([], []),
-				[]
+				[],
+				null
 			);
 		}
 

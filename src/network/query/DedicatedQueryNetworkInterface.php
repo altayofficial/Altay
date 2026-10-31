@@ -53,13 +53,8 @@ use const SOCKET_EWOULDBLOCK;
 use const SOL_UDP;
 
 /**
- * This is a supplementary network interface to maintain Query functionality when the RakLibInterface is not registered.
- *
- * Normally, Query runs on the same port as RakLib does, so Query handles packets coming in on RakLib's socket instead
- * of using its own interface.
- *
- * However, it's necessary to have a separate interface for the cases where the RakLib interface is either not registered
- * or running on a different port than Query.
+ * Answers Query on the server port. Query used to ride on RakNet's socket, but NetherNet does not
+ * listen there, so Query always gets a socket of its own.
  */
 final class DedicatedQueryNetworkInterface implements AdvancedNetworkInterface{
 	private \Socket $socket;

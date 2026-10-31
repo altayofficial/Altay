@@ -11,6 +11,8 @@ settings:
   query-plugins: true
   #Enable plugin and core profiling by default
   enable-profiling: false
+  #Enable timeline profiling during profiling. This adds more detailed information about where time is spent during ticks, but has a higher performance cost.
+  enable-timeline-profiling: false
   #Will only add results when tick measurement is below or equal to given value (default 20)
   profile-report-trigger: 20
   #Number of AsyncTask workers.
@@ -64,19 +66,17 @@ memory:
     chunk-radius: 4
 
 network:
-  # Network transport
-  # Options: raknet or nethernet
-  transport: raknet
   #Settings for the NetherNet transport.
   nethernet:
     #Name shown to players the first time their client is asked to trust this server's identity.
     #Leave empty to use the MOTD.
     identity-domain: ""
     #Reject connections that do not carry a signed identity assertion. That signature is what ties a
-    #connection to the account it logs in with, so "auto" requires it from players joining by address
-    #whenever xbox-auth is on, and never from players who found the server on the local network,
-    #where clients do not sign. true or false apply to both. If players cannot join, the debug log
-    #names every connection that arrived without one.
+    #connection to the account it logs in with, and without it a captured login can be replayed, so
+    #"auto" requires it from everyone whenever xbox-auth is on. Clients that do not sign their offers
+    #on the local network cannot join then; set this to false to let them in anyway. true or false
+    #apply to everyone. If players cannot join, the debug log names every connection that arrived
+    #without one.
     require-identity: auto
     #STUN and TURN servers used to find a path to players who cannot be reached directly.
     #Host candidates are enough on a local network, so this can be left empty there.
@@ -96,16 +96,27 @@ network:
     #above the player count when everyone arrives through one address, such as behind a proxy.
     max-pending-negotiations: 64
     max-negotiations-per-address: 32
-    #Of the addresses gathered above, the ones players joining by address can actually reach. The
-    #others are kept out of the answer, so those players do not spend a connectivity check on each.
-    #Leave empty to offer every gathered address.
+    #Seconds a player has from sending their offer until the connection is up. Players relayed over
+    #TURN or on slow mobile links need longer than players on the local network.
+    handshake-timeout: 30
+    #The addresses players joining by address can actually reach. Gathered addresses that are not
+    #listed are kept out of the answer, so those players do not spend a connectivity check on each,
+    #and a listed address that was never gathered, such as the public address of a forwarded port,
+    #is offered on the same port as the gathered ones. Leave empty to offer every gathered address,
+    #plus the address a player typed in to join, which is how a server behind NAT finds its public one.
     advertise-addresses: []
     #TCP port the join endpoint listens on, which is where the Servers tab asks for the MOTD and
-    #posts its offer. Set to 0 to serve it on the server port.
+    #posts its offer. Set to 0 to serve it on the server port. With enable-ipv6 on it also listens on
+    #server-ipv6, on this port or on server-portv6 when this is 0.
     signalling-port: 0
     #UDP ports a player's media may use, written as "first-last" and at least 100 ports wide. Leave
     #empty to let the system pick, which is fine until the ports have to be forwarded.
     udp-port-range: ""
+    #One UDP port every player's media shares, so it is the only one that has to be forwarded. This
+    #wins over udp-port-range. 0 shares the server port, which hosts already forward, and serves query
+    #on it too; if something else holds that port, each player gets a port of their own instead.
+    #Set to -1 to always give each player a port of their own.
+    udp-port: 0
     #Log what the ICE, DTLS and SCTP layers have to say about every connection, which is a line per
     #datagram and only worth turning on while taking a failing connection apart. Needs debug level 2.
     verbose-logging: false
@@ -126,19 +137,6 @@ network:
   async-compression-threshold: 10000
   #Experimental. Use UPnP to automatically port forward
   upnp-forwarding: false
-  #Maximum size in bytes of packets sent over the network (default 1492 bytes). Packets larger than this will be
-  #fragmented or split into smaller parts. Clients can request MTU sizes up to but not more than this number.
-  max-mtu-size: 1492
-  #Maximum number of fragments a single incoming packet may be split into. A client on a low MTU link splits the same
-  #payload into far more parts, so this is not a size limit; raise it if legitimate players are dropped with
-  #"received packet split into more parts than allowed". Worst-case reassembly memory per session is roughly
-  #max-split-packet-parts * max-concurrent-split-packets * max-mtu-size.
-  max-split-packet-parts: 192
-  #Maximum number of split packets a single session may reassemble at once.
-  max-concurrent-split-packets: 4
-  #Enable encryption of Minecraft network traffic. This has an impact on performance, but prevents hackers from stealing sessions and pretending to be other players.
-  #DO NOT DISABLE THIS unless you understand the risks involved.
-  enable-encryption: true
 
 debug:
   #If > 1, it will show debug messages in the console
@@ -154,6 +152,10 @@ player:
 level-settings:
   #The default format that worlds will use when created
   default-format: leveldb
+
+education:
+  #Show Education Edition items (chemistry, elements, compounds) in the creative inventory and send the chemistry resource packs
+  enabled: true
 
 chunk-sending:
   #To change server normal render distance, change view-distance in server.properties.
@@ -188,26 +190,26 @@ auto-report:
   send-settings: true
   send-phpinfo: false
   use-https: true
-  host: crash.pmmp.io
+  host: crash.getaltay.org
 
 anonymous-statistics:
-  #Sends anonymous statistics for data aggregation, plugin usage tracking
-  enabled: false #TODO: re-enable this when we have a new stats host
-  host: stats.pocketmine.net
+  #Sends anonymous statistics to bStats for data aggregation
+  #https://bstats.org/plugin/server-implementation/Altay/34140
+  enabled: true
 
 auto-updater:
-  enabled: false #TODO: Automatic updates are not currently available for this fork of PocketMine-MP :/
+  enabled: true
   on-update:
     warn-console: true
   #Can be development, alpha, beta or stable.
   preferred-channel: stable
   #If using a development version, it will suggest changing the channel
   suggest-channels: true
-  host: update.pmmp.io
+  host: update.getaltay.org
 
 timings:
   #Choose the host to use for viewing your timings results.
-  host: timings.pmmp.io
+  host: timings.getaltay.org
 
 console:
   #Whether to accept commands via the console. If disabled, anything typed on the console will be ignored.

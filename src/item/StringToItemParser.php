@@ -869,6 +869,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("monster_egg_block", fn() => Blocks::INFESTED_STONE());
 		$result->registerBlock("monster_spawner", fn() => Blocks::MONSTER_SPAWNER());
 		$result->registerBlock("moss_block", fn() => Blocks::MOSS_BLOCK());
+		$result->registerBlock("moss_carpet", fn() => Blocks::MOSS_CARPET());
 		$result->registerBlock("moss_stone", fn() => Blocks::MOSSY_COBBLESTONE());
 		$result->registerBlock("mossy_cobblestone", fn() => Blocks::MOSSY_COBBLESTONE());
 		$result->registerBlock("mossy_cobblestone_slab", fn() => Blocks::MOSSY_COBBLESTONE_SLAB());
@@ -933,6 +934,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->registerBlock("oxeye_daisy", fn() => Blocks::OXEYE_DAISY());
 		$result->registerBlock("packed_ice", fn() => Blocks::PACKED_ICE());
 		$result->registerBlock("packed_mud", fn() => Blocks::PACKED_MUD());
+		$result->registerBlock("pale_moss_block", fn() => Blocks::PALE_MOSS_BLOCK());
 		$result->registerBlock("pale_oak_button", fn() => Blocks::PALE_OAK_BUTTON());
 		$result->registerBlock("pale_oak_door", fn() => Blocks::PALE_OAK_DOOR());
 		$result->registerBlock("pale_oak_fence", fn() => Blocks::PALE_OAK_FENCE());
@@ -1470,6 +1472,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("creeper_banner_pattern", fn() => Items::CREEPER_BANNER_PATTERN());
 		$result->register("crimson_hanging_sign", fn() => Items::CRIMSON_HANGING_SIGN());
 		$result->register("cherry_boat", fn() => Items::CHERRY_BOAT());
+		$result->register("crossbow", fn() => Items::CROSSBOW());
 		$result->register("dark_oak_boat", fn() => Items::DARK_OAK_BOAT());
 		$result->register("dark_oak_hanging_sign", fn() => Items::DARK_OAK_HANGING_SIGN());
 		$result->register("diamond", fn() => Items::DIAMOND());

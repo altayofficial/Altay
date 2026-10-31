@@ -259,6 +259,7 @@ final class KnownTranslationKeys{
 	public const ITEMGROUP_NAME_BUTTONS = "itemGroup.name.buttons";
 	public const ITEMGROUP_NAME_CANDLES = "itemGroup.name.candles";
 	public const ITEMGROUP_NAME_CHALKBOARD = "itemGroup.name.chalkboard";
+	public const ITEMGROUP_NAME_CHEMISTRYTABLE = "itemGroup.name.chemistrytable";
 	public const ITEMGROUP_NAME_CHEST = "itemGroup.name.chest";
 	public const ITEMGROUP_NAME_CHESTBOAT = "itemGroup.name.chestboat";
 	public const ITEMGROUP_NAME_CHESTPLATE = "itemGroup.name.chestplate";
@@ -271,6 +272,7 @@ final class KnownTranslationKeys{
 	public const ITEMGROUP_NAME_CROP = "itemGroup.name.crop";
 	public const ITEMGROUP_NAME_DOOR = "itemGroup.name.door";
 	public const ITEMGROUP_NAME_DYE = "itemGroup.name.dye";
+	public const ITEMGROUP_NAME_ELEMENT = "itemGroup.name.element";
 	public const ITEMGROUP_NAME_ENCHANTEDBOOK = "itemGroup.name.enchantedBook";
 	public const ITEMGROUP_NAME_FENCE = "itemGroup.name.fence";
 	public const ITEMGROUP_NAME_FENCEGATE = "itemGroup.name.fenceGate";

@@ -69,7 +69,11 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private ?string $tlsKeyPath = null,
 		private int $maxPendingNegotiations = 64,
 		private int $maxNegotiationsPerAddress = 32,
-		private bool $verboseLogging = false
+		private bool $verboseLogging = false,
+		private int $handshakeTimeout = NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT,
+		private ?int $udpPort = null,
+		private bool $udpPortRequired = true,
+		private ?string $ipv6EndpointAddress = null
 	){}
 
 	public function getName() : string{
@@ -106,8 +110,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 			),
 			bindAddress: $this->bindAddress,
 			port: $this->port,
-			//vanilla clients do not attach identity assertions to the offers they broadcast on the
-			//local network, so holding them to one is left to the operator
+			//the assertion is what binds the login chain on NetherNet, so it is held to the same
+			//policy on the local network as by address unless the operator says otherwise
 			requireIdentity: $this->requireIdentity,
 			credentials: $this->credentials(),
 			//the server list reaches a NetherNet server over HTTP on the server port, the same way
@@ -132,6 +136,11 @@ final class NetherNetTransportFactory implements TransportFactory{
 			verboseLogging: $this->verboseLogging
 		);
 		$transport->setNegotiationLimits($this->maxPendingNegotiations, $this->maxNegotiationsPerAddress);
+		$transport->setHandshakeTimeout($this->handshakeTimeout);
+		$transport->setUdpPort($this->udpPort, $this->udpPortRequired);
+		if($this->ipv6EndpointAddress !== null){
+			$transport->addEndpointAddress($this->ipv6EndpointAddress);
+		}
 		return $transport;
 	}
 }

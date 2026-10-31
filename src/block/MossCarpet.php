@@ -23,21 +23,24 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\handler;
+namespace pocketmine\block;
 
-use pocketmine\network\mcpe\protocol\ClientToServerHandshakePacket;
+use pocketmine\block\utils\StaticSupportTrait;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
 
-/**
- * Handler responsible for awaiting client response from crypto handshake.
- */
-class HandshakePacketHandler extends PacketHandler{
-	/**
-	 * @phpstan-param \Closure() : void $onHandshakeCompleted
-	 */
-	public function __construct(private \Closure $onHandshakeCompleted){}
+class MossCarpet extends Flowable{
+	use StaticSupportTrait;
 
-	public function handleClientToServerHandshake(ClientToServerHandshakePacket $packet) : bool{
-		($this->onHandshakeCompleted)();
+	public function isSolid() : bool{
 		return true;
+	}
+
+	protected function recalculateCollisionBoxes() : array{
+		return [AxisAlignedBB::one()->trim(Facing::UP, 15 / 16)];
+	}
+
+	private function canBeSupportedAt(Block $block) : bool{
+		return $block->getSide(Facing::DOWN)->getTypeId() !== BlockTypeIds::AIR;
 	}
 }

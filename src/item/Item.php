@@ -58,6 +58,7 @@ use function count;
 use function gettype;
 use function hex2bin;
 use function is_string;
+use function max;
 use function morton2d_encode;
 
 class Item implements \JsonSerializable{
@@ -74,6 +75,8 @@ class Item implements \JsonSerializable{
 	public const TAG_DISPLAY_LORE = "Lore";
 
 	public const TAG_KEEP_ON_DEATH = "minecraft:keep_on_death";
+
+	public const TAG_REPAIR_COST = "RepairCost";
 
 	private const TAG_CAN_PLACE_ON = "CanPlaceOn"; //TAG_List<TAG_String>
 	private const TAG_CAN_DESTROY = "CanDestroy"; //TAG_List<TAG_String>
@@ -102,6 +105,8 @@ class Item implements \JsonSerializable{
 	protected array $canDestroy = [];
 
 	protected bool $keepOnDeath = false;
+
+	protected int $repairCost = 0;
 
 	/**
 	 * Constructs a new Item type. This constructor should ONLY be used when constructing a new item TYPE to register
@@ -242,6 +247,21 @@ class Item implements \JsonSerializable{
 	}
 
 	/**
+	 * Returns the prior work penalty added to the experience cost of anvil operations involving this item.
+	 */
+	public function getRepairCost() : int{
+		return $this->repairCost;
+	}
+
+	/**
+	 * @return $this
+	 */
+	public function setRepairCost(int $repairCost) : Item{
+		$this->repairCost = max(0, $repairCost);
+		return $this;
+	}
+
+	/**
 	 * Returns whether this Item has a non-empty NBT.
 	 */
 	public function hasNamedTag() : bool{
@@ -337,6 +357,7 @@ class Item implements \JsonSerializable{
 		}
 
 		$this->keepOnDeath = $tag->getByte(self::TAG_KEEP_ON_DEATH, 0) !== 0;
+		$this->repairCost = max(0, $tag->getInt(self::TAG_REPAIR_COST, 0));
 	}
 
 	protected function serializeCompoundTag(CompoundTag $tag) : void{
@@ -404,6 +425,12 @@ class Item implements \JsonSerializable{
 			$tag->setByte(self::TAG_KEEP_ON_DEATH, 1);
 		}else{
 			$tag->removeTag(self::TAG_KEEP_ON_DEATH);
+		}
+
+		if($this->repairCost > 0){
+			$tag->setInt(self::TAG_REPAIR_COST, $this->repairCost);
+		}else{
+			$tag->removeTag(self::TAG_REPAIR_COST);
 		}
 	}
 

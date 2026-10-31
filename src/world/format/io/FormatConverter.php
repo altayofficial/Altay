@@ -146,7 +146,11 @@ class FormatConverter{
 		$thisRound = $start;
 		foreach($this->oldProvider->getAllChunks(true, $this->logger) as $coords => $loadedChunkData){
 			[$chunkX, $chunkZ] = $coords;
-			$new->saveChunk($chunkX, $chunkZ, $loadedChunkData->getData(), Chunk::DIRTY_FLAGS_ALL);
+			$dirtyFlags = Chunk::DIRTY_FLAGS_ALL;
+			if(($loadedChunkData->getFixerFlags() & LoadedChunkData::FIXER_FLAG_DERIVED_BLOCK_STATES) !== 0){
+				$dirtyFlags &= ~Chunk::DIRTY_FLAG_DATA_VERSION;
+			}
+			$new->saveChunk($chunkX, $chunkZ, $loadedChunkData->getData(), $dirtyFlags);
 			$counter++;
 			if(($counter % $this->chunksPerProgressUpdate) === 0){
 				$time = microtime(true);

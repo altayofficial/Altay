@@ -127,6 +127,7 @@ use function base64_encode;
 use function bin2hex;
 use function count;
 use function get_class;
+use function hrtime;
 use function implode;
 use function in_array;
 use function is_string;
@@ -152,6 +153,8 @@ class NetworkSession{
 	private const INCOMING_PACKET_BATCH_HARD_LIMIT = 300;
 
 	private const LOGIN_TIMEOUT_SECONDS = 10;
+	private const DISCONNECT_TIMEOUT_SECONDS = 5.0;
+	private const DISCONNECT_TRANSPORT_GRACE_SECONDS = 1.0;
 
 	private PacketRateLimiter $packetBatchLimiter;
 	private PacketRateLimiter $gamePacketLimiter;
@@ -170,11 +173,13 @@ class NetworkSession{
 
 	private bool $connected = true;
 	private bool $disconnectGuard = false;
+	private bool $transportClosed = false;
+	private ?float $disconnectDeadline = null;
+	private ?float $transportCloseTime = null;
 	private bool $loggedIn = false;
 	private bool $authenticated = false;
 	private int $connectTime;
 	private ?CompoundTag $cachedOfflinePlayerData = null;
-
 
 	/**
 	 * @var string[]
@@ -571,7 +576,7 @@ class NetworkSession{
 	 * @phpstan-param PromiseResolver<true>|null $ackReceiptResolver
 	 */
 	private function sendDataPacketInternal(ClientboundPacket $packet, bool $immediate, ?PromiseResolver $ackReceiptResolver) : bool{
-		if(!$this->connected){
+		if(!$this->connected || $this->transportClosed){
 			return false;
 		}
 		//Basic safety restriction. TODO: improve this
@@ -659,7 +664,9 @@ class NetworkSession{
 	 * @internal
 	 */
 	public function addToSendBuffer(string $buffer) : void{
-		$this->sendBuffer[] = $buffer;
+		if($this->connected && !$this->transportClosed){
+			$this->sendBuffer[] = $buffer;
+		}
 	}
 
 	private function flushGamePacketQueue() : void{
@@ -702,6 +709,9 @@ class NetworkSession{
 	public function getTypeConverter() : TypeConverter{ return $this->typeConverter; }
 
 	public function queueCompressed(CompressBatchPromise|string $payload, bool $immediate = false) : void{
+		if(!$this->connected || $this->transportClosed){
+			return;
+		}
 		Timings::$playerNetworkSend->startTiming();
 		try{
 			//if the next packet causes a flush, avoid unnecessarily flushing twice
@@ -726,7 +736,7 @@ class NetworkSession{
 				$this->flushCompressedQueue();
 			}else{
 				$batch->onResolve(function() : void{
-					if($this->connected){
+					if(!$this->transportClosed){
 						$this->flushCompressedQueue();
 					}
 				});
@@ -737,6 +747,14 @@ class NetworkSession{
 	}
 
 	private function flushCompressedQueue() : void{
+		if($this->transportClosed){
+			return;
+		}
+		if($this->disconnectDeadline !== null && hrtime(true) / 1e9 >= $this->disconnectDeadline){
+			$this->closeTransport();
+
+			return;
+		}
 		Timings::$playerNetworkSend->startTiming();
 		try{
 			while(!$this->compressedQueue->isEmpty()){
@@ -758,6 +776,9 @@ class NetworkSession{
 		}finally{
 			Timings::$playerNetworkSend->stopTiming();
 		}
+		if(!$this->connected && !$this->transportClosed && $this->compressedQueue->isEmpty() && $this->transportCloseTime === null){
+			$this->transportCloseTime = hrtime(true) / 1e9 + self::DISCONNECT_TRANSPORT_GRACE_SECONDS;
+		}
 	}
 
 	/**
@@ -777,22 +798,29 @@ class NetworkSession{
 	/**
 	 * @phpstan-param \Closure() : void $func
 	 */
-	private function tryDisconnect(\Closure $func, Translatable|string $reason) : void{
+	private function tryDisconnect(\Closure $func, Translatable|string $reason, bool $drain = true) : void{
 		if($this->connected && !$this->disconnectGuard){
 			$this->disconnectGuard = true;
 			$func();
+			$this->setHandler(null);
+			$this->connected = false;
 			$this->disconnectGuard = false;
-			$this->flushGamePacketQueue();
-			$this->sender->close("");
+			if($drain){
+				$this->disconnectDeadline = hrtime(true) / 1e9 + self::DISCONNECT_TIMEOUT_SECONDS;
+				$this->flushGamePacketQueue();
+			}else{
+				$this->sendBuffer = [];
+			}
 			foreach($this->disposeHooks as $callback){
 				$callback();
 			}
 			$this->disposeHooks->clear();
-			$this->setHandler(null);
-			$this->connected = false;
-
 			$ackPromisesByReceiptId = $this->ackPromisesByReceiptId;
 			$this->ackPromisesByReceiptId = [];
+			foreach($this->compressedQueue as $index => [$batch, $ackPromises, $networkFlush]){
+				$ackPromisesByReceiptId[] = $ackPromises;
+				$this->compressedQueue[$index] = [$batch, [], $networkFlush];
+			}
 			foreach($ackPromisesByReceiptId as $resolvers){
 				foreach($resolvers as $resolver){
 					$resolver->reject();
@@ -805,6 +833,23 @@ class NetworkSession{
 			}
 
 			$this->logger->info($this->server->getLanguage()->translate(KnownTranslationFactory::pocketmine_network_session_close($reason)));
+			if($drain){
+				$this->flushCompressedQueue();
+			}
+		}
+	}
+
+	public function isTransportClosed() : bool{
+		return $this->transportClosed;
+	}
+
+	public function closeTransport() : void{
+		if(!$this->transportClosed){
+			$this->transportClosed = true;
+			$this->disconnectDeadline = null;
+			$this->transportCloseTime = null;
+			$this->compressedQueue = new \SplQueue();
+			$this->sender->close("");
 		}
 	}
 
@@ -889,7 +934,8 @@ class NetworkSession{
 			if($this->player !== null){
 				$this->player->onPostDisconnect($reason, null);
 			}
-		}, $reason);
+		}, $reason, drain: false);
+		$this->closeTransport();
 	}
 
 	private function setAuthenticationStatus(bool $authenticated, bool $authRequired, Translatable|string|null $error, ?string $clientPubKey) : void{
@@ -1380,6 +1426,13 @@ class NetworkSession{
 
 	public function tick() : void{
 		if(!$this->isConnected()){
+			if(!$this->transportClosed){
+				$now = hrtime(true) / 1e9;
+				if(($this->disconnectDeadline !== null && $now >= $this->disconnectDeadline) ||
+					($this->transportCloseTime !== null && $now >= $this->transportCloseTime)){
+					$this->closeTransport();
+				}
+			}
 			$this->dispose();
 			return;
 		}

@@ -27,6 +27,8 @@ namespace pocketmine\network;
 
 use pocketmine\lang\Translatable;
 use pocketmine\network\mcpe\NetworkSession;
+use function array_diff_key;
+use function array_filter;
 use function count;
 use function spl_object_id;
 
@@ -76,7 +78,7 @@ class NetworkSessionManager{
 	 * Returns the number of known connected sessions, including sessions which have not yet sent a login request.
 	 */
 	public function getSessionCount() : int{
-		return count($this->sessions);
+		return count($this->getSessions());
 	}
 
 	/**
@@ -84,20 +86,22 @@ class NetworkSessionManager{
 	 * login sequence.
 	 */
 	public function getValidSessionCount() : int{
-		return count($this->sessions) - count($this->pendingLoginSessions);
+		return count(array_diff_key($this->getSessions(), $this->pendingLoginSessions));
 	}
 
 	/** @return NetworkSession[] */
-	public function getSessions() : array{ return $this->sessions; }
+	public function getSessions() : array{
+		return array_filter($this->sessions, static fn(NetworkSession $session) : bool => $session->isConnected());
+	}
 
 	/**
 	 * Updates all sessions which need it.
 	 */
 	public function tick() : void{
-		foreach($this->sessions as $k => $session){
+		foreach($this->sessions as $session){
 			$session->tick();
-			if(!$session->isConnected()){
-				unset($this->sessions[$k]);
+			if($session->isTransportClosed()){
+				$this->remove($session);
 			}
 		}
 	}
@@ -111,7 +115,9 @@ class NetworkSessionManager{
 	public function close(Translatable|string $reason = "", Translatable|string|null $disconnectScreenMessage = null) : void{
 		foreach($this->sessions as $session){
 			$session->disconnect($reason, $disconnectScreenMessage);
+			$session->closeTransport();
 		}
 		$this->sessions = [];
+		$this->pendingLoginSessions = [];
 	}
 }

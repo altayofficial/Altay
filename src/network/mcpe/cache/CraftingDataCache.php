@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\cache;
 
-use pmmp\encoding\BE;
 use pocketmine\crafting\CraftingManager;
 use pocketmine\crafting\FurnaceType;
 use pocketmine\crafting\ShapedRecipe;
@@ -89,6 +88,8 @@ final class CraftingDataCache{
 		$recipesWithTypeIds = [];
 
 		$noUnlockingRequirement = new RecipeUnlockingRequirement(RecipeUnlockingRequirement::CONTEXT_ALWAYS_UNLOCKED, null);
+		//recipe ids go out as a UTF8 string on the wire, so raw packed ints break as soon as a byte is >= 0x80
+		//(e.g. netId 128 gives an invalid sequence at index 3), decimal text is always safe
 		$recipeNetId = self::RECIPE_ID_OFFSET;
 		foreach($manager->getCraftingRecipeIndex() as $index => $recipe){
 			//the client doesn't like recipes with an ID of 0, so we need to offset them
@@ -102,7 +103,7 @@ final class CraftingDataCache{
 				};
 				$recipesWithTypeIds[] = new ProtocolShapelessRecipe(
 					CraftingDataPacket::ENTRY_SHAPELESS,
-					BE::packUnsignedInt($recipeNetId), //TODO: this should probably be changed to something human-readable
+					(string) $recipeNetId,
 					array_map($converter->coreRecipeIngredientToNet(...), $recipe->getIngredientList()),
 					array_map($converter->coreItemStackToNet(...), $recipe->getResults()),
 					$nullUUID,
@@ -121,7 +122,7 @@ final class CraftingDataCache{
 				}
 				$recipesWithTypeIds[] = $r = new ProtocolShapedRecipe(
 					CraftingDataPacket::ENTRY_SHAPED,
-					BE::packUnsignedInt($recipeNetId), //TODO: this should probably be changed to something human-readable
+					(string) $recipeNetId,
 					$inputs,
 					array_map($converter->coreItemStackToNet(...), $recipe->getResults()),
 					$nullUUID,
@@ -149,7 +150,7 @@ final class CraftingDataCache{
 				$recipeNetId++;
 				$recipesWithTypeIds[] = new ProtocolShapelessRecipe(
 					CraftingDataPacket::ENTRY_SHAPELESS,
-					BE::packUnsignedInt($recipeNetId), //TODO: this should probably be changed to something human-readable
+					(string) $recipeNetId,
 					[$converter->coreRecipeIngredientToNet($recipe->getInput())],
 					[$converter->coreItemStackToNet($recipe->getResult())],
 					$nullUUID,

@@ -103,6 +103,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\types\PlayerAction;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
+use pocketmine\network\mcpe\protocol\VirtualContainerClosePacket;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
@@ -952,6 +953,11 @@ class InGamePacketHandler extends PacketHandler{
 
 	public function handleContainerClose(ContainerClosePacket $packet) : bool{
 		$this->inventoryManager->onClientRemoveWindow($packet->windowId);
+		return true;
+	}
+
+	public function handleVirtualContainerClose(VirtualContainerClosePacket $packet) : bool{
+		$this->inventoryManager->onClientVirtualContainerClose($packet->getSessionId(), $packet->getKind(), $packet->getCause());
 		return true;
 	}
 

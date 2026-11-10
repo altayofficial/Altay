@@ -90,7 +90,8 @@ final class ItemStackContainerIdTranslator{
 			ContainerUIIds::HORSE_EQUIP,
 			ContainerUIIds::LEVEL_ENTITY, //chest
 			ContainerUIIds::SHULKER_BOX,
-			ContainerUIIds::SMOKER_INGREDIENT => [$currentWindowId, $slotId],
+			ContainerUIIds::SMOKER_INGREDIENT,
+			ContainerUIIds::VIRTUAL_CONTAINER => [$currentWindowId, $slotId],
 
 			//all preview slots are ignored, since the client shouldn't be modifying those directly
 

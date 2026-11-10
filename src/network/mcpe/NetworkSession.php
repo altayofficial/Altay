@@ -98,6 +98,7 @@ use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\DisconnectReason;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
+use pocketmine\network\mcpe\protocol\types\TransferPlayerUIOptions;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\network\mcpe\protocol\UpdateAdventureSettingsPacket;
 use pocketmine\network\NetworkSessionManager;
@@ -107,6 +108,7 @@ use pocketmine\permission\DefaultPermissions;
 use pocketmine\player\GameMode;
 use pocketmine\player\Player;
 use pocketmine\player\PlayerInfo;
+use pocketmine\player\TransferScreenOptions;
 use pocketmine\player\UsedChunkStatus;
 use pocketmine\player\XboxLivePlayerInfo;
 use pocketmine\promise\Promise;
@@ -905,11 +907,21 @@ class NetworkSession{
 
 	/**
 	 * Instructs the remote client to connect to a different server.
+	 * Pass screen options to customise the transfer screen, null leaves it at the client default.
 	 */
-	public function transfer(string $ip, int $port, Translatable|string|null $reason = null) : void{
+	public function transfer(string $ip, int $port, Translatable|string|null $reason = null, ?TransferScreenOptions $screenOptions = null) : void{
 		$reason ??= KnownTranslationFactory::pocketmine_disconnect_transfer();
-		$this->tryDisconnect(function() use ($ip, $port, $reason) : void{
-			$this->sendDataPacket(TransferPacket::create($ip, $port, false, null, null), true);
+		$uiOptions = $screenOptions === null ? null : new TransferPlayerUIOptions(
+			$screenOptions->getTitleText(),
+			$screenOptions->getBodyText(),
+			$screenOptions->isTitleVisible(),
+			$screenOptions->isBodyVisible(),
+			$screenOptions->getCancelButtonText(),
+			$screenOptions->isCancelButtonVisible(),
+			$screenOptions->getCancelButtonDelaySeconds()
+		);
+		$this->tryDisconnect(function() use ($ip, $port, $reason, $uiOptions) : void{
+			$this->sendDataPacket(TransferPacket::create($ip, $port, false, null, $uiOptions), true);
 			if($this->player !== null){
 				$this->player->onPostDisconnect($reason, null);
 			}

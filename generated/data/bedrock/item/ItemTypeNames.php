@@ -336,6 +336,7 @@ final class ItemTypeNames{
 	public const HOST_ARMOR_TRIM_SMITHING_TEMPLATE = "minecraft:host_armor_trim_smithing_template";
 	public const HOWL_POTTERY_SHERD = "minecraft:howl_pottery_sherd";
 	public const HUSK_SPAWN_EGG = "minecraft:husk_spawn_egg";
+	public const ICE_BALL = "minecraft:ice_ball";
 	public const ICE_BOMB = "minecraft:ice_bomb";
 	public const ICE_CRYSTAL = "minecraft:ice_crystal";
 	public const ICICLE = "minecraft:icicle";
@@ -437,6 +438,7 @@ final class ItemTypeNames{
 	public const MUSIC_DISC_CREATOR = "minecraft:music_disc_creator";
 	public const MUSIC_DISC_CREATOR_MUSIC_BOX = "minecraft:music_disc_creator_music_box";
 	public const MUSIC_DISC_FAR = "minecraft:music_disc_far";
+	public const MUSIC_DISC_FLURRY = "minecraft:music_disc_flurry";
 	public const MUSIC_DISC_LAVA_CHICKEN = "minecraft:music_disc_lava_chicken";
 	public const MUSIC_DISC_MALL = "minecraft:music_disc_mall";
 	public const MUSIC_DISC_MELLOHI = "minecraft:music_disc_mellohi";

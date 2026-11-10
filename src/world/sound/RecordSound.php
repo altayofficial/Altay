@@ -47,7 +47,7 @@ class RecordSound implements Sound{
 
 	public function encode(Vector3 $pos) : array{
 		return [
-			PlaySoundPacket::create($this->recordType->getSoundId(), $pos->x + 0.5, $pos->y + 0.5, $pos->z + 0.5, 1, 1, 0, true, $this->serverSoundHandle, null),
+			PlaySoundPacket::create($this->recordType->getSoundId(), $pos->x + 0.5, $pos->y + 0.5, $pos->z + 0.5, 1, 1, 0, true, $this->serverSoundHandle, null, null, null),
 			RecordStartedPacket::create(BlockPosition::fromVector3($pos), $this->serverSoundHandle) // new one, love its being unique
 		];
 	}

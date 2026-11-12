@@ -260,21 +260,25 @@ class CraftingTransaction extends InventoryTransaction{
 
 	private function validateRecipe(CraftingRecipe $recipe, ?int $expectedRepetitions) : int{
 		//compute number of times recipe was crafted
-		$repetitions = $this->matchOutputs($this->outputs, $this->getExpectedResultsFor($recipe));
+		$expectedResults = $this->getExpectedResultsFor($recipe);
+		$repetitions = $this->matchOutputs($this->outputs, $expectedResults);
 		if($expectedRepetitions !== null && $repetitions !== $expectedRepetitions){
 			throw new TransactionValidationException("Expected $expectedRepetitions repetitions, got $repetitions");
 		}
 		//assert that $repetitions x recipe ingredients should be consumed
 		self::matchIngredients($this->inputs, $recipe->getIngredientList(), $repetitions);
-		$this->validateContainerTransfer($repetitions);
+		$this->validateContainerTransfer($expectedResults, $repetitions);
 
 		return $repetitions;
 	}
 
 	/**
+	 * @param Item[]             $expectedResults
+	 * @phpstan-param list<Item> $expectedResults
+	 *
 	 * @throws TransactionValidationException
 	 */
-	private function validateContainerTransfer(int $repetitions) : void{
+	private function validateContainerTransfer(array $expectedResults ,int $repetitions) : void{
 		$filledContainers = 0;
 		foreach($this->inputs as $input){
 			$items = $input->getNamedTag()->getTag(Container::TAG_ITEMS);
@@ -282,8 +286,16 @@ class CraftingTransaction extends InventoryTransaction{
 				$filledContainers += $input->getCount();
 			}
 		}
-		if($filledContainers > 0 && ($filledContainers > 1 || $repetitions > 1)){
-			throw new TransactionValidationException("Cannot carry the contents of $filledContainers container over $repetitions crafts");
+		if($filledContainers === 0){
+			return;
+		}
+		$resultItems = 0;
+		foreach($expectedResults as $result){
+			$resultItems += $result->getCount();
+		}
+		$resultItems *= $repetitions;
+		if($filledContainers > 1 || $resultItems > 1){
+			throw new TransactionValidationException("Cannot carry the contents of $filledContainers container(s) over to $resultItems result item(s)");
 		}
 	}
 
@@ -300,10 +312,11 @@ class CraftingTransaction extends InventoryTransaction{
 			foreach($this->craftingManager->matchRecipeByOutputs($this->outputs) as $recipe){
 				try{
 					//compute number of times recipe was crafted
-					$this->repetitions = $repetitions = $this->matchOutputs($this->outputs, $this->getExpectedResultsFor($recipe));
+					$expectedResults = $this->getExpectedResultsFor($recipe);
+					$this->repetitions = $repetitions = $this->matchOutputs($this->outputs, $expectedResults);
 					//assert that $repetitions x recipe ingredients should be consumed
 					self::matchIngredients($this->inputs, $recipe->getIngredientList(), $this->repetitions);
-					$this->validateContainerTransfer($repetitions);
+					$this->validateContainerTransfer($expectedResults, $repetitions);
 					//Success!
 					$this->recipe = $recipe;
 					break;

@@ -28,6 +28,9 @@ namespace pocketmine\network\mcpe\auth;
 use PHPUnit\Framework\TestCase;
 use pocketmine\network\mcpe\JwtUtils;
 use function openssl_pkey_get_private;
+use function str_repeat;
+use function strrpos;
+use function substr;
 use function time;
 
 class AuthJwtHelperTest extends TestCase{
@@ -105,5 +108,18 @@ PEM;
 		$this->expectException(VerifyLoginException::class);
 		$this->expectExceptionMessage("Invalid JWT audience");
 		AuthJwtHelper::validateSelfSignedAuthToken(self::signedToken($audience, $key), JwtUtils::emitDerPublicKey($key), AuthJwtHelper::MOJANG_AUDIENCE);
+	}
+
+	public function testRejectsZeroSignature() : void{
+		$key = self::loadKey();
+		$token = self::signedToken(AuthJwtHelper::MOJANG_AUDIENCE, $key);
+		$pos = strrpos($token, ".");
+		self::assertNotFalse($pos);
+		// 96 zero bytes, R and S both strip down to nothing
+		$token = substr($token, 0, $pos + 1) . str_repeat("A", 128);
+
+		$this->expectException(VerifyLoginException::class);
+		$this->expectExceptionMessage("must not be zero");
+		AuthJwtHelper::validateSelfSignedAuthToken($token, JwtUtils::emitDerPublicKey($key), AuthJwtHelper::MOJANG_AUDIENCE);
 	}
 }

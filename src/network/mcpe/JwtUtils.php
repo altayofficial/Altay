@@ -115,6 +115,10 @@ final class JwtUtils{
 			throw new JwtException("R and S for a SHA384 signature must each be exactly 48 bytes, but have " . strlen($part) . " bytes");
 		}
 		$part = ltrim($part, "\x00");
+		if($part === ""){
+			// yeah, a zero R or S is never valid ECDSA, and indexing an empty string here would throw an ErrorException that kills the async worker
+			throw new JwtException("R and S for a SHA384 signature must not be zero");
+		}
 		if(ord($part[0]) >= 128){
 			//ASN.1 integers with a leading 1 bit are considered negative - add a leading 0 byte to prevent this
 			//ECDSA signature R and S values are always positive

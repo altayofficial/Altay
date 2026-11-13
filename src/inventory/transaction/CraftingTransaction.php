@@ -25,12 +25,14 @@ declare(strict_types=1);
 
 namespace pocketmine\inventory\transaction;
 
+use pocketmine\block\tile\Container;
 use pocketmine\crafting\CraftingManager;
 use pocketmine\crafting\CraftingRecipe;
 use pocketmine\crafting\CraftingResultTransfer;
 use pocketmine\crafting\RecipeIngredient;
 use pocketmine\event\inventory\CraftItemEvent;
 use pocketmine\item\Item;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\player\Player;
 use pocketmine\utils\Utils;
 use function array_fill_keys;
@@ -258,14 +260,43 @@ class CraftingTransaction extends InventoryTransaction{
 
 	private function validateRecipe(CraftingRecipe $recipe, ?int $expectedRepetitions) : int{
 		//compute number of times recipe was crafted
-		$repetitions = $this->matchOutputs($this->outputs, $this->getExpectedResultsFor($recipe));
+		$expectedResults = $this->getExpectedResultsFor($recipe);
+		$repetitions = $this->matchOutputs($this->outputs, $expectedResults);
 		if($expectedRepetitions !== null && $repetitions !== $expectedRepetitions){
 			throw new TransactionValidationException("Expected $expectedRepetitions repetitions, got $repetitions");
 		}
 		//assert that $repetitions x recipe ingredients should be consumed
 		self::matchIngredients($this->inputs, $recipe->getIngredientList(), $repetitions);
+		$this->validateContainerTransfer($expectedResults, $repetitions);
 
 		return $repetitions;
+	}
+
+	/**
+	 * @param Item[]             $expectedResults
+	 * @phpstan-param list<Item> $expectedResults
+	 *
+	 * @throws TransactionValidationException
+	 */
+	private function validateContainerTransfer(array $expectedResults ,int $repetitions) : void{
+		$filledContainers = 0;
+		foreach($this->inputs as $input){
+			$items = $input->getNamedTag()->getTag(Container::TAG_ITEMS);
+			if($items instanceof ListTag && $items->count() > 0){
+				$filledContainers += $input->getCount();
+			}
+		}
+		if($filledContainers === 0){
+			return;
+		}
+		$resultItems = 0;
+		foreach($expectedResults as $result){
+			$resultItems += $result->getCount();
+		}
+		$resultItems *= $repetitions;
+		if($filledContainers > 1 || $resultItems > 1){
+			throw new TransactionValidationException("Cannot carry the contents of $filledContainers container(s) over to $resultItems result item(s)");
+		}
 	}
 
 	public function validate() : void{
@@ -281,10 +312,11 @@ class CraftingTransaction extends InventoryTransaction{
 			foreach($this->craftingManager->matchRecipeByOutputs($this->outputs) as $recipe){
 				try{
 					//compute number of times recipe was crafted
-					$this->repetitions = $this->matchOutputs($this->outputs, $this->getExpectedResultsFor($recipe));
+					$expectedResults = $this->getExpectedResultsFor($recipe);
+					$this->repetitions = $repetitions = $this->matchOutputs($this->outputs, $expectedResults);
 					//assert that $repetitions x recipe ingredients should be consumed
 					self::matchIngredients($this->inputs, $recipe->getIngredientList(), $this->repetitions);
-
+					$this->validateContainerTransfer($expectedResults, $repetitions);
 					//Success!
 					$this->recipe = $recipe;
 					break;

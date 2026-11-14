@@ -35,6 +35,7 @@ use pocketmine\event\server\DataPacketDecodeEvent;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
 use pocketmine\form\Form;
+use pocketmine\form\TranslatableForm;
 use pocketmine\item\Item;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\lang\Translatable;
@@ -1260,7 +1261,8 @@ class NetworkSession{
 	}
 
 	public function onFormSent(int $id, Form $form) : bool{
-		return $this->sendDataPacket(ModalFormRequestPacket::create($id, json_encode($form, JSON_THROW_ON_ERROR)));
+		$data = $form instanceof TranslatableForm && $this->player !== null ? $form->serializeForLanguage($this->player->getLanguage()) : $form;
+		return $this->sendDataPacket(ModalFormRequestPacket::create($id, json_encode($data, JSON_THROW_ON_ERROR)));
 	}
 
 	public function onCloseAllForms() : void{

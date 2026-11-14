@@ -70,6 +70,7 @@ class Item implements \JsonSerializable{
 
 	public const TAG_DISPLAY = "display";
 	public const TAG_BLOCK_ENTITY_TAG = "BlockEntityTag";
+	public const TAG_ITEM_LOCK = "minecraft:item_lock";
 
 	public const TAG_DISPLAY_NAME = "Name";
 	public const TAG_DISPLAY_LORE = "Lore";
@@ -77,6 +78,9 @@ class Item implements \JsonSerializable{
 	public const TAG_KEEP_ON_DEATH = "minecraft:keep_on_death";
 
 	public const TAG_REPAIR_COST = "RepairCost";
+
+	private const VALUE_ITEM_LOCK_IN_SLOT = 1;
+	private const VALUE_ITEM_LOCK_IN_INVENTORY = 2;
 
 	private const TAG_CAN_PLACE_ON = "CanPlaceOn"; //TAG_List<TAG_String>
 	private const TAG_CAN_DESTROY = "CanDestroy"; //TAG_List<TAG_String>
@@ -107,6 +111,8 @@ class Item implements \JsonSerializable{
 	protected bool $keepOnDeath = false;
 
 	protected int $repairCost = 0;
+
+	protected ItemLockMode $lockMode = ItemLockMode::NONE;
 
 	/**
 	 * Constructs a new Item type. This constructor should ONLY be used when constructing a new item TYPE to register
@@ -236,6 +242,21 @@ class Item implements \JsonSerializable{
 	}
 
 	/**
+	 * Returns how the movement of this item will be restricted when in a player's inventory.
+	 */
+	public function getLockMode() : ItemLockMode{
+		return $this->lockMode;
+	}
+
+	/**
+	 * Sets how the movement of this item will be restricted when in a player's inventory.
+	 */
+	public function setLockMode(ItemLockMode $lockMode) : self{
+		$this->lockMode = $lockMode;
+		return $this;
+	}
+
+	/**
 	 * Returns whether players will retain this item on death. If a non-player dies it will be excluded from the drops.
 	 */
 	public function keepOnDeath() : bool{
@@ -358,6 +379,12 @@ class Item implements \JsonSerializable{
 
 		$this->keepOnDeath = $tag->getByte(self::TAG_KEEP_ON_DEATH, 0) !== 0;
 		$this->repairCost = max(0, $tag->getInt(self::TAG_REPAIR_COST, 0));
+
+		$this->lockMode = match($tag->getByte(self::TAG_ITEM_LOCK, 0)){
+			self::VALUE_ITEM_LOCK_IN_SLOT => ItemLockMode::PLAYER_INVENTORY_SLOT,
+			self::VALUE_ITEM_LOCK_IN_INVENTORY => ItemLockMode::PLAYER_INVENTORY,
+			default => ItemLockMode::NONE
+		};
 	}
 
 	protected function serializeCompoundTag(CompoundTag $tag) : void{
@@ -431,6 +458,15 @@ class Item implements \JsonSerializable{
 			$tag->setInt(self::TAG_REPAIR_COST, $this->repairCost);
 		}else{
 			$tag->removeTag(self::TAG_REPAIR_COST);
+		}
+
+		if($this->lockMode !== ItemLockMode::NONE){
+			$tag->setByte(self::TAG_ITEM_LOCK, match($this->lockMode){
+				ItemLockMode::PLAYER_INVENTORY_SLOT => self::VALUE_ITEM_LOCK_IN_SLOT,
+				ItemLockMode::PLAYER_INVENTORY => self::VALUE_ITEM_LOCK_IN_INVENTORY,
+			});
+		}else{
+			$tag->removeTag(self::TAG_ITEM_LOCK);
 		}
 	}
 

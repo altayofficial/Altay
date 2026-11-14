@@ -32,8 +32,6 @@ use pocketmine\lang\Translatable;
  * Bold section title.
  */
 final class Header implements SimpleFormElement, CustomFormElement{
-	public const TYPE = "header";
-
 	public function __construct(
 		private Translatable|string $text
 	){}
@@ -42,7 +40,7 @@ final class Header implements SimpleFormElement, CustomFormElement{
 
 	public function serializeForLanguage(Language $language) : array{
 		return [
-			"type" => self::TYPE,
+			"type" => ElementType::HEADER->value,
 			"text" => $this->text instanceof Translatable ? $language->translate($this->text) : $this->text,
 		];
 	}

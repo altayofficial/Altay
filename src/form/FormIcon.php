@@ -29,11 +29,8 @@ namespace pocketmine\form;
  * Image shown next to a simple form button, or as the icon of a custom form on the server settings screen.
  */
 final class FormIcon implements \JsonSerializable{
-	public const TYPE_PATH = "path";
-	public const TYPE_URL = "url";
-
 	private function __construct(
-		private string $type,
+		private FormIconType $type,
 		private string $data
 	){}
 
@@ -41,17 +38,17 @@ final class FormIcon implements \JsonSerializable{
 	 * Texture from a loaded resource pack, e.g. "textures/items/apple".
 	 */
 	public static function path(string $path) : self{
-		return new self(self::TYPE_PATH, $path);
+		return new self(FormIconType::PATH, $path);
 	}
 
 	/**
 	 * Remote image, the client downloads it by itself.
 	 */
 	public static function url(string $url) : self{
-		return new self(self::TYPE_URL, $url);
+		return new self(FormIconType::URL, $url);
 	}
 
-	public function getType() : string{ return $this->type; }
+	public function getType() : FormIconType{ return $this->type; }
 
 	public function getData() : string{ return $this->data; }
 
@@ -60,7 +57,7 @@ final class FormIcon implements \JsonSerializable{
 	 */
 	public function jsonSerialize() : array{
 		return [
-			"type" => $this->type,
+			"type" => $this->type->value,
 			"data" => $this->data,
 		];
 	}

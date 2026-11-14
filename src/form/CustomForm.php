@@ -59,8 +59,6 @@ use function is_array;
  * ```
  */
 final class CustomForm implements TranslatableForm{
-	public const TYPE = "custom_form";
-
 	/** @phpstan-var list<CustomFormElement> */
 	private array $elements;
 	/** @phpstan-var \Closure(Player, CustomFormResponse) : void */
@@ -160,7 +158,7 @@ final class CustomForm implements TranslatableForm{
 
 	public function serializeForLanguage(Language $language) : array{
 		$result = [
-			"type" => self::TYPE,
+			"type" => FormType::CUSTOM_FORM->value,
 			"title" => $this->title instanceof Translatable ? $language->translate($this->title) : $this->title,
 			"content" => array_map(fn(CustomFormElement $element) => $element->serializeForLanguage($language), $this->elements),
 		];

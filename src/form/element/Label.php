@@ -32,8 +32,6 @@ use pocketmine\lang\Translatable;
  * Plain text.
  */
 final class Label implements SimpleFormElement, CustomFormElement{
-	public const TYPE = "label";
-
 	public function __construct(
 		private Translatable|string $text
 	){}
@@ -42,7 +40,7 @@ final class Label implements SimpleFormElement, CustomFormElement{
 
 	public function serializeForLanguage(Language $language) : array{
 		return [
-			"type" => self::TYPE,
+			"type" => ElementType::LABEL->value,
 			"text" => $this->text instanceof Translatable ? $language->translate($this->text) : $this->text,
 		];
 	}

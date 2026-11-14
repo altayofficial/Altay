@@ -30,8 +30,6 @@ use pocketmine\lang\Language;
 use pocketmine\lang\Translatable;
 
 final class Button implements SimpleFormElement{
-	public const TYPE = "button";
-
 	public function __construct(
 		private Translatable|string $text,
 		private ?FormIcon $icon = null
@@ -43,7 +41,7 @@ final class Button implements SimpleFormElement{
 
 	public function serializeForLanguage(Language $language) : array{
 		$result = [
-			"type" => self::TYPE,
+			"type" => ElementType::BUTTON->value,
 			"text" => $this->text instanceof Translatable ? $language->translate($this->text) : $this->text,
 		];
 		if($this->icon !== null){

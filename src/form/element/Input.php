@@ -35,8 +35,6 @@ use function is_string;
  * Text field, its value is the typed string.
  */
 final class Input implements InputElement{
-	public const TYPE = "input";
-
 	/**
 	 * @param string $default prefilled value, kept as a plain string since the player edits it
 	 */
@@ -67,7 +65,7 @@ final class Input implements InputElement{
 
 	public function serializeForLanguage(Language $language) : array{
 		$result = [
-			"type" => self::TYPE,
+			"type" => ElementType::INPUT->value,
 			"text" => $this->text instanceof Translatable ? $language->translate($this->text) : $this->text,
 			"placeholder" => $this->placeholder instanceof Translatable ? $language->translate($this->placeholder) : $this->placeholder,
 			"default" => $this->default,

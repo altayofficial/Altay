@@ -31,11 +31,9 @@ use pocketmine\lang\Language;
  * Horizontal line between elements.
  */
 final class Divider implements SimpleFormElement, CustomFormElement{
-	public const TYPE = "divider";
-
 	public function serializeForLanguage(Language $language) : array{
 		return [
-			"type" => self::TYPE,
+			"type" => ElementType::DIVIDER->value,
 			// hmm, nothing gets rendered, but vanilla always sends the key so we do too
 			"text" => "",
 		];

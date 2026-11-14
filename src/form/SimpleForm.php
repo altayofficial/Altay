@@ -52,8 +52,6 @@ use function is_int;
  * ```
  */
 final class SimpleForm implements TranslatableForm{
-	public const TYPE = "form";
-
 	/** @phpstan-var list<SimpleFormElement> */
 	private array $elements;
 	/** @phpstan-var list<Button> */
@@ -136,7 +134,7 @@ final class SimpleForm implements TranslatableForm{
 
 	public function serializeForLanguage(Language $language) : array{
 		return [
-			"type" => self::TYPE,
+			"type" => FormType::SIMPLE->value,
 			"title" => $this->title instanceof Translatable ? $language->translate($this->title) : $this->title,
 			"content" => $this->content instanceof Translatable ? $language->translate($this->content) : $this->content,
 			"elements" => array_map(fn(SimpleFormElement $element) => $element->serializeForLanguage($language), $this->elements),

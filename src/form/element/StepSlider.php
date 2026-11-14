@@ -38,8 +38,6 @@ use function is_int;
  * Slider snapping between a fixed list of labelled steps, its value is the index of the picked step as an int.
  */
 final class StepSlider implements InputElement{
-	public const TYPE = "step_slider";
-
 	/** @phpstan-var list<Translatable|string> */
 	private array $steps;
 
@@ -95,7 +93,7 @@ final class StepSlider implements InputElement{
 
 	public function serializeForLanguage(Language $language) : array{
 		$result = [
-			"type" => self::TYPE,
+			"type" => ElementType::STEP_SLIDER->value,
 			"text" => $this->text instanceof Translatable ? $language->translate($this->text) : $this->text,
 			"steps" => array_map(fn(Translatable|string $step) => $step instanceof Translatable ? $language->translate($step) : $step, $this->steps),
 			"default" => $this->default,

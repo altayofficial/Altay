@@ -35,8 +35,6 @@ use function is_bool;
  * On/off switch, its value is a bool.
  */
 final class Toggle implements InputElement{
-	public const TYPE = "toggle";
-
 	public function __construct(
 		private string $name,
 		private Translatable|string $text,
@@ -61,7 +59,7 @@ final class Toggle implements InputElement{
 
 	public function serializeForLanguage(Language $language) : array{
 		$result = [
-			"type" => self::TYPE,
+			"type" => ElementType::TOGGLE->value,
 			"text" => $this->text instanceof Translatable ? $language->translate($this->text) : $this->text,
 			"default" => $this->default,
 		];

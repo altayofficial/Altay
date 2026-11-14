@@ -36,8 +36,6 @@ use function is_int;
  * Numeric slider between min and max, its value is a float.
  */
 final class Slider implements InputElement{
-	public const TYPE = "slider";
-
 	private float $default;
 
 	/**
@@ -95,7 +93,7 @@ final class Slider implements InputElement{
 
 	public function serializeForLanguage(Language $language) : array{
 		$result = [
-			"type" => self::TYPE,
+			"type" => ElementType::SLIDER->value,
 			"text" => $this->text instanceof Translatable ? $language->translate($this->text) : $this->text,
 			"min" => $this->min,
 			"max" => $this->max,

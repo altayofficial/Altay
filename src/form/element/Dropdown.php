@@ -38,8 +38,6 @@ use function is_int;
  * Drop down list, its value is the index of the picked option as an int.
  */
 final class Dropdown implements InputElement{
-	public const TYPE = "dropdown";
-
 	/** @phpstan-var list<Translatable|string> */
 	private array $options;
 
@@ -98,7 +96,7 @@ final class Dropdown implements InputElement{
 
 	public function serializeForLanguage(Language $language) : array{
 		$result = [
-			"type" => self::TYPE,
+			"type" => ElementType::DROPDOWN->value,
 			"text" => $this->text instanceof Translatable ? $language->translate($this->text) : $this->text,
 			"options" => array_map(fn(Translatable|string $option) => $option instanceof Translatable ? $language->translate($option) : $option, $this->options),
 			"default" => $this->default,

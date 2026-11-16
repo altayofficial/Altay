@@ -1705,6 +1705,11 @@ class World implements ChunkManager{
 					if($subChunkY !== ($y >> SubChunk::COORD_BIT_SIZE)){
 						$subChunkY = $y >> SubChunk::COORD_BIT_SIZE;
 						$subChunk = $chunk->getSubChunk($subChunkY);
+						if($subChunk->isEmptyFast()){
+							//nothing but air in here (isEmptyFast() can only be wrong the other way), so jump to its top
+							$y = ($subChunkY << SubChunk::COORD_BIT_SIZE) | SubChunk::COORD_MASK;
+							continue;
+						}
 					}
 					$stateCollisionInfo = $collisionInfo[$subChunk->getBlockStateId($localX, $y & SubChunk::COORD_MASK, $localZ)];
 					if($stateCollisionInfo === RuntimeBlockStateRegistry::COLLISION_NONE){

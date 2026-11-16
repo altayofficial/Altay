@@ -29,6 +29,7 @@ declare(strict_types=1);
 namespace pocketmine\entity;
 
 use pocketmine\block\Block;
+use pocketmine\block\VanillaBlocks;
 use pocketmine\block\Water;
 use pocketmine\entity\animation\Animation;
 use pocketmine\event\entity\EntityDamageEvent;
@@ -69,6 +70,7 @@ use pocketmine\utils\Limits;
 use pocketmine\utils\Utils;
 use pocketmine\VersionInfo;
 use pocketmine\world\format\Chunk;
+use pocketmine\world\format\SubChunk;
 use pocketmine\world\Position;
 use pocketmine\world\sound\Sound;
 use pocketmine\world\World;
@@ -104,6 +106,7 @@ abstract class Entity{
 	public const TAG_ROTATION = "Rotation"; //TAG_List<TAG_Float>
 
 	private static int $entityCount = 1;
+	private static ?int $airStateId = null;
 
 	/**
 	 * Returns a new runtime entity ID for a new entity.
@@ -1451,9 +1454,40 @@ abstract class Entity{
 			$this->blocksAround = [];
 
 			$inset = 0.001; //Offset against floating-point errors
-			foreach($this->getBlocksIntersected($inset) as $block){
-				if($block->hasEntityCollision()){
-					$this->blocksAround[] = $block;
+			$minX = (int) floor($this->boundingBox->minX + $inset);
+			$minY = (int) floor($this->boundingBox->minY + $inset);
+			$minZ = (int) floor($this->boundingBox->minZ + $inset);
+			$maxX = (int) floor($this->boundingBox->maxX - $inset);
+			$maxY = (int) floor($this->boundingBox->maxY - $inset);
+			$maxZ = (int) floor($this->boundingBox->maxZ - $inset);
+
+			$world = $this->getWorld();
+			$worldMinY = $world->getMinY();
+			$worldMaxY = $world->getMaxY();
+			$airStateId = self::$airStateId ??= VanillaBlocks::AIR()->getStateId();
+
+			//same walk as getBlocksIntersected(), but entities spend most of their time surrounded by air, which never
+			//has an inside action, so read raw states and only build a Block for anything else
+			for($z = $minZ; $z <= $maxZ; ++$z){
+				for($x = $minX; $x <= $maxX; ++$x){
+					$chunk = $world->getChunk($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE);
+					if($chunk === null){
+						//unloaded terrain reads as air
+						continue;
+					}
+					for($y = $minY; $y <= $maxY; ++$y){
+						if($y < $worldMinY || $y >= $worldMaxY){
+							continue;
+						}
+						$subChunk = $chunk->getSubChunk($y >> SubChunk::COORD_BIT_SIZE);
+						if($subChunk->isEmptyFast() || $subChunk->getBlockStateId($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK) === $airStateId){
+							continue;
+						}
+						$block = $world->getBlockAt($x, $y, $z);
+						if($block->hasEntityCollision()){
+							$this->blocksAround[] = $block;
+						}
+					}
 				}
 			}
 		}

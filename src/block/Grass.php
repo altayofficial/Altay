@@ -26,7 +26,6 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\block\utils\BlockEventHelper;
-use pocketmine\block\utils\DirtType;
 use pocketmine\item\Fertilizer;
 use pocketmine\item\Hoe;
 use pocketmine\item\Item;
@@ -35,11 +34,14 @@ use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\utils\Random;
+use pocketmine\world\format\Chunk;
 use pocketmine\world\generator\object\TallGrass as TallGrassObject;
 use pocketmine\world\sound\ItemUseOnBlockSound;
+use function intdiv;
 use function mt_rand;
 
 class Grass extends Opaque{
+	private static ?int $normalDirtStateId = null;
 
 	public function getDropsForCompatibleTool(Item $item) : array{
 		return [
@@ -63,22 +65,40 @@ class Grass extends Opaque{
 			BlockEventHelper::spread($this, VanillaBlocks::DIRT(), $this);
 		}elseif($lightAbove >= 9){
 			//try grass spread
+			$dirtStateId = self::$normalDirtStateId ??= VanillaBlocks::DIRT()->getStateId();
+			//the light engine's table is getLightFilter() + 1, so >= 3 here is the same as getLightFilter() >= 2
+			$lightFilters = RuntimeBlockStateRegistry::getInstance()->lightFilter;
+			$minY = $world->getMinY();
+			$maxY = $world->getMaxY();
+			$baseX = $this->position->getFloorX();
+			$baseY = $this->position->getFloorY();
+			$baseZ = $this->position->getFloorZ();
 			for($i = 0; $i < 4; ++$i){
-				$x = mt_rand($this->position->x - 1, $this->position->x + 1);
-				$y = mt_rand($this->position->y - 3, $this->position->y + 1);
-				$z = mt_rand($this->position->z - 1, $this->position->z + 1);
-
-				$b = $world->getBlockAt($x, $y, $z);
-				if(
-					!($b instanceof Dirt) ||
-					$b->getDirtType() !== DirtType::NORMAL ||
-					$world->getFullLightAt($x, $y + 1, $z) < 4 ||
-					$world->getBlockAt($x, $y + 1, $z)->getLightFilter() >= 2
-				){
+				//one draw for the whole 3x5x3 box instead of one per axis, every target is still equally likely
+				$target = mt_rand(0, 44);
+				$x = $baseX + ($target % 3) - 1;
+				$z = $baseZ + (intdiv($target, 3) % 3) - 1;
+				$y = $baseY + intdiv($target, 9) - 3;
+				if($y < $minY || $y >= $maxY){
 					continue;
 				}
 
-				BlockEventHelper::spread($b, VanillaBlocks::GRASS(), $this);
+				//hmm, nearly every target is air, grass or covered dirt, so peek at the raw states before paying for a
+				//full Block. Plain dirt has exactly one state and no dynamic state, so the id says it all
+				$chunk = $world->getChunk($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE);
+				if($chunk === null || $chunk->getBlockStateId($x & Chunk::COORD_MASK, $y, $z & Chunk::COORD_MASK) !== $dirtStateId){
+					continue;
+				}
+				if($y + 1 < $maxY){
+					//covered dirt is the usual hit, and whatever covers it is opaque
+					if($lightFilters[$chunk->getBlockStateId($x & Chunk::COORD_MASK, $y + 1, $z & Chunk::COORD_MASK)] >= 3 || $world->getFullLightAt($x, $y + 1, $z) < 4){
+						continue;
+					}
+				}elseif($world->getFullLightAt($x, $y + 1, $z) < 4 || $world->getBlockAt($x, $y + 1, $z)->getLightFilter() >= 2){
+					continue;
+				}
+
+				BlockEventHelper::spread($world->getBlockAt($x, $y, $z), VanillaBlocks::GRASS(), $this);
 			}
 		}
 	}

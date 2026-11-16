@@ -179,7 +179,7 @@ class World implements ChunkManager{
 	public const DIFFICULTY_NORMAL = 2;
 	public const DIFFICULTY_HARD = 3;
 
-	public const DEFAULT_TICKED_BLOCKS_PER_SUBCHUNK_PER_TICK = 3;
+	public const DEFAULT_TICKED_BLOCKS_PER_SUBCHUNK_PER_TICK = 1;
 
 	//TODO: this could probably do with being a lot bigger
 	private const BLOCK_CACHE_SIZE_CAP = 2048;

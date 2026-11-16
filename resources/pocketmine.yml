@@ -175,7 +175,7 @@ chunk-ticking:
 
 chunk-generation:
   #Max. amount of chunks in the waiting queue to be populated
-  population-queue-size: 32
+  population-queue-size: 128
 
 ticks-per:
   autosave: 6000

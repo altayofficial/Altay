@@ -103,7 +103,6 @@ class Ore{
 		$endY = (int) ($centerY + $radius);
 		$endZ = (int) ($centerZ + $radius);
 
-		$minY = $world->getMinY();
 		for($xx = $startX; $xx <= $endX; ++$xx){
 			$sizeX = ($xx + 0.5 - $centerX) / $radius;
 			$sizeX *= $sizeX;
@@ -113,7 +112,7 @@ class Ore{
 					$sizeY = ($yy + 0.5 - $centerY) / $radius;
 					$sizeY *= $sizeY;
 
-					if($yy >= $minY && ($sizeX + $sizeY) < 1){
+					if($yy > 0 && ($sizeX + $sizeY) < 1){
 						for($zz = $startZ; $zz <= $endZ; ++$zz){
 							$sizeZ = ($zz + 0.5 - $centerZ) / $radius;
 							$sizeZ *= $sizeZ;

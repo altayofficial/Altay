@@ -30,7 +30,6 @@ use pocketmine\utils\SingletonTrait;
 use pocketmine\utils\Utils;
 use pocketmine\world\generator\hell\Nether;
 use pocketmine\world\generator\normal\Normal;
-use pocketmine\world\generator\normal\Overworld;
 use function array_keys;
 use function strtolower;
 
@@ -56,9 +55,7 @@ final class GeneratorManager{
 			}
 		}, fast: true);
 		$this->addGenerator(Normal::class, "normal", fn() => null);
-		//hmm, existing worlds have "normal" saved in level.dat and keep it, only newly created default worlds go deep
-		$this->addGenerator(Overworld::class, "overworld", fn() => null);
-		$this->addAlias("overworld", "default");
+		$this->addAlias("normal", "default");
 		$this->addGenerator(Nether::class, "nether", fn() => null);
 		$this->addAlias("nether", "hell");
 		$this->addGenerator(VoidGenerator::class, "void", fn() => null, fast: true, spawnPositionProvider: fn(int $seed) => new Vector3(0, -63, 0));

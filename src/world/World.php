@@ -127,6 +127,7 @@ use function count;
 use function floor;
 use function get_class;
 use function gettype;
+use function intdiv;
 use function is_a;
 use function is_object;
 use function max;
@@ -137,10 +138,15 @@ use function morton2d_encode;
 use function morton3d_decode;
 use function morton3d_encode;
 use function mt_rand;
+use function ord;
+use function pack;
 use function preg_match;
 use function spl_object_id;
+use function strlen;
 use function strtolower;
+use function substr;
 use function trim;
+use function unpack;
 use const M_PI;
 use const PHP_INT_MAX;
 use const PHP_INT_MIN;
@@ -372,14 +378,23 @@ class World implements ChunkManager{
 	private array $randomTickBlocks = [];
 
 	/**
-	 * Y indexes of the sub chunks whose palette holds anything that ticks randomly, keyed by chunk hash. Picking random
-	 * blocks in an empty sub chunk or one made of stone and ores can never do anything, and underground that's most of
-	 * the loaded world, so we remember which ones matter until the chunk changes.
+	 * Where the randomly ticking blocks are in each sub chunk that has any, keyed by chunk hash and then sub chunk Y.
+	 * Each value packs the block offsets (x << 8 | z << 4 | y) as uint16 little endian, or is null when every block
+	 * of the sub chunk ticks. A random pick then only has to land inside the list instead of reading a block that is
+	 * almost always air, stone or dirt, and since a pick is a uniform 12 bit number either way, the odds of any block
+	 * being ticked stay exactly the same.
 	 *
-	 * @var int[][]
-	 * @phpstan-var array<ChunkPosHash, list<int>>
+	 * @var (string|null)[][]
+	 * @phpstan-var array<ChunkPosHash, array<int, string|null>>
 	 */
 	private array $randomTickableSubChunks = [];
+	/**
+	 * Sub chunks changed since their entry in $randomTickableSubChunks was built, keyed by chunk hash and then Y.
+	 *
+	 * @var true[][]
+	 * @phpstan-var array<ChunkPosHash, array<int, true>>
+	 */
+	private array $staleRandomTickableSubChunks = [];
 
 	public WorldTimings $timings;
 
@@ -1213,11 +1228,13 @@ class World implements ChunkManager{
 		}
 		$this->randomTickBlocks[$block->getStateId()] = true;
 		$this->randomTickableSubChunks = [];
+		$this->staleRandomTickableSubChunks = [];
 	}
 
 	public function removeRandomTickedBlock(Block $block) : void{
 		unset($this->randomTickBlocks[$block->getStateId()]);
 		$this->randomTickableSubChunks = [];
+		$this->staleRandomTickableSubChunks = [];
 	}
 
 	/**
@@ -1299,9 +1316,11 @@ class World implements ChunkManager{
 		}
 
 		foreach($this->validTickingChunks as $index => $_){
-			World::getXZ($index, $chunkX, $chunkZ);
-
-			$this->tickChunk($chunkX, $chunkZ);
+			//the chunk may have been unloaded during a previous chunk's update (e.g. during BlockGrowEvent)
+			$chunk = $this->chunks[$index] ?? null;
+			if($chunk !== null){
+				$this->tickChunk($index, $chunk);
+			}
 		}
 	}
 
@@ -1405,56 +1424,134 @@ class World implements ChunkManager{
 	}
 
 	/**
-	 * @return int[]
-	 * @phpstan-return list<int>
+	 * Packs the offsets of the randomly ticking blocks in the first layer of a sub chunk, see $randomTickableSubChunks.
+	 * Returns "" when nothing there ticks and null when everything does.
 	 */
-	private function findRandomTickableSubChunks(Chunk $chunk) : array{
-		$result = [];
-		foreach($chunk->getSubChunks() as $Y => $subChunk){
-			//random ticks only ever look at the first layer, same as SubChunk::getBlockStateId()
-			$layer = $subChunk->getBlockLayers()[0] ?? null;
-			if($layer === null){
+	private function findRandomTickablePositions(SubChunk $subChunk) : ?string{
+		//random ticks only ever look at the first layer, same as SubChunk::getBlockStateId()
+		$layer = $subChunk->getBlockLayers()[0] ?? null;
+		if($layer === null){
+			return "";
+		}
+		$palette = $layer->getPalette();
+		$wanted = [];
+		foreach($palette as $paletteIndex => $stateId){
+			if(isset($this->randomTickBlocks[$stateId])){
+				$wanted[$paletteIndex] = true;
+			}
+		}
+		if(count($wanted) === 0){
+			return "";
+		}
+		$bitsPerBlock = $layer->getBitsPerBlock();
+		if($bitsPerBlock === 0 || count($wanted) === count($palette)){
+			return null;
+		}
+
+		//ok so we read the word array ourselves: one get() per block costs about as much as the whole decode
+		//words are little endian uint32, each holding floor(32 / bits) entries, block offset order x << 8 | z << 4 | y
+		$blocksPerWord = intdiv(32, $bitsPerBlock);
+		$mask = (1 << $bitsPerBlock) - 1;
+		$zeroWanted = isset($wanted[0]);
+		$positions = "";
+		$offset = 0;
+		$words = unpack("V*", $layer->getWordArray());
+		if($words === false){
+			throw new AssumptionFailedError("unpack() should never fail on a word array");
+		}
+		foreach($words as $word){
+			if($word === 0 && !$zeroWanted){
+				$offset += $blocksPerWord;
 				continue;
 			}
-			foreach($layer->getPalette() as $stateId){
-				if(isset($this->randomTickBlocks[$stateId])){
-					$result[] = $Y;
-					break;
+			for($i = 0; $i < $blocksPerWord; ++$i, ++$offset){
+				if(isset($wanted[$word & $mask])){
+					$positions .= pack("v", $offset);
+				}
+				$word >>= $bitsPerBlock;
+			}
+		}
+		//yeah, the last word can carry padding past the 4096th block when the bits don't divide 32
+		while(($length = strlen($positions)) !== 0 && (ord($positions[$length - 2]) | (ord($positions[$length - 1]) << 8)) >= SubChunk::EDGE_LENGTH ** 3){
+			$positions = substr($positions, 0, -2);
+		}
+		return $positions;
+	}
+
+	/**
+	 * Brings the random tick positions of a chunk up to date, rescanning only the sub chunks that changed.
+	 *
+	 * @return (string|null)[]
+	 * @phpstan-return array<int, string|null>
+	 */
+	private function refreshRandomTickablePositions(int $chunkHash, Chunk $chunk) : array{
+		$result = $this->randomTickableSubChunks[$chunkHash] ?? null;
+		if($result === null){
+			$result = [];
+			foreach($chunk->getSubChunks() as $Y => $subChunk){
+				$positions = $this->findRandomTickablePositions($subChunk);
+				if($positions !== ""){
+					$result[$Y] = $positions;
+				}
+			}
+		}else{
+			foreach($this->staleRandomTickableSubChunks[$chunkHash] ?? [] as $Y => $_){
+				$positions = $this->findRandomTickablePositions($chunk->getSubChunk($Y));
+				if($positions !== ""){
+					$result[$Y] = $positions;
+				}else{
+					unset($result[$Y]);
 				}
 			}
 		}
-		return $result;
+		unset($this->staleRandomTickableSubChunks[$chunkHash]);
+		return $this->randomTickableSubChunks[$chunkHash] = $result;
 	}
 
-	private function tickChunk(int $chunkX, int $chunkZ) : void{
-		$chunk = $this->getChunk($chunkX, $chunkZ);
-		if($chunk === null){
-			//the chunk may have been unloaded during a previous chunk's update (e.g. during BlockGrowEvent)
-			return;
-		}
-		foreach($this->getChunkEntities($chunkX, $chunkZ) as $entity){
+	private function tickChunk(int $chunkHash, Chunk $chunk) : void{
+		foreach($this->entitiesByChunk[$chunkHash] ?? [] as $entity){
 			$entity->onRandomUpdate();
 		}
 
+		$tickable = isset($this->staleRandomTickableSubChunks[$chunkHash]) ?
+			$this->refreshRandomTickablePositions($chunkHash, $chunk) :
+			$this->randomTickableSubChunks[$chunkHash] ?? $this->refreshRandomTickablePositions($chunkHash, $chunk);
+		if(count($tickable) === 0){
+			return;
+		}
+
+		World::getXZ($chunkHash, $chunkX, $chunkZ);
+		$baseX = $chunkX << Chunk::COORD_BIT_SIZE;
+		$baseZ = $chunkZ << Chunk::COORD_BIT_SIZE;
 		$blockFactory = $this->blockStateRegistry;
-		foreach($this->randomTickableSubChunks[World::chunkHash($chunkX, $chunkZ)] ??= $this->findRandomTickableSubChunks($chunk) as $Y){
-			$subChunk = $chunk->getSubChunk($Y);
+		foreach($tickable as $Y => $positions){
+			$count = $positions === null ? SubChunk::EDGE_LENGTH ** 3 : strlen($positions) >> 1;
+			$subChunk = null;
 			$k = 0;
 			for($i = 0; $i < $this->tickedBlocksPerSubchunkPerTick; ++$i){
 				if(($i % 5) === 0){
 					//60 bits will be used by 5 blocks (12 bits each)
 					$k = mt_rand(0, (1 << 60) - 1);
 				}
-				$x = $k & SubChunk::COORD_MASK;
-				$y = ($k >> SubChunk::COORD_BIT_SIZE) & SubChunk::COORD_MASK;
-				$z = ($k >> (SubChunk::COORD_BIT_SIZE * 2)) & SubChunk::COORD_MASK;
-				$k >>= (SubChunk::COORD_BIT_SIZE * 3);
+				//a uniform pick out of all 4096 blocks, where only the first $count slots hold a ticking block
+				$offset = $k & 0xfff;
+				$k >>= 12;
+				if($offset >= $count){
+					continue;
+				}
+				if($positions !== null){
+					$offset = ord($positions[$offset << 1]) | (ord($positions[($offset << 1) | 1]) << 8);
+				}
+				$x = $offset >> 8;
+				$z = ($offset >> 4) & SubChunk::COORD_MASK;
+				$y = $offset & SubChunk::COORD_MASK;
 
+				//still check the state, an earlier tick in this chunk may have changed the block since the scan
+				$subChunk ??= $chunk->getSubChunk($Y);
 				$state = $subChunk->getBlockStateId($x, $y, $z);
-
 				if(isset($this->randomTickBlocks[$state])){
 					$block = $blockFactory->fromStateId($state);
-					$block->position($this, $chunkX * Chunk::EDGE_LENGTH + $x, ($Y << SubChunk::COORD_BIT_SIZE) + $y, $chunkZ * Chunk::EDGE_LENGTH + $z);
+					$block->position($this, $baseX + $x, ($Y << SubChunk::COORD_BIT_SIZE) + $y, $baseZ + $z);
 					$block->onRandomTick();
 				}
 			}
@@ -2131,7 +2228,9 @@ class World implements ChunkManager{
 		unset($this->blockCache[$chunkHash][$relativeBlockHash]);
 		$this->blockCacheSize--;
 		unset($this->blockCollisionBoxCache[$chunkHash][$relativeBlockHash]);
-		unset($this->randomTickableSubChunks[$chunkHash]);
+		if(isset($this->randomTickableSubChunks[$chunkHash])){
+			$this->staleRandomTickableSubChunks[$chunkHash][$y >> SubChunk::COORD_BIT_SIZE] = true;
+		}
 		//blocks like fences have collision boxes that reach into neighbouring blocks, so we need to invalidate the
 		//caches for those blocks as well. Nothing to do when nobody has asked for collision boxes yet, which is the
 		//common case for bulk edits away from players
@@ -2741,7 +2840,7 @@ class World implements ChunkManager{
 
 		$this->chunks[$chunkHash] = $chunk;
 		unset($this->knownUngeneratedChunks[$chunkHash]);
-		unset($this->randomTickableSubChunks[$chunkHash]);
+		unset($this->randomTickableSubChunks[$chunkHash], $this->staleRandomTickableSubChunks[$chunkHash]);
 
 		$this->blockCacheSize -= count($this->blockCache[$chunkHash] ?? []);
 		unset($this->blockCache[$chunkHash]);
@@ -3327,7 +3426,7 @@ class World implements ChunkManager{
 
 		unset($this->chunks[$chunkHash]);
 		unset($this->legacyDerivedStateChunks[$chunkHash]);
-		unset($this->randomTickableSubChunks[$chunkHash]);
+		unset($this->randomTickableSubChunks[$chunkHash], $this->staleRandomTickableSubChunks[$chunkHash]);
 		$this->blockCacheSize -= count($this->blockCache[$chunkHash] ?? []);
 		unset($this->blockCache[$chunkHash]);
 		unset($this->blockCollisionBoxCache[$chunkHash]);

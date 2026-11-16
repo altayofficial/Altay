@@ -29,7 +29,6 @@ use pocketmine\block\Block;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\data\bedrock\BiomeIds;
 use pocketmine\utils\AssumptionFailedError;
-use pocketmine\utils\Random;
 use pocketmine\world\biome\Biome;
 use pocketmine\world\biome\BiomeRegistry;
 use pocketmine\world\ChunkManager;
@@ -63,9 +62,6 @@ class Normal extends Generator{
 	private Simplex $noiseBase;
 	private BiomeSelector $selector;
 	private Gaussian $gaussian;
-	/** Granite, diorite, andesite and copper, which vanilla scatters through stone */
-	private Ore $stoneVariants;
-	private Random $stoneVariantRandom;
 
 	private const NOISE_SAMPLING_RATE_Y = 8;
 
@@ -76,7 +72,6 @@ class Normal extends Generator{
 		parent::__construct($seed, $preset);
 
 		$this->gaussian = new Gaussian(2);
-		$this->stoneVariantRandom = new Random($seed);
 
 		$this->noiseBase = new Simplex($this->random, 4, 1 / 4, 1 / 32);
 		$this->random->setSeed($this->seed);
@@ -137,14 +132,6 @@ class Normal extends Generator{
 			new OreType(VanillaBlocks::GRAVEL(), $stone, 10, 16, 0, 128)
 		]);
 		$this->populators[] = $ores;
-
-		$this->stoneVariants = new Ore();
-		$this->stoneVariants->setOreTypes([
-			new OreType(VanillaBlocks::GRANITE(), $stone, 10, 33, 0, 80),
-			new OreType(VanillaBlocks::DIORITE(), $stone, 10, 33, 0, 80),
-			new OreType(VanillaBlocks::ANDESITE(), $stone, 10, 33, 0, 80),
-			new OreType(VanillaBlocks::COPPER_ORE(), $stone, 6, 10, 0, 96)
-		]);
 	}
 
 	private function pickBiome(int $x, int $z) : Biome{
@@ -259,11 +246,6 @@ class Normal extends Generator{
 		$chunk = $world->getChunk($chunkX, $chunkZ);
 		$biome = BiomeRegistry::getInstance()->getBiome($chunk->getBiomeId(7, 7, 7));
 		$biome->populateChunk($world, $chunkX, $chunkZ, $this->random);
-
-		//yeah, these get their own random so everything placed above stays exactly where it was before they existed,
-		//otherwise trees and ores would jump around at the border of chunks generated before and after
-		$this->stoneVariantRandom->setSeed(0x5701e ^ ($chunkX << 8) ^ $chunkZ ^ $this->seed);
-		$this->stoneVariants->populate($world, $chunkX, $chunkZ, $this->stoneVariantRandom);
 	}
 
 	/**

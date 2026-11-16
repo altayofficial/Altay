@@ -184,6 +184,8 @@ class World implements ChunkManager{
 	//TODO: this could probably do with being a lot bigger
 	private const BLOCK_CACHE_SIZE_CAP = 2048;
 
+	public const DEFAULT_CHUNK_UNLOAD_DELAY = 120;
+
 	/**
 	 * @var Player[] entity runtime ID => Player
 	 * @phpstan-var array<int, Player>
@@ -347,6 +349,8 @@ class World implements ChunkManager{
 	 */
 	private array $chunkLock = [];
 	private int $maxConcurrentChunkPopulationTasks = 2;
+	/** Seconds an unused chunk waits in the unload queue */
+	private int $chunkUnloadDelay = self::DEFAULT_CHUNK_UNLOAD_DELAY;
 	/**
 	 * @var PromiseResolver[] chunkHash => promise
 	 * @phpstan-var array<ChunkPosHash, PromiseResolver<Chunk>>
@@ -585,6 +589,7 @@ class World implements ChunkManager{
 		}
 		$this->tickedBlocksPerSubchunkPerTick = $cfg->getPropertyInt(YmlServerProperties::CHUNK_TICKING_BLOCKS_PER_SUBCHUNK_PER_TICK, self::DEFAULT_TICKED_BLOCKS_PER_SUBCHUNK_PER_TICK);
 		$this->maxConcurrentChunkPopulationTasks = $cfg->getPropertyInt(YmlServerProperties::CHUNK_GENERATION_POPULATION_QUEUE_SIZE, 2);
+		$this->chunkUnloadDelay = max(0, $cfg->getPropertyInt(YmlServerProperties::LEVEL_SETTINGS_CHUNK_UNLOAD_DELAY, self::DEFAULT_CHUNK_UNLOAD_DELAY));
 
 		$this->initRandomTickBlocksFromConfig($cfg);
 
@@ -3929,7 +3934,7 @@ class World implements ChunkManager{
 				if(!$force){
 					if($maxUnload <= 0){
 						break;
-					}elseif($time > ($now - 30)){
+					}elseif($time > ($now - $this->chunkUnloadDelay)){
 						continue;
 					}
 				}

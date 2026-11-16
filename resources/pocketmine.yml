@@ -150,6 +150,9 @@ player:
 level-settings:
   #The default format that worlds will use when created
   default-format: leveldb
+  #Seconds an unused chunk stays loaded before it is unloaded. Players moving back and forth across the edge of their
+  #view need the same chunks again soon, and with auto-save off an unloaded chunk has to be generated from scratch.
+  chunk-unload-delay: 120
 
 chunk-sending:
   #To change server normal render distance, change view-distance in server.properties.

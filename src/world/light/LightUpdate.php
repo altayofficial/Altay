@@ -55,6 +55,14 @@ abstract class LightUpdate{
 
 	abstract protected function getCurrentLightArray() : LightArray;
 
+	/**
+	 * Reads one light level from the explorer's current sub chunk. Unlike getCurrentLightArray(), this doesn't make
+	 * the sub chunk copy a shared uniform array it might never write to.
+	 */
+	protected function getCurrentLight(int $x, int $y, int $z) : int{
+		return $this->getCurrentLightArray()->get($x, $y, $z);
+	}
+
 	abstract public function recalculateNode(int $x, int $y, int $z) : void;
 
 	/**
@@ -65,7 +73,7 @@ abstract class LightUpdate{
 
 	protected function getEffectiveLight(int $x, int $y, int $z) : int{
 		if($this->subChunkExplorer->moveTo($x, $y, $z) !== SubChunkExplorerStatus::INVALID){
-			return $this->getCurrentLightArray()->get($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
+			return $this->getCurrentLight($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
 		}
 		return 0;
 	}

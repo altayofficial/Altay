@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\world\light;
 
+use pocketmine\utils\AssumptionFailedError;
 use pocketmine\world\format\Chunk;
 use pocketmine\world\format\HeightArray;
 use pocketmine\world\format\LightArray;
@@ -51,6 +52,10 @@ class SkyLightUpdate extends LightUpdate{
 
 	protected function getCurrentLightArray() : LightArray{
 		return $this->subChunkExplorer->currentSubChunk->getBlockSkyLightArray();
+	}
+
+	protected function getCurrentLight(int $x, int $y, int $z) : int{
+		return ($this->subChunkExplorer->currentSubChunk ?? throw new AssumptionFailedError("Explorer should be on a valid sub chunk"))->getBlockSkyLightAt($x, $y, $z);
 	}
 
 	protected function getEffectiveLight(int $x, int $y, int $z) : int{
@@ -114,10 +119,10 @@ class SkyLightUpdate extends LightUpdate{
 		$highestHeightMapPlusOne = max($chunk->getHeightMapArray()) + 1;
 		$lowestClearSubChunk = ($highestHeightMapPlusOne >> SubChunk::COORD_BIT_SIZE) + (($highestHeightMapPlusOne & SubChunk::COORD_MASK) !== 0 ? 1 : 0);
 		for($y = Chunk::MIN_SUBCHUNK_INDEX; $y < $lowestClearSubChunk && $y <= Chunk::MAX_SUBCHUNK_INDEX; $y++){
-			$chunk->getSubChunk($y)->setBlockSkyLightArray(LightArray::fill(0));
+			$chunk->getSubChunk($y)->setUniformBlockSkyLight(0);
 		}
 		for($y = $lowestClearSubChunk; $y <= Chunk::MAX_SUBCHUNK_INDEX; $y++){
-			$chunk->getSubChunk($y)->setBlockSkyLightArray(LightArray::fill(15));
+			$chunk->getSubChunk($y)->setUniformBlockSkyLight(15);
 		}
 
 		$lightSources = 0;

@@ -1400,9 +1400,9 @@ class World implements ChunkManager{
 				function(array $blockLight, array $skyLight, array $heightMap) use ($chunkX, $chunkZ) : void{
 					/**
 					 * TODO: phpstan can't infer these types yet :(
-					 * @phpstan-var array<int, LightArray> $blockLight
-					 * @phpstan-var array<int, LightArray> $skyLight
-					 * @phpstan-var non-empty-list<int>    $heightMap
+					 * @phpstan-var array<int, LightArray|int> $blockLight
+					 * @phpstan-var array<int, LightArray|int> $skyLight
+					 * @phpstan-var non-empty-list<int>        $heightMap
 					 */
 					if($this->unloaded || ($chunk = $this->getChunk($chunkX, $chunkZ)) === null || $chunk->isLightPopulated() === true){
 						return;
@@ -1410,11 +1410,20 @@ class World implements ChunkManager{
 					//TODO: calculated light information might not be valid if the terrain changed during light calculation
 
 					$chunk->setHeightMapArray($heightMap);
+					//ints are sub chunks where the light is the same everywhere, see LightPopulationTask
 					foreach($blockLight as $y => $lightArray){
-						$chunk->getSubChunk($y)->setBlockLightArray($lightArray);
+						if($lightArray instanceof LightArray){
+							$chunk->getSubChunk($y)->setBlockLightArray($lightArray);
+						}else{
+							$chunk->getSubChunk($y)->setUniformBlockLight($lightArray);
+						}
 					}
 					foreach($skyLight as $y => $lightArray){
-						$chunk->getSubChunk($y)->setBlockSkyLightArray($lightArray);
+						if($lightArray instanceof LightArray){
+							$chunk->getSubChunk($y)->setBlockSkyLightArray($lightArray);
+						}else{
+							$chunk->getSubChunk($y)->setUniformBlockSkyLight($lightArray);
+						}
 					}
 					$chunk->setLightPopulated(true);
 					$this->markTickingChunkForRecheck($chunkX, $chunkZ);
@@ -1983,7 +1992,7 @@ class World implements ChunkManager{
 			return $y >= self::Y_MAX ? 15 : 0;
 		}
 		if(($chunk = $this->getChunk($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE)) !== null && $chunk->isLightPopulated() === true){
-			return $chunk->getSubChunk($y >> Chunk::COORD_BIT_SIZE)->getBlockSkyLightArray()->get($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
+			return $chunk->getSubChunk($y >> Chunk::COORD_BIT_SIZE)->getBlockSkyLightAt($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
 		}
 		return 0; //TODO: this should probably throw instead (light not calculated yet)
 	}
@@ -2008,7 +2017,7 @@ class World implements ChunkManager{
 			return 0;
 		}
 		if(($chunk = $this->getChunk($x >> Chunk::COORD_BIT_SIZE, $z >> Chunk::COORD_BIT_SIZE)) !== null && $chunk->isLightPopulated() === true){
-			return $chunk->getSubChunk($y >> Chunk::COORD_BIT_SIZE)->getBlockLightArray()->get($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
+			return $chunk->getSubChunk($y >> Chunk::COORD_BIT_SIZE)->getBlockLightAt($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
 		}
 		return 0; //TODO: this should probably throw instead (light not calculated yet)
 	}

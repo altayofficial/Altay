@@ -34,6 +34,19 @@ class SubChunk{
 	public const EDGE_LENGTH = 1 << self::COORD_BIT_SIZE;
 
 	/**
+	 * One read-only LightArray per uniform level, shared by every sub chunk that has that light everywhere. Every
+	 * LightArray costs about 2.5 KB no matter what's in it, and most sub chunks are all dark or all lit, so this is
+	 * most of the memory a loaded chunk would otherwise take.
+	 *
+	 * @var LightArray[]
+	 * @phpstan-var array<int, LightArray>
+	 */
+	private static array $uniformLightArrays = [];
+
+	private bool $skyLightShared = false;
+	private bool $blockLightShared = false;
+
+	/**
 	 * SubChunk constructor.
 	 *
 	 * @param PalettedBlockArray[] $blockLayers
@@ -108,20 +121,69 @@ class SubChunk{
 
 	public function getBiomeArray() : PalettedBlockArray{ return $this->biomes; }
 
+	/**
+	 * Returns this sub chunk's own sky light array, which can be written to. Use getBlockSkyLightAt() to only read,
+	 * since this has to give the sub chunk a private copy of a shared uniform array first.
+	 */
 	public function getBlockSkyLightArray() : LightArray{
+		if($this->skyLightShared && $this->skyLight !== null){
+			$this->skyLightShared = false;
+			return $this->skyLight = clone $this->skyLight;
+		}
 		return $this->skyLight ??= LightArray::fill(0);
+	}
+
+	public function getBlockSkyLightAt(int $x, int $y, int $z) : int{
+		return $this->skyLight?->get($x, $y, $z) ?? 0;
 	}
 
 	public function setBlockSkyLightArray(LightArray $data) : void{
 		$this->skyLight = $data;
+		$this->skyLightShared = false;
 	}
 
+	/**
+	 * Sets the same sky light level everywhere in this sub chunk without giving it an array of its own.
+	 */
+	public function setUniformBlockSkyLight(int $level) : void{
+		$this->skyLight = $level === 0 ? null : self::getUniformLightArray($level);
+		$this->skyLightShared = $level !== 0;
+	}
+
+	/**
+	 * Returns this sub chunk's own block light array, which can be written to. Use getBlockLightAt() to only read,
+	 * since this has to give the sub chunk a private copy of a shared uniform array first.
+	 */
 	public function getBlockLightArray() : LightArray{
+		if($this->blockLightShared && $this->blockLight !== null){
+			$this->blockLightShared = false;
+			return $this->blockLight = clone $this->blockLight;
+		}
 		return $this->blockLight ??= LightArray::fill(0);
+	}
+
+	public function getBlockLightAt(int $x, int $y, int $z) : int{
+		return $this->blockLight?->get($x, $y, $z) ?? 0;
 	}
 
 	public function setBlockLightArray(LightArray $data) : void{
 		$this->blockLight = $data;
+		$this->blockLightShared = false;
+	}
+
+	/**
+	 * Sets the same block light level everywhere in this sub chunk without giving it an array of its own.
+	 */
+	public function setUniformBlockLight(int $level) : void{
+		$this->blockLight = $level === 0 ? null : self::getUniformLightArray($level);
+		$this->blockLightShared = $level !== 0;
+	}
+
+	private static function getUniformLightArray(int $level) : LightArray{
+		if($level < 0 || $level > 15){
+			throw new \InvalidArgumentException("Light level must be in range 0-15, got $level");
+		}
+		return self::$uniformLightArrays[$level] ??= LightArray::fill($level);
 	}
 
 	/**
@@ -143,10 +205,10 @@ class SubChunk{
 		$this->blockLayers = $cleanedLayers;
 		$this->biomes->collectGarbage();
 
-		if($this->skyLight !== null && $this->skyLight->isUniform(0)){
+		if($this->skyLight !== null && !$this->skyLightShared && $this->skyLight->isUniform(0)){
 			$this->skyLight = null;
 		}
-		if($this->blockLight !== null && $this->blockLight->isUniform(0)){
+		if($this->blockLight !== null && !$this->blockLightShared && $this->blockLight->isUniform(0)){
 			$this->blockLight = null;
 		}
 	}
@@ -157,10 +219,11 @@ class SubChunk{
 		}, $this->blockLayers);
 		$this->biomes = clone $this->biomes;
 
-		if($this->skyLight !== null){
+		//shared uniform arrays are never written to, so the copy can keep pointing at them
+		if($this->skyLight !== null && !$this->skyLightShared){
 			$this->skyLight = clone $this->skyLight;
 		}
-		if($this->blockLight !== null){
+		if($this->blockLight !== null && !$this->blockLightShared){
 			$this->blockLight = clone $this->blockLight;
 		}
 	}

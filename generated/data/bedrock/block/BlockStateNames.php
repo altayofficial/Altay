@@ -45,6 +45,7 @@ final class BlockStateNames{
 	public const BITE_COUNTER = "bite_counter";
 	public const BLOOM = "bloom";
 	public const BOOKS_STORED = "books_stored";
+	public const BOTTOM = "bottom";
 	public const BREWING_STAND_SLOT_A_BIT = "brewing_stand_slot_a_bit";
 	public const BREWING_STAND_SLOT_B_BIT = "brewing_stand_slot_b_bit";
 	public const BREWING_STAND_SLOT_C_BIT = "brewing_stand_slot_c_bit";
@@ -90,6 +91,7 @@ final class BlockStateNames{
 	public const LEVER_DIRECTION = "lever_direction";
 	public const LIQUID_DEPTH = "liquid_depth";
 	public const LIT = "lit";
+	public const LOCKED = "locked";
 	public const MC_BLOCK_FACE = "minecraft:block_face";
 	public const MC_CARDINAL_DIRECTION = "minecraft:cardinal_direction";
 	public const MC_CONNECTION_DOWN = "minecraft:connection_down";

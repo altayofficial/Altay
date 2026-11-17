@@ -867,6 +867,8 @@ final class VanillaBlockMappings{
 			->properties([
 				$commonProperties->horizontalFacingCardinal,
 				new IntProperty(StateNames::REPEATER_DELAY, 0, 3, fn(RedstoneRepeater $b) => $b->getDelay(), fn(RedstoneRepeater $b, int $v) => $b->setDelay($v), offset: 1),
+				//hmm, we don't model repeater locking yet, so it's always written as unlocked
+				new DummyProperty(StateNames::LOCKED, false),
 			])
 		);
 		$reg->mapFlattenedId(FlattenedIdModel::create(Blocks::REDSTONE_COMPARATOR())

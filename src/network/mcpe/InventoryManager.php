@@ -39,10 +39,13 @@ use pocketmine\block\inventory\StonecutterInventory;
 use pocketmine\block\tile\Container;
 use pocketmine\crafting\FurnaceType;
 use pocketmine\data\bedrock\EnchantmentIdMap;
+use pocketmine\event\inventory\VirtualInventoryOpenFailEvent;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\inventory\transaction\CraftingTransaction;
 use pocketmine\inventory\transaction\InventoryTransaction;
+use pocketmine\inventory\VirtualInventory;
+use pocketmine\inventory\VirtualInventoryOpenFailReason;
 use pocketmine\item\enchantment\EnchantingOption;
 use pocketmine\item\enchantment\EnchantmentInstance;
 use pocketmine\item\Item;
@@ -64,7 +67,11 @@ use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
 use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
 use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
+use pocketmine\network\mcpe\protocol\types\inventory\VirtualContainerCloseCause;
+use pocketmine\network\mcpe\protocol\types\inventory\VirtualContainerCloseKind;
 use pocketmine\network\mcpe\protocol\types\inventory\WindowTypes;
+use pocketmine\network\mcpe\protocol\VirtualContainerClosePacket;
+use pocketmine\network\mcpe\protocol\VirtualContainerOpenPacket;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
@@ -111,10 +118,17 @@ class InventoryManager{
 	private ObjectSet $containerOpenCallbacks;
 
 	private ?int $pendingCloseWindowId = null;
+	/** Session the server asked the client to close, waiting for its Closed reply. */
+	private ?int $pendingCloseVirtualSessionId = null;
 	/** @phpstan-var \Closure() : void */
 	private ?\Closure $pendingOpenWindowCallback = null;
 
 	private int $nextItemStackId = 1;
+
+	/** Virtual container session IDs are connection scoped and must never be zero. */
+	private int $nextVirtualSessionId = 1;
+	private ?int $virtualWindowId = null;
+	private ?int $virtualSessionId = null;
 	private ?int $currentItemStackRequestId = null;
 
 	private bool $fullSyncRequested = false;
@@ -196,6 +210,10 @@ class InventoryManager{
 	private function remove(int $id) : void{
 		$inventory = $this->networkIdToInventoryMap[$id];
 		unset($this->networkIdToInventoryMap[$id]);
+		if($id === $this->virtualWindowId){
+			$this->virtualWindowId = null;
+			$this->virtualSessionId = null;
+		}
 		if($this->getWindowId($inventory) === null){
 			unset($this->inventories[spl_object_id($inventory)]);
 			foreach($this->complexSlotToInventoryMap as $netSlot => $entry){
@@ -351,6 +369,10 @@ class InventoryManager{
 		$this->onCurrentWindowRemove();
 
 		$this->openWindowDeferred(function() use ($inventory) : void{
+			if($inventory instanceof VirtualInventory){
+				$this->openVirtualWindow($inventory);
+				return;
+			}
 			if(($slotMap = $this->createComplexSlotMapping($inventory)) !== null){
 				$windowId = $this->addComplexDynamic($slotMap, $inventory);
 			}else{
@@ -375,6 +397,76 @@ class InventoryManager{
 			}
 			throw new \LogicException("Unsupported inventory type");
 		});
+	}
+
+	/**
+	 * Virtual containers skip ContainerOpen entirely, the open packet carries the initial slots itself. That's also
+	 * why they can't go through the open callbacks: the stack IDs have to be tracked before the packet is built.
+	 */
+	private function openVirtualWindow(VirtualInventory $inventory) : void{
+		$windowId = $this->addDynamic($inventory);
+		$sessionId = $this->nextVirtualSessionId++;
+		$this->virtualWindowId = $windowId;
+		$this->virtualSessionId = $sessionId;
+		//hmm, nothing documents this, but ContainerClose needs a window type and this is the only one that fits
+		$this->currentWindowType = WindowTypes::VIRTUAL_CONTAINER;
+
+		$entry = $this->inventories[spl_object_id($inventory)] ?? throw new AssumptionFailedError("We just added this inventory");
+		$this->session->sendDataPacket(VirtualContainerOpenPacket::create(
+			$windowId,
+			$sessionId,
+			$inventory->getTitle(),
+			$this->trackContents($entry, $inventory)
+		));
+	}
+
+	/**
+	 * Handles a VirtualContainerClose from the client. Closed is the only kind it sends, and it means one of three
+	 * things: the open failed, the user closed the screen, or it's acking our own close request.
+	 */
+	public function onClientVirtualContainerClose(int $sessionId, VirtualContainerCloseKind $kind, VirtualContainerCloseCause $cause) : void{
+		if($kind !== VirtualContainerCloseKind::CLOSED){
+			$this->session->getLogger()->debug("Ignoring virtual container close of kind $kind->name for session $sessionId, only the server sends those");
+			return;
+		}
+
+		if($sessionId === $this->pendingCloseVirtualSessionId){
+			$this->pendingCloseVirtualSessionId = null;
+			$this->sendVirtualContainerCloseConfirm($sessionId);
+			if($this->pendingCloseWindowId !== null){
+				$this->onWindowCloseAcknowledged($this->pendingCloseWindowId);
+			}
+			return;
+		}
+
+		if($sessionId === $this->virtualSessionId && $this->virtualWindowId !== null){
+			$inventory = $this->networkIdToInventoryMap[$this->virtualWindowId] ?? null;
+			$failReason = match($cause){
+				VirtualContainerCloseCause::USER_BUSY => VirtualInventoryOpenFailReason::PLAYER_BUSY,
+				VirtualContainerCloseCause::CLIENT_NOT_READY => VirtualInventoryOpenFailReason::CLIENT_NOT_READY,
+				VirtualContainerCloseCause::INVALID_CONTENTS => VirtualInventoryOpenFailReason::INVALID_CONTENTS,
+				VirtualContainerCloseCause::UI_CREATION_FAILED => VirtualInventoryOpenFailReason::UI_CREATION_FAILED,
+				VirtualContainerCloseCause::UI_CANCELLED => VirtualInventoryOpenFailReason::UI_CANCELLED,
+				default => null
+			};
+			$this->remove($this->virtualWindowId);
+			//confirm before any events fire, a plugin opening a new window from InventoryCloseEvent must not beat it
+			$this->sendVirtualContainerCloseConfirm($sessionId);
+			if($failReason !== null && $inventory instanceof VirtualInventory){
+				$this->session->getLogger()->debug("Client refused to open virtual container session $sessionId: $cause->name");
+				(new VirtualInventoryOpenFailEvent($inventory, $this->player, $failReason))->call();
+			}
+			$this->player->removeCurrentWindow();
+			return;
+		}
+
+		//same deal as ContainerClose: always confirm, or the client sits there waiting for its inventory work to drain
+		$this->session->getLogger()->debug("Client closed virtual container session $sessionId, but current is " . ($this->virtualSessionId ?? "none"));
+		$this->sendVirtualContainerCloseConfirm($sessionId);
+	}
+
+	private function sendVirtualContainerCloseConfirm(int $sessionId) : void{
+		$this->session->sendDataPacket(VirtualContainerClosePacket::create($sessionId, VirtualContainerCloseKind::CONFIRMED, VirtualContainerCloseCause::UNKNOWN));
 	}
 
 	/** @phpstan-return ObjectSet<ContainerOpenClosure> */
@@ -430,8 +522,14 @@ class InventoryManager{
 
 	public function onCurrentWindowRemove() : void{
 		if(isset($this->networkIdToInventoryMap[$this->lastInventoryNetworkId])){
+			$virtualSessionId = $this->lastInventoryNetworkId === $this->virtualWindowId ? $this->virtualSessionId : null;
 			$this->remove($this->lastInventoryNetworkId);
-			$this->session->sendDataPacket(ContainerClosePacket::create($this->lastInventoryNetworkId, $this->currentWindowType, true));
+			if($virtualSessionId !== null){
+				$this->session->sendDataPacket(VirtualContainerClosePacket::create($virtualSessionId, VirtualContainerCloseKind::REQUEST, VirtualContainerCloseCause::SERVER_REQUESTED));
+				$this->pendingCloseVirtualSessionId = $virtualSessionId;
+			}else{
+				$this->session->sendDataPacket(ContainerClosePacket::create($this->lastInventoryNetworkId, $this->currentWindowType, true));
+			}
 			if($this->pendingCloseWindowId !== null){
 				throw new AssumptionFailedError("We should not have opened a new window while a window was waiting to be closed");
 			}
@@ -464,12 +562,16 @@ class InventoryManager{
 		$this->session->sendDataPacket(ContainerClosePacket::create($id, $this->currentWindowType, false));
 
 		if($this->pendingCloseWindowId === $id){
-			$this->pendingCloseWindowId = null;
-			if($this->pendingOpenWindowCallback !== null){
-				$this->session->getLogger()->debug("Opening deferred window after close ack of window $id");
-				($this->pendingOpenWindowCallback)();
-				$this->pendingOpenWindowCallback = null;
-			}
+			$this->onWindowCloseAcknowledged($id);
+		}
+	}
+
+	private function onWindowCloseAcknowledged(int $id) : void{
+		$this->pendingCloseWindowId = null;
+		if($this->pendingOpenWindowCallback !== null){
+			$this->session->getLogger()->debug("Opening deferred window after close ack of window $id");
+			($this->pendingOpenWindowCallback)();
+			$this->pendingOpenWindowCallback = null;
 		}
 	}
 
@@ -623,15 +725,7 @@ class InventoryManager{
 			$windowId = $this->getWindowId($inventory);
 		}
 		if($windowId !== null){
-			$entry->predictions = [];
-			$entry->pendingSyncs = [];
-			$contents = [];
-			$typeConverter = $this->session->getTypeConverter();
-			foreach($inventory->getContents(true) as $slot => $item){
-				$itemStack = $typeConverter->coreItemStackToNet($item);
-				$info = $this->trackItemStack($entry, $slot, $itemStack, null);
-				$contents[] = new ItemStackWrapper($info->getStackId(), $itemStack);
-			}
+			$contents = $this->trackContents($entry, $inventory);
 			if($entry->complexSlotMap !== null){
 				foreach($contents as $slotId => $info){
 					$packetSlot = $entry->complexSlotMap->mapCoreToNet($slotId) ?? null;
@@ -644,6 +738,26 @@ class InventoryManager{
 				$this->sendInventoryContentPackets($windowId, $contents);
 			}
 		}
+	}
+
+	/**
+	 * Gives every slot a fresh stack ID and returns the wrapped contents, ready to go into a packet.
+	 * Any predictions or pending syncs get thrown away since the client is about to see the full contents anyway.
+	 *
+	 * @return ItemStackWrapper[]
+	 * @phpstan-return list<ItemStackWrapper>
+	 */
+	private function trackContents(InventoryManagerEntry $entry, Inventory $inventory) : array{
+		$entry->predictions = [];
+		$entry->pendingSyncs = [];
+		$contents = [];
+		$typeConverter = $this->session->getTypeConverter();
+		foreach($inventory->getContents(true) as $slot => $item){
+			$itemStack = $typeConverter->coreItemStackToNet($item);
+			$info = $this->trackItemStack($entry, $slot, $itemStack, null);
+			$contents[] = new ItemStackWrapper($info->getStackId(), $itemStack);
+		}
+		return $contents;
 	}
 
 	public function syncAll() : void{

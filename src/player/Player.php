@@ -2389,14 +2389,15 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * @param string                   $address The IP address or hostname of the destination server
 	 * @param int                      $port    The destination port, defaults to 19132
 	 * @param Translatable|string|null $message Message to show in the console when closing the player, null will use the default message
+	 * @param TransferScreenOptions|null $screenOptions Customises the client's transfer screen, null keeps the client default
 	 *
 	 * @return bool if transfer was successful.
 	 */
-	public function transfer(string $address, int $port = 19132, Translatable|string|null $message = null) : bool{
-		$ev = new PlayerTransferEvent($this, $address, $port, $message ?? KnownTranslationFactory::pocketmine_disconnect_transfer());
+	public function transfer(string $address, int $port = 19132, Translatable|string|null $message = null, ?TransferScreenOptions $screenOptions = null) : bool{
+		$ev = new PlayerTransferEvent($this, $address, $port, $message ?? KnownTranslationFactory::pocketmine_disconnect_transfer(), $screenOptions);
 		$ev->call();
 		if(!$ev->isCancelled()){
-			$this->getNetworkSession()->transfer($ev->getAddress(), $ev->getPort(), $ev->getMessage());
+			$this->getNetworkSession()->transfer($ev->getAddress(), $ev->getPort(), $ev->getMessage(), $ev->getScreenOptions());
 			return true;
 		}
 

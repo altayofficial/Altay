@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\inventory\transaction\action;
 
 use pocketmine\inventory\Inventory;
+use pocketmine\inventory\SlotChangeFilteredInventory;
 use pocketmine\inventory\SlotValidatedInventory;
 use pocketmine\inventory\transaction\TransactionValidationException;
 use pocketmine\item\Item;
@@ -84,6 +85,17 @@ class SlotChangeAction extends InventoryAction{
 				}
 			}
 		}
+	}
+
+	public function onPreExecute(Player $source) : bool{
+		if($this->inventory instanceof SlotChangeFilteredInventory){
+			foreach($this->inventory->getSlotChangeFilters() as $filter){
+				if(!$filter->accepts($source, $this)){
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**

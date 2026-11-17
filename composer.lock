@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "01a2a3381f67d19a4a34efdc190f7a9a",
+    "content-hash": "05c1fe932e993cc1ba16e432ef912b90",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -67,16 +67,16 @@
         },
         {
             "name": "altayofficial/bedrock-data",
-            "version": "6.10.0+bedrock-1.26.60",
+            "version": "dev-bedrock-1.26.70",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockData.git",
-                "reference": "41c9f2e622681a36fdd073f6b19fcf0bc6a8d9cc"
+                "reference": "2a263a182e464138a4076928aa97a857f4de1a2a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/41c9f2e622681a36fdd073f6b19fcf0bc6a8d9cc",
-                "reference": "41c9f2e622681a36fdd073f6b19fcf0bc6a8d9cc",
+                "url": "https://api.github.com/repos/altayofficial/BedrockData/zipball/2a263a182e464138a4076928aa97a857f4de1a2a",
+                "reference": "2a263a182e464138a4076928aa97a857f4de1a2a",
                 "shasum": ""
             },
             "type": "library",
@@ -86,22 +86,22 @@
             ],
             "description": "Blobs of data generated from Minecraft: Bedrock Edition, used by Altayz",
             "support": {
-                "source": "https://github.com/altayofficial/BedrockData/tree/6.10.0+bedrock-1.26.60"
+                "source": "https://github.com/altayofficial/BedrockData/tree/bedrock-1.26.70"
             },
-            "time": "2026-10-27T15:45:01+00:00"
+            "time": "2026-11-10T17:41:44+00:00"
         },
         {
             "name": "altayofficial/bedrock-protocol",
-            "version": "61.0.0+bedrock-1.26.60",
+            "version": "dev-bedrock-1.26.70",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "3f074f2a0b02bffcfdb116b60c0159d7dd88950b"
+                "reference": "053919770f10707383932c8e80c91d583bb57c85"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/3f074f2a0b02bffcfdb116b60c0159d7dd88950b",
-                "reference": "3f074f2a0b02bffcfdb116b60c0159d7dd88950b",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/053919770f10707383932c8e80c91d583bb57c85",
+                "reference": "053919770f10707383932c8e80c91d583bb57c85",
                 "shasum": ""
             },
             "require": {
@@ -134,9 +134,9 @@
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues",
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/61.0.0+bedrock-1.26.60"
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/bedrock-1.26.70"
             },
-            "time": "2026-10-27T14:32:29+00:00"
+            "time": "2026-11-10T16:59:32+00:00"
         },
         {
             "name": "altayofficial/dtls",
@@ -351,16 +351,16 @@
         },
         {
             "name": "altayofficial/worldupgraderschemas",
-            "version": "1.19.0+bedrock-1.26.60",
+            "version": "dev-bedrock-1.26.70",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/WorldUpgraderSchemas.git",
-                "reference": "1db36ebd9c90fbada1aae1393538a6056f4913c6"
+                "reference": "3b1de609257aa56059bc56424237f9e56ef64870"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/WorldUpgraderSchemas/zipball/1db36ebd9c90fbada1aae1393538a6056f4913c6",
-                "reference": "1db36ebd9c90fbada1aae1393538a6056f4913c6",
+                "url": "https://api.github.com/repos/altayofficial/WorldUpgraderSchemas/zipball/3b1de609257aa56059bc56424237f9e56ef64870",
+                "reference": "3b1de609257aa56059bc56424237f9e56ef64870",
                 "shasum": ""
             },
             "type": "library",
@@ -371,9 +371,9 @@
             "description": "JSON schemas for upgrading worlds",
             "support": {
                 "issues": "https://github.com/altayofficial/WorldUpgraderSchemas/issues",
-                "source": "https://github.com/altayofficial/WorldUpgraderSchemas/tree/1.19.0+bedrock-1.26.60"
+                "source": "https://github.com/altayofficial/WorldUpgraderSchemas/tree/bedrock-1.26.70"
             },
-            "time": "2026-10-27T15:39:16+00:00"
+            "time": "2026-11-10T17:49:22+00:00"
         },
         {
             "name": "brick/math",
@@ -3809,7 +3809,11 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "altayofficial/bedrock-data": 20,
+        "altayofficial/bedrock-protocol": 20,
+        "altayofficial/worldupgraderschemas": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {

@@ -29,6 +29,7 @@ use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 use pocketmine\lang\Translatable;
 use pocketmine\player\Player;
+use pocketmine\player\TransferScreenOptions;
 
 /**
  * Called when a player attempts to be transferred to another server, e.g. by using /transferserver.
@@ -40,7 +41,8 @@ class PlayerTransferEvent extends PlayerEvent implements Cancellable{
 		Player $player,
 		protected string $address,
 		protected int $port,
-		protected Translatable|string $message
+		protected Translatable|string $message,
+		protected ?TransferScreenOptions $screenOptions = null
 	){
 		$this->player = $player;
 	}
@@ -85,5 +87,19 @@ class PlayerTransferEvent extends PlayerEvent implements Cancellable{
 	 */
 	public function setMessage(Translatable|string $message) : void{
 		$this->message = $message;
+	}
+
+	/**
+	 * Returns the options for the screen the client shows while transferring, or null for the client default.
+	 */
+	public function getScreenOptions() : ?TransferScreenOptions{
+		return $this->screenOptions;
+	}
+
+	/**
+	 * Sets the options for the transfer screen. Pass null to fall back to the client default.
+	 */
+	public function setScreenOptions(?TransferScreenOptions $screenOptions) : void{
+		$this->screenOptions = $screenOptions;
 	}
 }

@@ -29,6 +29,7 @@ use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\protocol\NetworkSettingsPacket;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\RequestNetworkSettingsPacket;
+use pocketmine\network\mcpe\protocol\types\SctpRecoveryProfile;
 
 final class SessionStartPacketHandler extends PacketHandler{
 	use PacketViolationWarningTrait;
@@ -55,7 +56,8 @@ final class SessionStartPacketHandler extends PacketHandler{
 			$this->session->getCompressor()->getNetworkId(),
 			false,
 			0,
-			0
+			0,
+			SctpRecoveryProfile::DEFAULT
 		));
 		($this->onSuccess)();
 

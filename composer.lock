@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "01a2a3381f67d19a4a34efdc190f7a9a",
+    "content-hash": "d1880abc1e3bbcbc231cd092014f9e12",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -92,16 +92,16 @@
         },
         {
             "name": "altayofficial/bedrock-protocol",
-            "version": "61.0.0+bedrock-1.26.60",
+            "version": "61.1.0+bedrock-1.26.60",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/BedrockProtocol.git",
-                "reference": "3f074f2a0b02bffcfdb116b60c0159d7dd88950b"
+                "reference": "4050ff256a39ef314b9de9a321f24d72e18920d2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/3f074f2a0b02bffcfdb116b60c0159d7dd88950b",
-                "reference": "3f074f2a0b02bffcfdb116b60c0159d7dd88950b",
+                "url": "https://api.github.com/repos/altayofficial/BedrockProtocol/zipball/4050ff256a39ef314b9de9a321f24d72e18920d2",
+                "reference": "4050ff256a39ef314b9de9a321f24d72e18920d2",
                 "shasum": ""
             },
             "require": {
@@ -134,9 +134,10 @@
             "description": "An implementation of the Minecraft: Bedrock Edition protocol in PHP",
             "support": {
                 "issues": "https://github.com/altayofficial/BedrockProtocol/issues",
-                "source": "https://github.com/altayofficial/BedrockProtocol/tree/61.0.0+bedrock-1.26.60"
+                "source": "https://github.com/altayofficial/BedrockProtocol/tree/61.1.0+bedrock-1.26.60"
             },
-            "time": "2026-10-27T14:32:29+00:00"
+            "time": "2026-11-17T15:42:57+00:00",
+            "published-time": "2026-11-17T15:44:32+00:00"
         },
         {
             "name": "altayofficial/dtls",
@@ -3844,5 +3845,5 @@
     "platform-overrides": {
         "php": "8.1.0"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

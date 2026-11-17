@@ -29,6 +29,7 @@ use pocketmine\entity\Location;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 use pocketmine\player\Player;
+use pocketmine\player\PlayerMoveType;
 use pocketmine\utils\Utils;
 
 class PlayerMoveEvent extends PlayerEvent implements Cancellable{
@@ -37,7 +38,8 @@ class PlayerMoveEvent extends PlayerEvent implements Cancellable{
 	public function __construct(
 		Player $player,
 		private Location $from,
-		private Location $to
+		private Location $to,
+		private PlayerMoveType $movementType = PlayerMoveType::ALL
 	){
 		$this->player = $player;
 	}
@@ -53,5 +55,13 @@ class PlayerMoveEvent extends PlayerEvent implements Cancellable{
 	public function setTo(Location $to) : void{
 		Utils::checkLocationNotInfOrNaN($to);
 		$this->to = $to;
+	}
+
+	public function getMovementType() : PlayerMoveType{
+		return $this->movementType;
+	}
+
+	public function setMovementType(PlayerMoveType $movementType) : void{
+		$this->movementType = $movementType;
 	}
 }

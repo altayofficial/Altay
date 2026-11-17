@@ -1688,9 +1688,16 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		$delta = $to->distanceSquared($from);
 		$deltaAngle = abs($this->lastLocation->yaw - $to->yaw) + abs($this->lastLocation->pitch - $to->pitch);
 
-		if($delta > 0.0001 || $deltaAngle > 1.0){
+		$positionChanged = $delta > 0.0001;
+		$rotationChanged = $deltaAngle > 1.0;
+		if($positionChanged || $rotationChanged){
 			if(PlayerMoveEvent::hasHandlers()){
-				$ev = new PlayerMoveEvent($this, $from, $to);
+				$moveType = match(true){
+					$positionChanged && $rotationChanged => PlayerMoveType::ALL,
+					$positionChanged => PlayerMoveType::POSITION_CHANGE,
+					default => PlayerMoveType::ROTATE,
+				};
+				$ev = new PlayerMoveEvent($this, $from, $to, $moveType);
 
 				$ev->call();
 

@@ -81,6 +81,8 @@ class TypeConverter{
 
 	private SkinAdapter $skinAdapter;
 
+	private VoxelShapeDictionary $voxelShapeDictionary;
+
 	public function __construct(){
 		//TODO: inject stuff via constructor
 		$this->blockItemIdMap = BlockItemIdMap::getInstance();
@@ -107,6 +109,8 @@ class TypeConverter{
 		);
 
 		$this->skinAdapter = new LegacySkinAdapter();
+
+		$this->voxelShapeDictionary = VoxelShapeDictionary::loadFromString(Filesystem::fileGetContents(BedrockDataFiles::VOXEL_SHAPES_JSON));
 	}
 
 	public function getBlockTranslator() : BlockTranslator{ return $this->blockTranslator; }
@@ -116,6 +120,8 @@ class TypeConverter{
 	public function getItemTranslator() : ItemTranslator{ return $this->itemTranslator; }
 
 	public function getSkinAdapter() : SkinAdapter{ return $this->skinAdapter; }
+
+	public function getVoxelShapeDictionary() : VoxelShapeDictionary{ return $this->voxelShapeDictionary; }
 
 	public function setSkinAdapter(SkinAdapter $skinAdapter) : void{
 		$this->skinAdapter = $skinAdapter;

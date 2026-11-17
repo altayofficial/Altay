@@ -33,6 +33,7 @@ use pmmp\encoding\LE;
 use pocketmine\block\tile\Spawnable;
 use pocketmine\block\tile\Tile;
 use pocketmine\block\utils\SupportType;
+use pocketmine\block\utils\VoxelShape;
 use pocketmine\data\runtime\InvalidSerializedRuntimeDataException;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\data\runtime\RuntimeDataReader;
@@ -83,6 +84,7 @@ class Block{
 	 * @phpstan-var list<AxisAlignedBB>|null
 	 */
 	protected ?array $collisionBoxes = null;
+	private ?VoxelShape $collisionShape = null;
 
 	private int $requiredBlockItemStateDataBits;
 	private int $requiredBlockOnlyStateDataBits;
@@ -934,6 +936,7 @@ class Block{
 	 */
 	final public function getCollisionBoxes() : array{
 		if($this->collisionBoxes === null){
+			$this->collisionShape = null;
 			$this->collisionBoxes = $this->recalculateCollisionBoxes();
 			$extraOffset = $this->getModelPositionOffset();
 			$offset = $extraOffset !== null ? $this->position->addVector($extraOffset) : $this->position;
@@ -943,6 +946,25 @@ class Block{
 		}
 
 		return $this->collisionBoxes;
+	}
+
+	/**
+	 * Returns the block's collision shape in block-local coordinates (0-1 for a full cube), without the model
+	 * position offset applied. Useful for checking face coverage or comparing shapes across blocks.
+	 */
+	final public function getCollisionShape() : VoxelShape{
+		$this->getCollisionBoxes();
+		return $this->collisionShape ??= $this->recalculateCollisionShape();
+	}
+
+	/**
+	 * Builds the block-local collision shape. By default this is just the union of the collision boxes, so blocks
+	 * only overriding recalculateCollisionBoxes() get a matching shape for free.
+	 *
+	 * Heads up, overriding this alone does not change getCollisionBoxes(), and movement still runs on the boxes.
+	 */
+	protected function recalculateCollisionShape() : VoxelShape{
+		return VoxelShape::fromBoxes(...$this->recalculateCollisionBoxes());
 	}
 
 	/**

@@ -44,6 +44,29 @@ enum SupportType{
 	case EDGE;
 	case NONE;
 
+	public static function fromShape(VoxelShape $shape, int $facing) : self{
+		if($shape->isFaceFull($facing)){
+			return self::FULL;
+		}
+
+		$inner = 2 / 16;
+		$outer = 14 / 16;
+		if(
+			$shape->coversFace($facing, 0, 0, 1, $inner) &&
+			$shape->coversFace($facing, 0, $outer, 1, 1) &&
+			$shape->coversFace($facing, 0, $inner, $inner, $outer) &&
+			$shape->coversFace($facing, $outer, $inner, 1, $outer)
+		){
+			return self::EDGE;
+		}
+
+		if($shape->coversFace($facing, 7 / 16, 7 / 16, 9 / 16, 9 / 16)){
+			return self::CENTER;
+		}
+
+		return self::NONE;
+	}
+
 	public function hasEdgeSupport() : bool{
 		return $this === self::EDGE || $this === self::FULL;
 	}

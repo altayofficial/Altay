@@ -80,7 +80,7 @@ class PreSpawnPacketHandler extends PacketHandler{
 			$this->session->sendDataPacket(StaticPacketCache::getInstance()->getJigsawStructureData());
 
 			$this->session->getLogger()->debug("Sending VoxelShapesPacket");
-			$this->session->sendDataPacket(StaticPacketCache::getInstance()->getVoxelShapes()); // TODO: Custom voxel shapes support
+			$this->session->sendDataPacket($typeConverter->getVoxelShapeDictionary()->getPacket());
 
 			$this->session->getLogger()->debug("Preparing StartGamePacket");
 			$levelSettings = new LevelSettings();

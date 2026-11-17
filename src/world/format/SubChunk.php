@@ -150,6 +150,13 @@ class SubChunk{
 		$this->skyLightShared = $level !== 0;
 	}
 
+	public function getUniformBlockSkyLight() : ?int{
+		if($this->skyLight === null){
+			return 0;
+		}
+		return $this->skyLightShared ? $this->skyLight->get(0, 0, 0) : null;
+	}
+
 	/**
 	 * Returns this sub chunk's own block light array, which can be written to. Use getBlockLightAt() to only read,
 	 * since this has to give the sub chunk a private copy of a shared uniform array first.
@@ -177,6 +184,13 @@ class SubChunk{
 	public function setUniformBlockLight(int $level) : void{
 		$this->blockLight = $level === 0 ? null : self::getUniformLightArray($level);
 		$this->blockLightShared = $level !== 0;
+	}
+
+	public function getUniformBlockLight() : ?int{
+		if($this->blockLight === null){
+			return 0;
+		}
+		return $this->blockLightShared ? $this->blockLight->get(0, 0, 0) : null;
 	}
 
 	private static function getUniformLightArray(int $level) : LightArray{

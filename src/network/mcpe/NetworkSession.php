@@ -91,28 +91,27 @@ use pocketmine\network\mcpe\protocol\TransferPacket;
 use pocketmine\network\mcpe\protocol\types\AbilitiesData;
 use pocketmine\network\mcpe\protocol\types\AbilitiesLayer;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\network\mcpe\protocol\types\BoolDataStorePropertyValue;
-use pocketmine\network\mcpe\protocol\types\BoolDataStoreValue;
+use pocketmine\network\mcpe\protocol\types\cereal\DynamicValue;
+use pocketmine\network\mcpe\protocol\types\cereal\DynamicValueBool;
+use pocketmine\network\mcpe\protocol\types\cereal\DynamicValueDouble;
+use pocketmine\network\mcpe\protocol\types\cereal\DynamicValueLong;
+use pocketmine\network\mcpe\protocol\types\cereal\DynamicValueMap;
+use pocketmine\network\mcpe\protocol\types\cereal\DynamicValueString;
 use pocketmine\network\mcpe\protocol\types\command\CommandData;
 use pocketmine\network\mcpe\protocol\types\command\CommandHardEnum;
 use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\network\mcpe\protocol\types\command\CommandPermissions;
 use pocketmine\network\mcpe\protocol\types\CompressionAlgorithm;
-use pocketmine\network\mcpe\protocol\types\DataStoreChange;
-use pocketmine\network\mcpe\protocol\types\DataStorePropertyValue;
-use pocketmine\network\mcpe\protocol\types\DataStoreUpdate;
+use pocketmine\network\mcpe\protocol\types\ddui\DataStoreChange;
+use pocketmine\network\mcpe\protocol\types\ddui\DataStoreUpdate;
+use pocketmine\network\mcpe\protocol\types\ddui\update\BoolDataStoreUpdateValue;
+use pocketmine\network\mcpe\protocol\types\ddui\update\DoubleDataStoreUpdateValue;
+use pocketmine\network\mcpe\protocol\types\ddui\update\StringDataStoreUpdateValue;
 use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\DisconnectReason;
-use pocketmine\network\mcpe\protocol\types\DoubleDataStorePropertyValue;
-use pocketmine\network\mcpe\protocol\types\DoubleDataStoreValue;
-use pocketmine\network\mcpe\protocol\types\IntDataStorePropertyValue;
-use pocketmine\network\mcpe\protocol\types\MapDataStorePropertyValue;
-use pocketmine\network\mcpe\protocol\types\NullDataStorePropertyValue;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
-use pocketmine\network\mcpe\protocol\types\StringDataStorePropertyValue;
-use pocketmine\network\mcpe\protocol\types\StringDataStoreValue;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\network\mcpe\protocol\UpdateAdventureSettingsPacket;
 use pocketmine\network\NetworkSessionManager;
@@ -1301,7 +1300,7 @@ class NetworkSession{
 	public function onDataDrivenScreenOpen(int $id, string $screenId, string $property, array $data) : void{
 		//hmm, both PNX and Allay send a constant count of 1 and the client is happy with it, so we do the same
 		$this->sendDataPacket(ClientboundDataStorePacket::create([
-			new DataStoreChange(self::DATA_DRIVEN_UI_DATA_STORE, $property, 1, self::toDataStorePropertyValue($data)),
+			new DataStoreChange(self::DATA_DRIVEN_UI_DATA_STORE, $property, 1, self::toDynamicValue($data)),
 		]));
 		$this->sendDataPacket(ClientboundDataDrivenUIShowScreenPacket::create($screenId, $id, $id));
 	}
@@ -1314,9 +1313,9 @@ class NetworkSession{
 	 */
 	public function onDataDrivenScreenValue(string $property, array $paths, bool|int|string $value) : void{
 		$wireValue = match(true){
-			is_bool($value) => new BoolDataStoreValue($value),
-			is_int($value) => new DoubleDataStoreValue($value), //updates only know doubles, ints included
-			default => new StringDataStoreValue($value),
+			is_bool($value) => new BoolDataStoreUpdateValue($value),
+			is_int($value) => new DoubleDataStoreUpdateValue($value), //updates only know doubles, ints included
+			default => new StringDataStoreUpdateValue($value),
 		};
 		$updates = [];
 		foreach($paths as $path){
@@ -1333,20 +1332,21 @@ class NetworkSession{
 	 * Our arrays are always objects on the client side, even the numbered ones, the client wants the
 	 * explicit "length" key instead of real lists.
 	 */
-	private static function toDataStorePropertyValue(mixed $value) : DataStorePropertyValue{
+	private static function toDynamicValue(mixed $value) : ?DynamicValue{
 		if(is_array($value)){
 			$entries = [];
 			foreach(Utils::promoteKeys($value) as $key => $child){
-				$entries[$key] = self::toDataStorePropertyValue($child);
+				//hmm, PHP turns "0" back into an int key anyway, the map writer casts it to string again
+				$entries[(string) $key] = self::toDynamicValue($child);
 			}
-			return new MapDataStorePropertyValue($entries);
+			return new DynamicValueMap($entries);
 		}
 		return match(true){
-			$value === null => new NullDataStorePropertyValue(),
-			is_bool($value) => new BoolDataStorePropertyValue($value),
-			is_int($value) => new IntDataStorePropertyValue($value),
-			is_float($value) => new DoubleDataStorePropertyValue($value),
-			is_string($value) => new StringDataStorePropertyValue($value),
+			$value === null => null,
+			is_bool($value) => new DynamicValueBool($value),
+			is_int($value) => new DynamicValueLong($value),
+			is_float($value) => new DynamicValueDouble($value),
+			is_string($value) => new DynamicValueString($value),
 			default => throw new \InvalidArgumentException("Cannot send " . get_debug_type($value) . " in a data driven screen"),
 		};
 	}

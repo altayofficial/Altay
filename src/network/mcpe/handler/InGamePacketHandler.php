@@ -93,8 +93,9 @@ use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\SpawnExperienceOrbPacket;
 use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
-use pocketmine\network\mcpe\protocol\types\BoolDataStoreValue;
-use pocketmine\network\mcpe\protocol\types\DoubleDataStoreValue;
+use pocketmine\network\mcpe\protocol\types\ddui\update\BoolDataStoreUpdateValue;
+use pocketmine\network\mcpe\protocol\types\ddui\update\DoubleDataStoreUpdateValue;
+use pocketmine\network\mcpe\protocol\types\ddui\update\StringDataStoreUpdateValue;
 use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
 use pocketmine\network\mcpe\protocol\types\inventory\MismatchTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
@@ -109,7 +110,6 @@ use pocketmine\network\mcpe\protocol\types\PlayerAction;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
 use pocketmine\network\mcpe\protocol\types\ScreenCloseReason;
-use pocketmine\network\mcpe\protocol\types\StringDataStoreValue;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
@@ -1251,9 +1251,9 @@ class InGamePacketHandler extends PacketHandler{
 		}
 		$data = $update->getData();
 		$value = match(true){
-			$data instanceof BoolDataStoreValue => $data->getValue(),
-			$data instanceof DoubleDataStoreValue => $data->getValue(),
-			$data instanceof StringDataStoreValue => $data->getValue(),
+			$data instanceof BoolDataStoreUpdateValue => $data->getValue(),
+			$data instanceof DoubleDataStoreUpdateValue => $data->getValue(),
+			$data instanceof StringDataStoreUpdateValue => $data->getValue(),
 			default => throw new PacketHandlingException("Unexpected DataStore value " . $data::class),
 		};
 		return $this->player->onDataDrivenScreenWrite($update->getProperty(), $update->getPath(), $value);

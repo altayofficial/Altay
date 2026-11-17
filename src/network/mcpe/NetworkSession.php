@@ -61,6 +61,9 @@ use pocketmine\network\mcpe\handler\SpawnResponsePacketHandler;
 use pocketmine\network\mcpe\protocol\AvailableCommandsPacket;
 use pocketmine\network\mcpe\protocol\ChunkRadiusUpdatedPacket;
 use pocketmine\network\mcpe\protocol\ClientboundCloseFormPacket;
+use pocketmine\network\mcpe\protocol\ClientboundDataDrivenUICloseScreenPacket;
+use pocketmine\network\mcpe\protocol\ClientboundDataDrivenUIShowScreenPacket;
+use pocketmine\network\mcpe\protocol\ClientboundDataStorePacket;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\DisconnectPacket;
 use pocketmine\network\mcpe\protocol\ModalFormRequestPacket;
@@ -88,16 +91,28 @@ use pocketmine\network\mcpe\protocol\TransferPacket;
 use pocketmine\network\mcpe\protocol\types\AbilitiesData;
 use pocketmine\network\mcpe\protocol\types\AbilitiesLayer;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\network\mcpe\protocol\types\BoolDataStorePropertyValue;
+use pocketmine\network\mcpe\protocol\types\BoolDataStoreValue;
 use pocketmine\network\mcpe\protocol\types\command\CommandData;
 use pocketmine\network\mcpe\protocol\types\command\CommandHardEnum;
 use pocketmine\network\mcpe\protocol\types\command\CommandOverload;
 use pocketmine\network\mcpe\protocol\types\command\CommandParameter;
 use pocketmine\network\mcpe\protocol\types\command\CommandPermissions;
 use pocketmine\network\mcpe\protocol\types\CompressionAlgorithm;
+use pocketmine\network\mcpe\protocol\types\DataStoreChange;
+use pocketmine\network\mcpe\protocol\types\DataStorePropertyValue;
+use pocketmine\network\mcpe\protocol\types\DataStoreUpdate;
 use pocketmine\network\mcpe\protocol\types\DimensionIds;
 use pocketmine\network\mcpe\protocol\types\DisconnectReason;
+use pocketmine\network\mcpe\protocol\types\DoubleDataStorePropertyValue;
+use pocketmine\network\mcpe\protocol\types\DoubleDataStoreValue;
+use pocketmine\network\mcpe\protocol\types\IntDataStorePropertyValue;
+use pocketmine\network\mcpe\protocol\types\MapDataStorePropertyValue;
+use pocketmine\network\mcpe\protocol\types\NullDataStorePropertyValue;
 use pocketmine\network\mcpe\protocol\types\PlayerListEntry;
 use pocketmine\network\mcpe\protocol\types\PlayerPermissions;
+use pocketmine\network\mcpe\protocol\types\StringDataStorePropertyValue;
+use pocketmine\network\mcpe\protocol\types\StringDataStoreValue;
 use pocketmine\network\mcpe\protocol\UpdateAbilitiesPacket;
 use pocketmine\network\mcpe\protocol\UpdateAdventureSettingsPacket;
 use pocketmine\network\NetworkSessionManager;
@@ -116,6 +131,7 @@ use pocketmine\timings\Timings;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\ObjectSet;
 use pocketmine\utils\TextFormat;
+use pocketmine\utils\Utils;
 use pocketmine\world\format\io\GlobalItemDataHandlers;
 use pocketmine\world\Position;
 use pocketmine\world\World;
@@ -127,8 +143,13 @@ use function base64_encode;
 use function bin2hex;
 use function count;
 use function get_class;
+use function get_debug_type;
 use function implode;
 use function in_array;
+use function is_array;
+use function is_bool;
+use function is_float;
+use function is_int;
 use function is_string;
 use function json_encode;
 use function ord;
@@ -143,6 +164,9 @@ use function ucfirst;
 use const JSON_THROW_ON_ERROR;
 
 class NetworkSession{
+	/** Data store every vanilla data driven screen reads from. */
+	public const DATA_DRIVEN_UI_DATA_STORE = "minecraft";
+
 	private const INCOMING_PACKET_BATCH_PER_TICK = 2; //usually max 1 per tick, but transactions arrive separately
 	private const INCOMING_PACKET_BATCH_BUFFER_TICKS = 100; //enough to account for a 5-second lag spike
 
@@ -1265,6 +1289,66 @@ class NetworkSession{
 
 	public function onCloseAllForms() : void{
 		$this->sendDataPacket(ClientboundCloseFormPacket::create());
+	}
+
+	/**
+	 * Ships a data driven screen's whole data tree and then tells the client to open it. $id doubles as the data
+	 * instance id, which the client expects to find at the end of $property.
+	 *
+	 * @param mixed[] $data
+	 * @phpstan-param array<string, mixed> $data
+	 */
+	public function onDataDrivenScreenOpen(int $id, string $screenId, string $property, array $data) : void{
+		//hmm, both PNX and Allay send a constant count of 1 and the client is happy with it, so we do the same
+		$this->sendDataPacket(ClientboundDataStorePacket::create([
+			new DataStoreChange(self::DATA_DRIVEN_UI_DATA_STORE, $property, 1, self::toDataStorePropertyValue($data)),
+		]));
+		$this->sendDataPacket(ClientboundDataDrivenUIShowScreenPacket::create($screenId, $id, $id));
+	}
+
+	/**
+	 * Pushes one value to one or more paths of an open data driven screen.
+	 *
+	 * @param string[] $paths
+	 * @phpstan-param list<string> $paths
+	 */
+	public function onDataDrivenScreenValue(string $property, array $paths, bool|int|string $value) : void{
+		$wireValue = match(true){
+			is_bool($value) => new BoolDataStoreValue($value),
+			is_int($value) => new DoubleDataStoreValue($value), //updates only know doubles, ints included
+			default => new StringDataStoreValue($value),
+		};
+		$updates = [];
+		foreach($paths as $path){
+			$updates[] = new DataStoreUpdate(self::DATA_DRIVEN_UI_DATA_STORE, $property, $path, $wireValue, 1, 1);
+		}
+		$this->sendDataPacket(ClientboundDataStorePacket::create($updates));
+	}
+
+	public function onDataDrivenScreenClose(int $id) : void{
+		$this->sendDataPacket(ClientboundDataDrivenUICloseScreenPacket::create($id));
+	}
+
+	/**
+	 * Our arrays are always objects on the client side, even the numbered ones, the client wants the
+	 * explicit "length" key instead of real lists.
+	 */
+	private static function toDataStorePropertyValue(mixed $value) : DataStorePropertyValue{
+		if(is_array($value)){
+			$entries = [];
+			foreach(Utils::promoteKeys($value) as $key => $child){
+				$entries[$key] = self::toDataStorePropertyValue($child);
+			}
+			return new MapDataStorePropertyValue($entries);
+		}
+		return match(true){
+			$value === null => new NullDataStorePropertyValue(),
+			is_bool($value) => new BoolDataStorePropertyValue($value),
+			is_int($value) => new IntDataStorePropertyValue($value),
+			is_float($value) => new DoubleDataStorePropertyValue($value),
+			is_string($value) => new StringDataStorePropertyValue($value),
+			default => throw new \InvalidArgumentException("Cannot send " . get_debug_type($value) . " in a data driven screen"),
+		};
 	}
 
 	/**

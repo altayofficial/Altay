@@ -86,6 +86,9 @@ use pocketmine\event\player\PlayerToggleSprintEvent;
 use pocketmine\event\player\PlayerToggleSwimEvent;
 use pocketmine\event\player\PlayerTransferEvent;
 use pocketmine\event\player\PlayerViewDistanceChangeEvent;
+use pocketmine\form\datadriven\DataDrivenScreen;
+use pocketmine\form\datadriven\DataDrivenScreenCloseReason;
+use pocketmine\form\datadriven\DataDrivenScreenSession;
 use pocketmine\form\Form;
 use pocketmine\form\FormValidationException;
 use pocketmine\inventory\CallbackInventoryListener;
@@ -356,6 +359,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	protected int $formIdCounter = 0;
 	/** @var Form[] */
 	protected array $forms = [];
+
+	private int $dataDrivenScreenIdCounter = 0;
+	private ?DataDrivenScreenSession $dataDrivenScreenSession = null;
 
 	protected \Logger $logger;
 
@@ -2693,6 +2699,67 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	/**
+	 * @internal Use DataDrivenScreen::show() instead.
+	 * Opens a data driven screen, closing the one the player had open first.
+	 */
+	public function openDataDrivenScreen(DataDrivenScreen $screen) : DataDrivenScreenSession{
+		//wait, an onClose callback might open yet another screen, so keep closing until nothing is left
+		while(($current = $this->getDataDrivenScreenSession()) !== null){
+			$current->finish(DataDrivenScreenCloseReason::Programmatic, true);
+		}
+
+		$id = $this->dataDrivenScreenIdCounter;
+		$this->dataDrivenScreenIdCounter = ($id + 1) & 0xffffffff; //the client keeps form ids as uint32
+		$session = new DataDrivenScreenSession($this, $screen, $id);
+		$this->dataDrivenScreenSession = $session;
+		$session->open();
+		return $session;
+	}
+
+	/**
+	 * Returns the data driven screen the player has open, if any. Only one can be open at a time.
+	 */
+	public function getDataDrivenScreenSession() : ?DataDrivenScreenSession{
+		$session = $this->dataDrivenScreenSession;
+		return $session !== null && $session->isOpen() ? $session : null;
+	}
+
+	/**
+	 * Closes the open data driven screen, if there is one.
+	 */
+	public function closeDataDrivenScreen() : void{
+		$this->getDataDrivenScreenSession()?->close();
+	}
+
+	/**
+	 * @internal
+	 * Called when the client writes to a data driven screen's data store.
+	 */
+	public function onDataDrivenScreenWrite(string $property, string $path, string|float|bool $value) : bool{
+		$session = $this->getDataDrivenScreenSession();
+		if($session === null || !$session->handleClientWrite($property, $path, $value)){
+			$this->logger->debug("Got unexpected data driven screen write to $property/$path");
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * @internal
+	 * Called when the client reports that it closed a data driven screen.
+	 */
+	public function onDataDrivenScreenClosed(int $id, DataDrivenScreenCloseReason $reason) : bool{
+		$session = $this->getDataDrivenScreenSession();
+		if($session === null || $session->getId() !== $id){
+			//yeah, this is normal after we close it ourselves, the client still reports it
+			$this->logger->debug("Got close for data driven screen $id which isn't open");
+			return false;
+		}
+		$session->finish($reason, false);
+		return true;
+	}
+
+	/**
 	 * Transfers a player to another server.
 	 *
 	 * @param string                   $address The IP address or hostname of the destination server
@@ -2777,6 +2844,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		$this->server->unsubscribeFromAllBroadcastChannels($this);
 
 		$this->removeCurrentWindow();
+		$this->getDataDrivenScreenSession()?->finish(DataDrivenScreenCloseReason::Disconnected, false);
+		$this->dataDrivenScreenSession = null;
 
 		$ev = new PlayerQuitEvent($this, $quitMessage ?? $this->getLeaveMessage(), $reason);
 		$ev->call();

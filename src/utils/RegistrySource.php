@@ -43,9 +43,6 @@ use function array_values;
  * To create a registry, simply extend this class and implement the abstract methods. Then, run the
  * registry-interface.php script in the build folder to generate the accessor class.
  *
- * This supersedes the older {@link RegistryTrait}, which is slower and less robust than this newer approach, and also
- * required patching source classes. This approach allows the generated code to be fully separate from the source code.
- *
  * @see build/codegen/registry-interface.php
  *
  * @phpstan-template TMember of object
@@ -89,7 +86,6 @@ abstract class RegistrySource{
 
 	/**
 	 * Override this to return true if the registry members are mutable.
-	 * Supersedes CloningRegistryTrait
 	 */
 	public function cloneResults() : bool{ return false; }
 

@@ -89,6 +89,7 @@ final class CustomForm implements Form{
 		}
 		$this->onClose = $onClose;
 
+		Utils::validateArrayValueType($elements, function(CustomFormElement $_) : void{});
 		$this->elements = array_values($elements);
 		$names = [];
 		foreach($this->elements as $element){

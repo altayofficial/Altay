@@ -28,6 +28,7 @@ namespace pocketmine\form\element;
 use pocketmine\form\FormValidationException;
 use pocketmine\lang\Language;
 use pocketmine\lang\Translatable;
+use pocketmine\utils\Utils;
 use function array_map;
 use function array_values;
 use function count;
@@ -54,6 +55,7 @@ final class Dropdown implements InputElement{
 		private int $default = 0,
 		private Translatable|string|null $tooltip = null
 	){
+		Utils::validateArrayValueType($options, function(Translatable|string $_) : void{});
 		$this->options = array_values($options);
 		if(count($this->options) === 0){
 			throw new \InvalidArgumentException("Dropdown needs at least one option");

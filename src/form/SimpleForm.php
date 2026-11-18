@@ -79,6 +79,7 @@ final class SimpleForm implements Form{
 			Utils::validateCallableSignature(function(Player $player) : void{}, $onClose);
 		}
 		$this->onClose = $onClose;
+		Utils::validateArrayValueType($elements, function(SimpleFormElement $_) : void{});
 		$this->elements = array_values($elements);
 		foreach($this->elements as $element){
 			if($element instanceof Button){

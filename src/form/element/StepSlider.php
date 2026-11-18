@@ -28,6 +28,7 @@ namespace pocketmine\form\element;
 use pocketmine\form\FormValidationException;
 use pocketmine\lang\Language;
 use pocketmine\lang\Translatable;
+use pocketmine\utils\Utils;
 use function array_map;
 use function array_values;
 use function count;
@@ -53,6 +54,7 @@ final class StepSlider implements InputElement{
 		array $steps,
 		private int $default = 0
 	){
+		Utils::validateArrayValueType($steps, function(Translatable|string $_) : void{});
 		$this->steps = array_values($steps);
 		if(count($this->steps) === 0){
 			throw new \InvalidArgumentException("StepSlider needs at least one step");

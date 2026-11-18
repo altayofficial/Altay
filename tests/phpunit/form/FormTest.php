@@ -170,6 +170,16 @@ class FormTest extends TestCase{
 		new CustomForm("T", [new Toggle("a", "A"), new Input("a", "B")], function(Player $player, CustomFormResponse $response) : void{});
 	}
 
+	public function testRejectsBadElement() : void{
+		$this->expectException(\TypeError::class);
+		new SimpleForm("T", "C", [new Toggle("a", "A")], function(Player $player, int $selected) : void{}); // @phpstan-ignore argument.type
+	}
+
+	public function testRejectsBadDropdownOption() : void{
+		$this->expectException(\TypeError::class);
+		new Dropdown("a", "A", ["x", 1]); // @phpstan-ignore argument.type
+	}
+
 	public function testBadCallbackSignature() : void{
 		$this->expectException(\TypeError::class);
 		new ModalForm("T", "C", "Y", "N", function(Player $player, string $wrong) : void{}); // @phpstan-ignore argument.type

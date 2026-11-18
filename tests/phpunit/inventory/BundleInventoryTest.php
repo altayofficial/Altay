@@ -81,13 +81,35 @@ class BundleInventoryTest extends TestCase{
 		self::assertTrue($this->accepts(VanillaItems::DIAMOND(), 3));
 	}
 
-	private function accepts(Item $item, int $slot) : bool{
-		foreach($this->inventory->getSlotValidators() as $validator){
-			if($validator->validate($this->inventory, $item, $slot) !== null){
+	private function accepts(Item $item, int $slot, ?BundleInventory $inventory = null) : bool{
+		$inventory ??= $this->inventory;
+		foreach($inventory->getSlotValidators() as $validator){
+			if($validator->validate($inventory, $item, $slot) !== null){
 				return false;
 			}
 		}
 		return true;
+	}
+
+	public function testNestedBundleCountsTowardsTheOuterOne() : void{
+		$this->holder->setItem(0, VanillaItems::BUNDLE()->setContents([
+			VanillaItems::BUNDLE(),
+			VanillaBlocks::DIRT()->asItem()->setCount(56)
+		]));
+		$inner = new BundleInventory($this->inventory, 0);
+
+		//the outer bundle has 4 + 56 = 60 used, so the empty one inside can only take 4 more
+		self::assertTrue($this->accepts(VanillaBlocks::DIRT()->asItem()->setCount(4), 0, $inner));
+		self::assertFalse($this->accepts(VanillaBlocks::DIRT()->asItem()->setCount(5), 0, $inner));
+	}
+
+	public function testWritingAfterTheBundleIsGoneDoesNothing() : void{
+		$this->holder->setItem(0, VanillaItems::DIAMOND());
+
+		$this->inventory->setItem(0, VanillaItems::EMERALD());
+		$this->inventory->setContents([VanillaItems::EMERALD()]);
+
+		self::assertTrue($this->holder->getItem(0)->equalsExact(VanillaItems::DIAMOND()));
 	}
 
 	public function testViewFollowsTheHolderSlot() : void{

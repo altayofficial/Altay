@@ -33,6 +33,7 @@ use pocketmine\crafting\CraftingResultTransfer;
 use pocketmine\crafting\ShapelessRecipe;
 use pocketmine\crafting\SmithingTrimRecipe;
 use pocketmine\data\bedrock\item\ArmorTrimIdMap;
+use pocketmine\inventory\BundleInventory;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\CreateItemAction;
 use pocketmine\inventory\transaction\action\DestroyItemAction;
@@ -87,6 +88,22 @@ class ItemStackRequestExecutor{
 
 	/** @var Item[] */
 	private array $craftingResults = [];
+
+	/**
+	 * @var int[] spl_object_id(bundle inventory) => the only slot of it this request may touch
+	 * @phpstan-var array<int, int>
+	 */
+	private array $touchedBundleSlots = [];
+	/**
+	 * @var true[][] spl_object_id(inventory) => slot => dummy
+	 * @phpstan-var array<int, array<int, true>>
+	 */
+	private array $touchedSlots = [];
+	/**
+	 * @var true[][] spl_object_id(inventory) => slot => dummy, for slots holding a bundle this request reaches into
+	 * @phpstan-var array<int, array<int, true>>
+	 */
+	private array $bundleHolderSlots = [];
 
 	private ?Item $nextCreatedItem = null;
 	private bool $createdItemFromCreativeInventory = false;
@@ -146,12 +163,45 @@ class ItemStackRequestExecutor{
 		if(!$inventory->slotExists($slot)){
 			throw new ItemStackRequestProcessException("No such inventory slot :" . $this->prettyInventoryAndSlot($inventory, $slot));
 		}
+		$this->checkBundleConflicts($inventory, $slot);
 
 		if($info->getStackId() !== $this->request->getRequestId()){ //the itemstack may have been modified by the current request
 			$this->matchItemStack($inventory, $slot, $info->getStackId());
 		}
 
 		return [$this->builder->getInventory($inventory), $slot];
+	}
+
+	/**
+	 * A bundle shifts its contents around when something is taken out, and every change to it gets written back to
+	 * the slot holding it, neither of which the transaction knows about. So two slots of the same bundle in one
+	 * request, or reaching into a bundle while also moving the bundle itself, would each be working from an out of
+	 * date picture of the other, and that's how items get duplicated. The vanilla UI never needs either, so requests
+	 * like that are refused outright.
+	 *
+	 * @throws ItemStackRequestProcessException
+	 */
+	private function checkBundleConflicts(Inventory $inventory, int $slot) : void{
+		if(isset($this->bundleHolderSlots[spl_object_id($inventory)][$slot])){
+			throw new ItemStackRequestProcessException($this->prettyInventoryAndSlot($inventory, $slot) . ": Holds a bundle this request is also changing the contents of");
+		}
+		$this->touchedSlots[spl_object_id($inventory)][$slot] = true;
+
+		//bundles can be nested, so walk all the way out to the inventory the outermost one is sitting in
+		for($current = $inventory, $currentSlot = $slot; $current instanceof BundleInventory; $currentSlot = $current->getHolderSlot(), $current = $current->getHolder()){
+			$bundleKey = spl_object_id($current);
+			if(isset($this->touchedBundleSlots[$bundleKey]) && $this->touchedBundleSlots[$bundleKey] !== $currentSlot){
+				throw new ItemStackRequestProcessException($this->prettyInventoryAndSlot($current, $currentSlot) . ": Request touches more than one slot of the same bundle");
+			}
+			$this->touchedBundleSlots[$bundleKey] = $currentSlot;
+
+			$holder = $current->getHolder();
+			$holderSlot = $current->getHolderSlot();
+			if(isset($this->touchedSlots[spl_object_id($holder)][$holderSlot])){
+				throw new ItemStackRequestProcessException($this->prettyInventoryAndSlot($holder, $holderSlot) . ": Request moves a bundle while also changing its contents");
+			}
+			$this->bundleHolderSlots[spl_object_id($holder)][$holderSlot] = true;
+		}
 	}
 
 	/**

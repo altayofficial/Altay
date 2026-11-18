@@ -29,6 +29,7 @@ use pocketmine\block\BlockTypeIds;
 use pocketmine\block\utils\DyeColor;
 use pocketmine\data\bedrock\item\SavedItemStackData;
 use pocketmine\data\runtime\RuntimeDataDescriber;
+use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\ListTag;
@@ -168,10 +169,20 @@ class Bundle extends Item{
 			return ItemUseResult::NONE;
 		}
 
+		$kept = [];
 		foreach($this->contents as $item){
-			$player->dropItem($item);
+			$ev = new PlayerDropItemEvent($player, $item);
+			$ev->call();
+			if($ev->isCancelled()){
+				$kept[] = $item;
+			}else{
+				$player->dropItem($item);
+			}
 		}
-		$this->contents = [];
+		if(count($kept) === count($this->contents)){
+			return ItemUseResult::FAIL;
+		}
+		$this->contents = $kept;
 		$player->broadcastSound(new BundleDropContentsSound());
 
 		return ItemUseResult::SUCCESS;

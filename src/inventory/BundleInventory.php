@@ -104,8 +104,25 @@ final class BundleInventory extends BaseInventory{
 		parent::setItem($index, $item);
 	}
 
+	/**
+	 * Writes to a view whose bundle has gone away are dropped. Transactions refuse to touch such a view in the first
+	 * place, so this only happens if a plugin swaps the bundle out from under one mid-transaction.
+	 */
 	protected function internalSetItem(int $index, Item $item) : void{
-		$bundle = $this->getBundle() ?? throw new \LogicException("The bundle this inventory belongs to is gone");
+		$bundle = $this->getBundle();
+		if($bundle !== null){
+			$this->writeBundle(self::withItem($bundle, $index, $item));
+		}
+	}
+
+	protected function internalSetContents(array $items) : void{
+		$bundle = $this->getBundle();
+		if($bundle !== null){
+			$this->writeBundle($bundle->setContents($items));
+		}
+	}
+
+	private static function withItem(Bundle $bundle, int $index, Item $item) : Bundle{
 		$contents = $bundle->getContents();
 		if($item->isNull()){
 			if(isset($contents[$index])){
@@ -116,12 +133,7 @@ final class BundleInventory extends BaseInventory{
 		}else{
 			$contents[] = $item;
 		}
-		$this->writeBundle($bundle->setContents($contents));
-	}
-
-	protected function internalSetContents(array $items) : void{
-		$bundle = $this->getBundle() ?? throw new \LogicException("The bundle this inventory belongs to is gone");
-		$this->writeBundle($bundle->setContents($items));
+		return (clone $bundle)->setContents($contents);
 	}
 
 	private function writeBundle(Bundle $bundle) : void{
@@ -145,6 +157,11 @@ final class BundleInventory extends BaseInventory{
 		$weight = $bundle->getWeight() - Bundle::getItemWeight($this->getItem($slot)) + Bundle::getItemWeight($item);
 		if($weight > Bundle::MAX_WEIGHT){
 			return new TransactionValidationException("Bundle would be overfilled ($weight/" . Bundle::MAX_WEIGHT . ")");
+		}
+
+		//a bundle inside another one makes the outer one heavier too, so the outer one has to have room for it
+		if($this->holder instanceof BundleInventory){
+			return $this->holder->validateSlot($this->holder, self::withItem($bundle, $slot, $item), $this->holderSlot);
 		}
 		return null;
 	}

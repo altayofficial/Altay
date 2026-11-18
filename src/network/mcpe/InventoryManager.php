@@ -271,7 +271,10 @@ class InventoryManager{
 	}
 
 	private function addPredictedSlotChangeInternal(Inventory $inventory, int $slot, ItemStack $item) : void{
-		$this->inventories[spl_object_id($inventory)]->predictions[$slot] = $item;
+		$entry = $this->inventories[spl_object_id($inventory)] ?? null;
+		if($entry !== null){
+			$entry->predictions[$slot] = $item;
+		}
 	}
 
 	public function addPredictedSlotChange(Inventory $inventory, int $slot, Item $item) : void{
@@ -280,7 +283,8 @@ class InventoryManager{
 			//slot gets a new ID the client hasn't heard of yet and has to be sent again anyway
 			return;
 		}
-		$itemStack = $this->itemToNet($inventory, $slot, $item);
+		//not itemToNet(), a prediction is only a guess and mustn't make us forget any bundles before the change happens
+		$itemStack = $this->session->getTypeConverter()->coreItemStackToNet($item);
 		$this->addPredictedSlotChangeInternal($inventory, $slot, $itemStack);
 	}
 
@@ -681,8 +685,12 @@ class InventoryManager{
 			//is cleared before removal.
 			return;
 		}
+		//anything in here might have moved, so bundles inside get new IDs rather than keeping ones that now point at
+		//whatever happens to be in their old slot
+		$this->forgetBundlesHeldBy($inventory);
 		if($inventory instanceof BundleInventory){
 			$this->syncBundleContents($entry, $inventory);
+			$this->flushPendingBundleSyncs();
 			return;
 		}
 		if($entry->complexSlotMap !== null){
@@ -838,7 +846,7 @@ class InventoryManager{
 
 	/**
 	 * Converts an item in a tracked slot for the network. Bundles get tagged with the ID the client uses to find
-	 * their contents, and the contents themselves are left out since those are sent separately.
+	 * their contents, which are sent separately.
 	 */
 	private function itemToNet(Inventory $inventory, int $slot, Item $item) : ItemStack{
 		$typeConverter = $this->session->getTypeConverter();
@@ -847,7 +855,7 @@ class InventoryManager{
 			return $typeConverter->coreItemStackToNet($item);
 		}
 
-		$netItem = (clone $item)->setContents([]);
+		$netItem = clone $item;
 		$tag = $netItem->getNamedTag();
 		$tag->setInt(self::TAG_BUNDLE_ID, $this->getBundleId($inventory, $slot));
 		$netItem->setNamedTag($tag);
@@ -930,6 +938,7 @@ class InventoryManager{
 	}
 
 	private function syncBundleContents(InventoryManagerEntry $entry, BundleInventory $inventory) : void{
+		$this->forgetBundlesHeldBy($inventory);
 		$entry->predictions = [];
 		$entry->pendingSyncs = [];
 		$contents = [];

@@ -123,7 +123,7 @@ abstract class BaseInventory implements Inventory, SlotValidatedInventory{
 	 */
 	protected function getMatchingItemCount(int $slot, Item $test, bool $checkTags) : int{
 		$item = $this->getItem($slot);
-		return $item->equals($test, true, $checkTags) ? $item->getCount() : 0;
+		return $item->equals($test, $checkTags) ? $item->getCount() : 0;
 	}
 
 	public function contains(Item $item) : bool{

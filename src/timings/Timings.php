@@ -39,8 +39,6 @@ use function str_starts_with;
 
 abstract class Timings{
 	public const GROUP_MINECRAFT = "Minecraft";
-	/** @deprecated No longer used */
-	public const GROUP_BREAKDOWN = "Minecraft - Breakdown";
 
 	private static bool $initialized = false;
 
@@ -54,14 +52,10 @@ abstract class Timings{
 	public static TimingsHandler $playerNetworkSendCompress;
 	public static TimingsHandler $playerNetworkSendCompressBroadcast;
 	public static TimingsHandler $playerNetworkSendCompressSessionBuffer;
-	/** @deprecated Bedrock-layer encryption is gone, nothing is timed here any more */
-	public static TimingsHandler $playerNetworkSendEncrypt;
 	public static TimingsHandler $playerNetworkSendInventorySync;
 	public static TimingsHandler $playerNetworkSendPreSpawnGameData;
 	public static TimingsHandler $playerNetworkReceive;
 	public static TimingsHandler $playerNetworkReceiveDecompress;
-	/** @deprecated Bedrock-layer encryption is gone, nothing is timed here any more */
-	public static TimingsHandler $playerNetworkReceiveDecrypt;
 	public static TimingsHandler $playerChunkOrder;
 	public static TimingsHandler $playerChunkSend;
 	public static TimingsHandler $connection;
@@ -123,17 +117,10 @@ abstract class Timings{
 	/** @var TimingsHandler[][] */
 	private static array $eventHandlers = [];
 
-	private static TimingsHandler $asyncTaskProgressUpdateParent;
 	private static TimingsHandler $asyncTaskCompletionParent;
-	private static TimingsHandler $asyncTaskErrorParent;
-
-	/** @var TimingsHandler[] */
-	private static array $asyncTaskProgressUpdate = [];
 
 	/** @var TimingsHandler[] */
 	private static array $asyncTaskCompletion = [];
-	/** @var TimingsHandler[] */
-	private static array $asyncTaskError = [];
 
 	public static TimingsHandler $asyncTaskWorkers;
 	/** @var TimingsHandler[] */
@@ -158,13 +145,11 @@ abstract class Timings{
 		self::$playerNetworkSendCompress = new TimingsHandler("Player Network Send - Compression", self::$playerNetworkSend);
 		self::$playerNetworkSendCompressBroadcast = new TimingsHandler("Player Network Send - Compression (Broadcast)", self::$playerNetworkSendCompress);
 		self::$playerNetworkSendCompressSessionBuffer = new TimingsHandler("Player Network Send - Compression (Session Buffer)", self::$playerNetworkSendCompress);
-		self::$playerNetworkSendEncrypt = new TimingsHandler("Player Network Send - Encryption", self::$playerNetworkSend);
 		self::$playerNetworkSendInventorySync = new TimingsHandler("Player Network Send - Inventory Sync", self::$playerNetworkSend);
 		self::$playerNetworkSendPreSpawnGameData = new TimingsHandler("Player Network Send - Pre-Spawn Game Data", self::$playerNetworkSend);
 
 		self::$playerNetworkReceive = new TimingsHandler("Player Network Receive", self::$connection);
 		self::$playerNetworkReceiveDecompress = new TimingsHandler("Player Network Receive - Decompression", self::$playerNetworkReceive);
-		self::$playerNetworkReceiveDecrypt = new TimingsHandler("Player Network Receive - Decryption", self::$playerNetworkReceive);
 
 		self::$broadcastPackets = new TimingsHandler("Broadcast Packets", self::$playerNetworkSend);
 
@@ -194,9 +179,7 @@ abstract class Timings{
 		self::$schedulerSync = new TimingsHandler("Scheduler - Sync Tasks");
 
 		self::$schedulerAsync = new TimingsHandler("Scheduler - Async Tasks");
-		self::$asyncTaskProgressUpdateParent = new TimingsHandler("Async Tasks - Progress Updates", self::$schedulerAsync);
 		self::$asyncTaskCompletionParent = new TimingsHandler("Async Tasks - Completion Handlers", self::$schedulerAsync);
-		self::$asyncTaskErrorParent = new TimingsHandler("Async Tasks - Error Handlers", self::$schedulerAsync);
 
 		self::$asyncTaskWorkers = new TimingsHandler("Async Task Workers");
 
@@ -328,20 +311,6 @@ abstract class Timings{
 		return self::$eventHandlers[$event][$handlerName];
 	}
 
-	public static function getAsyncTaskProgressUpdateTimings(AsyncTask $task, string $group = self::GROUP_MINECRAFT) : TimingsHandler{
-		$taskClass = $task::class;
-		if(!isset(self::$asyncTaskProgressUpdate[$taskClass])){
-			self::init();
-			self::$asyncTaskProgressUpdate[$taskClass] = new TimingsHandler(
-				"AsyncTask - " . self::shortenCoreClassName($taskClass, "pocketmine\\") . " - Progress Updates",
-				self::$asyncTaskProgressUpdateParent,
-				$group
-			);
-		}
-
-		return self::$asyncTaskProgressUpdate[$taskClass];
-	}
-
 	public static function getAsyncTaskCompletionTimings(AsyncTask $task, string $group = self::GROUP_MINECRAFT) : TimingsHandler{
 		$taskClass = $task::class;
 		if(!isset(self::$asyncTaskCompletion[$taskClass])){
@@ -354,23 +323,6 @@ abstract class Timings{
 		}
 
 		return self::$asyncTaskCompletion[$taskClass];
-	}
-
-	/**
-	 * @deprecated No longer used
-	 */
-	public static function getAsyncTaskErrorTimings(AsyncTask $task, string $group = self::GROUP_MINECRAFT) : TimingsHandler{
-		$taskClass = $task::class;
-		if(!isset(self::$asyncTaskError[$taskClass])){
-			self::init();
-			self::$asyncTaskError[$taskClass] = new TimingsHandler(
-				"AsyncTask - " . self::shortenCoreClassName($taskClass, "pocketmine\\") . " - Error Handler",
-				self::$asyncTaskErrorParent,
-				$group
-			);
-		}
-
-		return self::$asyncTaskError[$taskClass];
 	}
 
 	public static function getAsyncTaskRunTimings(AsyncTask $task, string $group = self::GROUP_MINECRAFT) : TimingsHandler{

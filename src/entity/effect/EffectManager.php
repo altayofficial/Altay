@@ -86,7 +86,8 @@ class EffectManager extends EffectCollection{
 	public function tick(int $tickDiff = 1) : bool{
 		foreach($this->effects as $instance){
 			$type = $instance->getType();
-			if($type->canTick($instance)){
+			$interval = $type->getApplyInterval($instance);
+			if($interval > 0 && $instance->getDuration() % $interval === 0){
 				$type->applyEffect($this->entity, $instance);
 			}
 			$instance->decreaseDuration($tickDiff);

@@ -168,16 +168,6 @@ final class Utils{
 	}
 
 	/**
-	 * @phpstan-return \Closure(object) : object
-	 * @deprecated
-	 */
-	public static function cloneCallback() : \Closure{
-		return static function(object $o){
-			return clone $o;
-		};
-	}
-
-	/**
 	 * @phpstan-template TKey of array-key
 	 * @phpstan-template TValue of object
 	 *

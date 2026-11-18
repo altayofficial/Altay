@@ -41,8 +41,8 @@ use function substr;
 
 /**
  * @internal
- * Used to register commands defined in the `aliases` section of pocketmine.yml.
- * See the comments in resources/pocketmine.yml in the `aliases` section for configuration instructions and examples.
+ * Used to register commands defined in the `aliases` section of altay.yml.
+ * See the comments in resources/altay.yml in the `aliases` section for configuration instructions and examples.
  */
 class FormattedCommandAlias extends Command{
 	/**

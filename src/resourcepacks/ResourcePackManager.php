@@ -25,18 +25,15 @@ declare(strict_types=1);
 
 namespace pocketmine\resourcepacks;
 
-use pocketmine\utils\Config;
 use pocketmine\utils\Filesystem;
 use pocketmine\utils\Utils;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Filesystem\Path;
 use function array_keys;
-use function copy;
 use function count;
 use function file_exists;
 use function filter_var;
 use function gettype;
-use function is_array;
 use function is_dir;
 use function is_float;
 use function is_int;
@@ -79,9 +76,11 @@ class ResourcePackManager{
 	private array $cdnUrls = [];
 
 	/**
-	 * @param string $path Path to resource-packs directory.
+	 * @param string  $path          Path to resource-packs directory.
+	 * @param mixed[] $resourceStack Pack file names inside $path, in the order the config lists them
+	 * @param mixed[] $cdnUrls       Pack file names mapped to a URL clients may download the pack from instead
 	 */
-	public function __construct(string $path, \Logger $logger){
+	public function __construct(string $path, \Logger $logger, bool $forceResources = false, array $resourceStack = [], array $cdnUrls = []){
 		$this->path = $path;
 
 		if(!file_exists($this->path)){
@@ -91,28 +90,12 @@ class ResourcePackManager{
 			throw new \InvalidArgumentException("Resource packs path $path exists and is not a directory");
 		}
 
-		$resourcePacksYml = Path::join($this->path, "resource_packs.yml");
-		if(!file_exists($resourcePacksYml)){
-			copy(Path::join(\pocketmine\RESOURCE_PATH, "resource_packs.yml"), $resourcePacksYml);
-		}
-
-		$resourcePacksConfig = new Config($resourcePacksYml, Config::YAML, []);
-
-		$this->serverForceResources = (bool) $resourcePacksConfig->get("force_resources", false);
+		$this->serverForceResources = $forceResources;
 
 		$logger->info("Loading resource packs...");
 
-		$resourceStack = $resourcePacksConfig->get("resource_stack", []);
-		if(!is_array($resourceStack)){
-			throw new \InvalidArgumentException("\"resource_stack\" key should contain a list of pack names");
-		}
-
-		$cdnUrlsConfig = $resourcePacksConfig->get("cdn_urls", []);
-		if(!is_array($cdnUrlsConfig)){
-			throw new \InvalidArgumentException("\"cdn_urls\" key should contain a map of pack names to URLs");
-		}
 		$configuredCdnUrls = [];
-		foreach(Utils::promoteKeys($cdnUrlsConfig) as $packName => $cdnUrl){
+		foreach(Utils::promoteKeys($cdnUrls) as $packName => $cdnUrl){
 			$packName = (string) $packName;
 			if(!is_string($cdnUrl)){
 				$logger->critical("Found invalid CDN URL for resource pack \"$packName\" of type " . gettype($cdnUrl));

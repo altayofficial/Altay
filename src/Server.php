@@ -138,16 +138,14 @@ use function array_sum;
 use function base64_encode;
 use function chr;
 use function cli_set_process_title;
-use function copy;
 use function count;
 use function date;
 use function fclose;
 use function file_exists;
-use function file_put_contents;
 use function filemtime;
 use function fopen;
 use function get_class;
-use function gettype;
+use function implode;
 use function ini_set;
 use function is_array;
 use function is_dir;
@@ -171,7 +169,6 @@ use function sleep;
 use function spl_object_id;
 use function sprintf;
 use function str_repeat;
-use function str_replace;
 use function stripos;
 use function strlen;
 use function strrpos;
@@ -180,7 +177,6 @@ use function strval;
 use function time;
 use function touch;
 use function trim;
-use function yaml_parse;
 use const DIRECTORY_SEPARATOR;
 use const PHP_EOL;
 use const PHP_INT_MAX;
@@ -813,41 +809,23 @@ class Server {
 			$this->pluginPath = realpath($pluginPath) . DIRECTORY_SEPARATOR;
 
 			$this->logger->info("Loading server configuration");
-			$pocketmineYmlPath = Path::join($this->dataPath, "pocketmine.yml");
-			if(!file_exists($pocketmineYmlPath)){
-				$content = Filesystem::fileGetContents(Path::join(\pocketmine\RESOURCE_PATH, "pocketmine.yml"));
-				if(VersionInfo::IS_DEVELOPMENT_BUILD){
-					$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
+			$altayYmlPath = Path::join($this->dataPath, LegacyConfigMigrator::ALTAY_YML);
+			if(!file_exists($altayYmlPath)){
+				$legacyFiles = LegacyConfigMigrator::findLegacyFiles($this->dataPath);
+				try{
+					Filesystem::safeFilePutContents($altayYmlPath, LegacyConfigMigrator::createConfig($this->dataPath));
+				}catch(\RuntimeException $e){
+					$this->logger->emergency("Failed to create " . LegacyConfigMigrator::ALTAY_YML . ": " . $e->getMessage());
+					$this->forceShutdownExit();
+					return;
 				}
-				@file_put_contents($pocketmineYmlPath, $content);
+				if(count($legacyFiles) > 0){
+					LegacyConfigMigrator::retireLegacyFiles($this->dataPath);
+					$this->logger->notice("Moved the settings from " . implode(", ", $legacyFiles) . " into " . LegacyConfigMigrator::ALTAY_YML . ". The old files were renamed to *.old");
+				}
 			}
 
-			$this->configGroup = new ServerConfigGroup(
-				new Config($pocketmineYmlPath, Config::YAML, []),
-				new Config(Path::join($this->dataPath, "server.properties"), Config::PROPERTIES, [
-					ServerProperties::MOTD => self::DEFAULT_SERVER_NAME,
-					ServerProperties::SUB_MOTD => VersionInfo::NAME,
-					ServerProperties::SERVER_PORT_IPV4 => self::DEFAULT_PORT_IPV4,
-					ServerProperties::SERVER_PORT_IPV6 => self::DEFAULT_PORT_IPV6,
-					ServerProperties::ENABLE_IPV6 => true,
-					ServerProperties::WHITELIST => false,
-					ServerProperties::MAX_PLAYERS => self::DEFAULT_MAX_PLAYERS,
-					ServerProperties::GAME_MODE => GameMode::SURVIVAL->name, //TODO: this probably shouldn't use the enum name directly
-					ServerProperties::FORCE_GAME_MODE => false,
-					ServerProperties::HARDCORE => false,
-					ServerProperties::PVP => true,
-					ServerProperties::DIFFICULTY => World::DIFFICULTY_NORMAL,
-					ServerProperties::DEFAULT_WORLD_GENERATOR_SETTINGS => "",
-					ServerProperties::DEFAULT_WORLD_NAME => "world",
-					ServerProperties::DEFAULT_WORLD_SEED => "",
-					ServerProperties::DEFAULT_WORLD_GENERATOR => "DEFAULT",
-					ServerProperties::ENABLE_QUERY => true,
-					ServerProperties::AUTO_SAVE => true,
-					ServerProperties::VIEW_DISTANCE => self::DEFAULT_MAX_VIEW_DISTANCE,
-					ServerProperties::XBOX_AUTH => true,
-					ServerProperties::LANGUAGE => "eng"
-				])
-			);
+			$this->configGroup = new ServerConfigGroup(new Config($altayYmlPath, Config::YAML, []));
 
 			$debugLogLevel = $this->configGroup->getPropertyInt(Yml::DEBUG_LEVEL, 1);
 			if($this->logger instanceof MainLogger){
@@ -855,7 +833,7 @@ class Server {
 			}
 
 			$this->forceLanguage = $this->configGroup->getPropertyBool(Yml::SETTINGS_FORCE_LANGUAGE, false);
-			$selectedLang = $this->configGroup->getConfigString(ServerProperties::LANGUAGE, $this->configGroup->getPropertyString("settings.language", Language::FALLBACK_LANGUAGE));
+			$selectedLang = $this->configGroup->getConfigString(ServerProperties::LANGUAGE, $this->configGroup->getPropertyString(Yml::SETTINGS_LANGUAGE, Language::FALLBACK_LANGUAGE));
 			try{
 				$this->language = new Language($selectedLang);
 			}catch(LanguageNotFoundException $e){
@@ -1019,21 +997,28 @@ class Server {
 				CreativeInventory::getInstance()->removeEducationEditionContent();
 			}
 
-			$this->resourceManager = new ResourcePackManager(Path::join($this->dataPath, "resource_packs"), $this->logger);
-
-			$pluginGraylist = null;
-			$graylistFile = Path::join($this->dataPath, "plugin_list.yml");
-			if(!file_exists($graylistFile)){
-				copy(Path::join(\pocketmine\RESOURCE_PATH, 'plugin_list.yml'), $graylistFile);
+			$resourceStack = $this->configGroup->getProperty(Yml::RESOURCE_PACKS_RESOURCE_STACK, []);
+			$cdnUrls = $this->configGroup->getProperty(Yml::RESOURCE_PACKS_CDN_URLS, []);
+			if(!is_array($resourceStack) || !is_array($cdnUrls)){
+				$this->logger->emergency("\"" . Yml::RESOURCE_PACKS_RESOURCE_STACK . "\" should be a list of pack names and \"" . Yml::RESOURCE_PACKS_CDN_URLS . "\" a map of pack names to URLs");
+				$this->forceShutdownExit();
+				return;
 			}
+			$this->resourceManager = new ResourcePackManager(
+				Path::join($this->dataPath, "resource_packs"),
+				$this->logger,
+				$this->configGroup->getPropertyBool(Yml::RESOURCE_PACKS_FORCE_RESOURCES, false),
+				$resourceStack,
+				$cdnUrls
+			);
+
 			try{
-				$array = yaml_parse(Filesystem::fileGetContents($graylistFile));
-				if(!is_array($array)){
-					throw new \InvalidArgumentException("Expected array for root, but have " . gettype($array));
-				}
-				$pluginGraylist = PluginGraylist::fromArray($array);
+				$pluginGraylist = PluginGraylist::fromArray([
+					"mode" => $this->configGroup->getProperty(Yml::PLUGINS_LIST_MODE, "blacklist"),
+					"plugins" => $this->configGroup->getProperty(Yml::PLUGINS_LIST, [])
+				]);
 			}catch(\InvalidArgumentException $e){
-				$this->logger->emergency("Failed to load $graylistFile: " . $e->getMessage());
+				$this->logger->emergency("Invalid plugin list in " . LegacyConfigMigrator::ALTAY_YML . ": " . $e->getMessage());
 				$this->forceShutdownExit();
 				return;
 			}
@@ -1223,7 +1208,7 @@ class Server {
 
 					return false;
 				}
-				$generatorName = $this->configGroup->getConfigString(ServerProperties::DEFAULT_WORLD_GENERATOR);
+				$generatorName = $this->configGroup->getConfigString(ServerProperties::DEFAULT_WORLD_GENERATOR, "DEFAULT");
 				$generatorOptions = $this->configGroup->getConfigString(ServerProperties::DEFAULT_WORLD_GENERATOR_SETTINGS);
 				$generatorEntry = $getGeneratorEntry($generatorName, $generatorOptions, $default);
 

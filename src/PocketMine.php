@@ -353,7 +353,12 @@ JIT_WARNING
 
 		$exitCode = 0;
 		do{
-			if(!file_exists(Path::join($dataPath, "server.properties")) && !isset($opts[BootstrapOptions::NO_WIZARD])){
+			//an old server.properties means this isn't a first run, the server will migrate it instead
+			if(
+				!file_exists(Path::join($dataPath, LegacyConfigMigrator::ALTAY_YML)) &&
+				!file_exists(Path::join($dataPath, "server.properties")) &&
+				!isset($opts[BootstrapOptions::NO_WIZARD])
+			){
 				$installer = new SetupWizard($dataPath);
 				if(!$installer->run()){
 					$exitCode = -1;

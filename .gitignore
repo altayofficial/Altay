@@ -11,6 +11,7 @@ crashdumps/*
 *.txt
 *.phar
 server.properties
+/altay.yml
 /pocketmine.yml
 /plugin_list.yml
 memory_dumps/*

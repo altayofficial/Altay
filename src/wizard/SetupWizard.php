@@ -33,20 +33,25 @@ use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\lang\Language;
 use pocketmine\lang\LanguageNotFoundException;
 use pocketmine\lang\Translatable;
+use pocketmine\LegacyConfigMigrator;
 use pocketmine\player\GameMode;
 use pocketmine\Server;
 use pocketmine\ServerProperties;
 use pocketmine\utils\Config;
+use pocketmine\utils\Filesystem;
 use pocketmine\utils\Internet;
 use pocketmine\utils\InternetException;
 use pocketmine\utils\Utils;
+use pocketmine\utils\YamlEditor;
 use pocketmine\VersionInfo;
 use Symfony\Component\Filesystem\Path;
+use function explode;
 use function fgets;
 use function sleep;
 use function strtolower;
 use function trim;
 use const PHP_EOL;
+use const PHP_INT_MAX;
 use const STDIN;
 
 class SetupWizard{
@@ -95,9 +100,15 @@ class SetupWizard{
 		}
 
 		//This has to happen here to prevent user avoiding agreeing to license
-		$config = new Config(Path::join($this->dataPath, "server.properties"), Config::PROPERTIES);
-		$config->set(ServerProperties::LANGUAGE, $lang);
-		$config->save();
+		try{
+			$config = new YamlEditor(LegacyConfigMigrator::createConfig($this->dataPath));
+		}catch(\RuntimeException $e){
+			$this->error("Failed to create " . LegacyConfigMigrator::ALTAY_YML . ": " . $e->getMessage());
+			return false;
+		}
+		$this->set($config, ServerProperties::LANGUAGE, $lang);
+		$this->save($config);
+		LegacyConfigMigrator::retireLegacyFiles($this->dataPath);
 
 		if(strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::skip_installer()), "n", "y/N")) === "y"){
 			$this->printIpDetails();
@@ -110,7 +121,7 @@ class SetupWizard{
 		$this->generateBaseConfig($config);
 		$this->generateUserFiles($config);
 		$this->networkFunctions($config);
-		$config->save();
+		$this->save($config);
 
 		$this->printIpDetails();
 
@@ -146,6 +157,17 @@ LICENSE;
 		$this->message($this->lang->translate(KnownTranslationFactory::server_properties()));
 	}
 
+	/**
+	 * Takes the old server.properties key names, which is what the wizard deals in.
+	 */
+	private function set(YamlEditor $config, string $key, mixed $value) : void{
+		$config->set(explode(".", ServerProperties::toPath($key), limit: PHP_INT_MAX), $value);
+	}
+
+	private function save(YamlEditor $config) : void{
+		Filesystem::safeFilePutContents(Path::join($this->dataPath, LegacyConfigMigrator::ALTAY_YML), $config->getText());
+	}
+
 	private function askPort(Translatable $prompt, int $default) : int{
 		while(true){
 			$port = (int) $this->getInput($this->lang->translate($prompt), (string) $default);
@@ -158,13 +180,13 @@ LICENSE;
 		}
 	}
 
-	private function generateBaseConfig(Config $config) : void{
-		$config->set(ServerProperties::MOTD, ($name = $this->getInput($this->lang->translate(KnownTranslationFactory::name_your_server()), Server::DEFAULT_SERVER_NAME)));
+	private function generateBaseConfig(YamlEditor $config) : void{
+		$this->set($config, ServerProperties::MOTD, ($name = $this->getInput($this->lang->translate(KnownTranslationFactory::name_your_server()), Server::DEFAULT_SERVER_NAME)));
 
 		$this->message($this->lang->translate(KnownTranslationFactory::port_warning()));
 
-		$config->set(ServerProperties::SERVER_PORT_IPV4, $this->askPort(KnownTranslationFactory::server_port_v4(), Server::DEFAULT_PORT_IPV4));
-		$config->set(ServerProperties::SERVER_PORT_IPV6, $this->askPort(KnownTranslationFactory::server_port_v6(), Server::DEFAULT_PORT_IPV6));
+		$this->set($config, ServerProperties::SERVER_PORT_IPV4, $this->askPort(KnownTranslationFactory::server_port_v4(), Server::DEFAULT_PORT_IPV4));
+		$this->set($config, ServerProperties::SERVER_PORT_IPV6, $this->askPort(KnownTranslationFactory::server_port_v6(), Server::DEFAULT_PORT_IPV6));
 
 		$this->message($this->lang->translate(KnownTranslationFactory::gamemode_info()));
 
@@ -177,14 +199,14 @@ LICENSE;
 			};
 		}while($gamemode === null);
 		//TODO: this probably shouldn't use the enum name directly
-		$config->set(ServerProperties::GAME_MODE, $gamemode->name);
+		$this->set($config, ServerProperties::GAME_MODE, $gamemode->name);
 
-		$config->set(ServerProperties::MAX_PLAYERS, (int) $this->getInput($this->lang->translate(KnownTranslationFactory::max_players()), (string) Server::DEFAULT_MAX_PLAYERS));
+		$this->set($config, ServerProperties::MAX_PLAYERS, (int) $this->getInput($this->lang->translate(KnownTranslationFactory::max_players()), (string) Server::DEFAULT_MAX_PLAYERS));
 
-		$config->set(ServerProperties::VIEW_DISTANCE, (int) $this->getInput($this->lang->translate(KnownTranslationFactory::view_distance()), (string) Server::DEFAULT_MAX_VIEW_DISTANCE));
+		$this->set($config, ServerProperties::VIEW_DISTANCE, (int) $this->getInput($this->lang->translate(KnownTranslationFactory::view_distance()), (string) Server::DEFAULT_MAX_VIEW_DISTANCE));
 	}
 
-	private function generateUserFiles(Config $config) : void{
+	private function generateUserFiles(YamlEditor $config) : void{
 		$this->message($this->lang->translate(KnownTranslationFactory::op_info()));
 
 		$op = strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::op_who()), ""));
@@ -200,19 +222,19 @@ LICENSE;
 
 		if(strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::whitelist_enable()), "n", "y/N")) === "y"){
 			$this->error($this->lang->translate(KnownTranslationFactory::whitelist_warning()));
-			$config->set(ServerProperties::WHITELIST, true);
+			$this->set($config, ServerProperties::WHITELIST, true);
 		}else{
-			$config->set(ServerProperties::WHITELIST, false);
+			$this->set($config, ServerProperties::WHITELIST, false);
 		}
 	}
 
-	private function networkFunctions(Config $config) : void{
+	private function networkFunctions(YamlEditor $config) : void{
 		$this->error($this->lang->translate(KnownTranslationFactory::query_warning1()));
 		$this->error($this->lang->translate(KnownTranslationFactory::query_warning2()));
 		if(strtolower($this->getInput($this->lang->translate(KnownTranslationFactory::query_disable()), "n", "y/N")) === "y"){
-			$config->set(ServerProperties::ENABLE_QUERY, false);
+			$this->set($config, ServerProperties::ENABLE_QUERY, false);
 		}else{
-			$config->set(ServerProperties::ENABLE_QUERY, true);
+			$this->set($config, ServerProperties::ENABLE_QUERY, true);
 		}
 	}
 

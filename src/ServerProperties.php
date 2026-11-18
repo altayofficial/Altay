@@ -27,7 +27,8 @@ namespace pocketmine;
 
 /**
  * @internal
- * Constants for all properties available in server.properties.
+ * Names of the settings that used to live in server.properties. They're still accepted by the config group's
+ * getConfig*() and setConfig*() methods and as command line overrides, see PATHS for where they live in altay.yml.
  */
 final class ServerProperties{
 
@@ -58,4 +59,38 @@ final class ServerProperties{
 	public const VIEW_DISTANCE = "view-distance";
 	public const WHITELIST = "white-list";
 	public const XBOX_AUTH = "xbox-auth";
+
+	/**
+	 * Where each of the keys above lives in altay.yml. Keys missing here (plugins used to put their own stuff in
+	 * server.properties) go under the server section.
+	 */
+	public const PATHS = [
+		self::AUTO_SAVE => "level-settings.auto-save",
+		self::DEFAULT_WORLD_GENERATOR => "level-settings.default-world.generator",
+		self::DEFAULT_WORLD_GENERATOR_SETTINGS => "level-settings.default-world.generator-settings",
+		self::DEFAULT_WORLD_NAME => "level-settings.default-world.name",
+		self::DEFAULT_WORLD_SEED => "level-settings.default-world.seed",
+		self::DIFFICULTY => "player.difficulty",
+		self::ENABLE_IPV6 => "server.ipv6.enabled",
+		self::ENABLE_QUERY => "server.enable-query",
+		self::FORCE_GAME_MODE => "player.force-gamemode",
+		self::GAME_MODE => "player.gamemode",
+		self::HARDCORE => "player.hardcore",
+		self::LANGUAGE => "settings.language",
+		self::MAX_PLAYERS => "player.max-players",
+		self::MOTD => "server.motd",
+		self::SUB_MOTD => "server.sub-motd",
+		self::PVP => "player.pvp",
+		self::SERVER_IPV4 => "server.ip",
+		self::SERVER_IPV6 => "server.ipv6.ip",
+		self::SERVER_PORT_IPV4 => "server.port",
+		self::SERVER_PORT_IPV6 => "server.ipv6.port",
+		self::VIEW_DISTANCE => "player.view-distance",
+		self::WHITELIST => "player.white-list",
+		self::XBOX_AUTH => "server.xbox-auth",
+	];
+
+	public static function toPath(string $key) : string{
+		return self::PATHS[$key] ?? "server." . $key;
+	}
 }

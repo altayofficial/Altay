@@ -73,11 +73,8 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 
 	private const UPDATE_INTERVAL_TICKS = 10;
 
-	/**
-	 * @deprecated This was added by mistake. It can't be relied on as the inventory won't be initialized if this block
-	 * has never been set in the world.
-	 */
-	protected CampfireInventory $inventory;
+	//not initialized until the block has been set in the world
+	private CampfireInventory $inventory;
 
 	/**
 	 * @var int[] slot => ticks
@@ -135,14 +132,6 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 
 	protected function recalculateCollisionBoxes() : array{
 		return [AxisAlignedBB::one()->trim(Facing::UP, 9 / 16)];
-	}
-
-	/**
-	 * @deprecated This was added by mistake. It can't be relied on as the inventory won't be initialized if this block
-	 * has never been set in the world.
-	 */
-	public function getInventory() : CampfireInventory{
-		return $this->inventory;
 	}
 
 	protected function getFurnaceType() : FurnaceType{

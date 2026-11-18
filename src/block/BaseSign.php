@@ -238,25 +238,6 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 		return 0;
 	}
 
-	/**
-	 * Returns an object containing information about the sign text.
-	 * @deprecated
-	 * @see self::getFaceText()
-	 */
-	public function getText() : SignText{
-		return $this->text;
-	}
-
-	/**
-	 * @deprecated
-	 * @see self::setFaceText()
-	 * @return $this
-	 */
-	public function setText(SignText $text) : self{
-		$this->text = $text;
-		return $this;
-	}
-
 	public function getFaceText(bool $frontFace) : SignText{
 		return $frontFace ? $this->text : $this->backText;
 	}
@@ -289,14 +270,6 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 	public function setEditorEntityRuntimeId(?int $editorEntityRuntimeId) : self{
 		$this->editorEntityRuntimeId = $editorEntityRuntimeId;
 		return $this;
-	}
-
-	/**
-	 * @deprecated
-	 * @see self::updateFaceText()
-	 */
-	public function updateText(Player $author, SignText $text) : bool{
-		return $this->updateFaceText($author, true, $text);
 	}
 
 	/**

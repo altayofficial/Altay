@@ -517,14 +517,14 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("lily_pad", fn(BID $id) => new WaterLily($id, "Lily Pad", new Info(BreakInfo::instant())));
 
 		$weightedPressurePlateBreakInfo = new Info(BreakInfo::pickaxe(0.5));
-		self::register("weighted_pressure_plate_heavy", fn(BID $id) => new WeightedPressurePlateHeavy(
+		self::register("weighted_pressure_plate_heavy", fn(BID $id) => new WeightedPressurePlate(
 			$id,
 			"Weighted Pressure Plate Heavy",
 			$weightedPressurePlateBreakInfo,
 			deactivationDelayTicks: 10,
 			signalStrengthFactor: 0.1
 		));
-		self::register("weighted_pressure_plate_light", fn(BID $id) => new WeightedPressurePlateLight(
+		self::register("weighted_pressure_plate_light", fn(BID $id) => new WeightedPressurePlate(
 			$id,
 			"Weighted Pressure Plate Light",
 			$weightedPressurePlateBreakInfo,

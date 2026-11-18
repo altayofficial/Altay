@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\data\runtime;
 
-use pocketmine\block\utils\BrewingStandSlot;
 use pocketmine\block\utils\WallConnectionType;
 use pocketmine\math\Facing;
 
@@ -37,16 +36,11 @@ use pocketmine\math\Facing;
  * You may use it as a type for parameters and return values, but it should not be implemented outside of this package.
  * New methods may be added without warning.
  */
-interface RuntimeDataDescriber extends RuntimeEnumDescriber{
+interface RuntimeDataDescriber{
 	public function int(int $bits, int &$value) : void;
 
 	/**
-	 * @deprecated Use {@link RuntimeDataDescriber::boundedIntAuto()} instead.
-	 */
-	public function boundedInt(int $bits, int $min, int $max, int &$value) : void;
-
-	/**
-	 * Same as boundedInt() but automatically calculates the required number of bits from the range.
+	 * Writes an int in the given range, calculating the required number of bits automatically.
 	 * The range bounds must be constant.
 	 */
 	public function boundedIntAuto(int $min, int $max, int &$value) : void;
@@ -78,14 +72,6 @@ interface RuntimeDataDescriber extends RuntimeEnumDescriber{
 	 * @phpstan-param array<Facing::NORTH|Facing::EAST|Facing::SOUTH|Facing::WEST, WallConnectionType> $connections
 	 */
 	public function wallConnections(array &$connections) : void;
-
-	/**
-	 * @param BrewingStandSlot[] $slots
-	 * @phpstan-param array<int, BrewingStandSlot> $slots
-	 *
-	 * @deprecated Use {@link enumSet()} instead.
-	 */
-	public function brewingStandSlots(array &$slots) : void;
 
 	public function railShape(int &$railShape) : void;
 

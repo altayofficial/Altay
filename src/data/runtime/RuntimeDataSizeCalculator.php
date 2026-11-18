@@ -25,13 +25,11 @@ declare(strict_types=1);
 
 namespace pocketmine\data\runtime;
 
-use pocketmine\block\utils\BrewingStandSlot;
 use pocketmine\math\Facing;
 use function count;
 use function log;
 
 final class RuntimeDataSizeCalculator implements RuntimeDataDescriber{
-	use LegacyRuntimeEnumDescriberTrait;
 
 	private int $bits = 0;
 
@@ -45,18 +43,6 @@ final class RuntimeDataSizeCalculator implements RuntimeDataDescriber{
 
 	public function int(int $bits, int &$value) : void{
 		$this->addBits($bits);
-	}
-
-	/**
-	 * @deprecated Use {@link self::boundedIntAuto()} instead.
-	 */
-	public function boundedInt(int $bits, int $min, int $max, int &$value) : void{
-		$currentBits = $this->bits;
-		$this->boundedIntAuto($min, $max, $value);
-		$actualBits = $this->bits - $currentBits;
-		if($actualBits !== $bits){
-			throw new \InvalidArgumentException("Bits should be $actualBits for the given bounds, but received $bits. Use boundedIntAuto() for automatic bits calculation.");
-		}
 	}
 
 	public function boundedIntAuto(int $min, int $max, int &$value) : void{
@@ -97,10 +83,6 @@ final class RuntimeDataSizeCalculator implements RuntimeDataDescriber{
 
 	public function wallConnections(array &$connections) : void{
 		$this->addBits(7);
-	}
-
-	public function brewingStandSlots(array &$slots) : void{
-		$this->addBits(count(BrewingStandSlot::cases()));
 	}
 
 	public function railShape(int &$railShape) : void{

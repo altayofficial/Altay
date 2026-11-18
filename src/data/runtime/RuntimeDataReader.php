@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\data\runtime;
 
-use pocketmine\block\utils\BrewingStandSlot;
 use pocketmine\block\utils\RailConnectionInfo;
 use pocketmine\block\utils\WallConnectionType;
 use pocketmine\math\Axis;
@@ -37,7 +36,6 @@ use function log;
 use function spl_object_id;
 
 final class RuntimeDataReader implements RuntimeDataDescriber{
-	use LegacyRuntimeEnumDescriberTrait;
 
 	private int $offset = 0;
 
@@ -59,18 +57,6 @@ final class RuntimeDataReader implements RuntimeDataDescriber{
 
 	public function int(int $bits, int &$value) : void{
 		$value = $this->readInt($bits);
-	}
-
-	/**
-	 * @deprecated Use {@link self::boundedIntAuto()} instead.
-	 */
-	public function boundedInt(int $bits, int $min, int $max, int &$value) : void{
-		$offset = $this->offset;
-		$this->boundedIntAuto($min, $max, $value);
-		$actualBits = $this->offset - $offset;
-		if($this->offset !== $offset + $bits){
-			throw new \InvalidArgumentException("Bits should be $actualBits for the given bounds, but received $bits. Use boundedIntAuto() for automatic bits calculation.");
-		}
 	}
 
 	private function readBoundedIntAuto(int $min, int $max) : int{
@@ -192,16 +178,6 @@ final class RuntimeDataReader implements RuntimeDataDescriber{
 		}
 
 		$connections = $result;
-	}
-
-	/**
-	 * @param BrewingStandSlot[] $slots
-	 * @phpstan-param array<int, BrewingStandSlot> $slots
-	 *
-	 * @deprecated Use {@link enumSet()} instead.
-	 */
-	public function brewingStandSlots(array &$slots) : void{
-		$this->enumSet($slots, BrewingStandSlot::cases());
 	}
 
 	public function railShape(int &$railShape) : void{

@@ -34,12 +34,18 @@ use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResp
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponseContainerInfo;
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponseSlotInfo;
 use pocketmine\utils\AssumptionFailedError;
+use pocketmine\utils\Utils;
 
 final class ItemStackResponseBuilder{
 
 	/**
-	 * @var int[][]
-	 * @phpstan-var array<int, array<int, int>>
+	 * @var FullContainerName[] container key => container name
+	 * @phpstan-var array<string, FullContainerName>
+	 */
+	private array $changedContainers = [];
+	/**
+	 * @var int[][] container key => slot IDs
+	 * @phpstan-var array<string, array<int, int>>
 	 */
 	private array $changedSlots = [];
 
@@ -48,16 +54,25 @@ final class ItemStackResponseBuilder{
 		private InventoryManager $inventoryManager
 	){}
 
-	public function addSlot(int $containerInterfaceId, int $slotId) : void{
-		$this->changedSlots[$containerInterfaceId][$slotId] = $slotId;
+	public function addSlot(FullContainerName $containerName, int $slotId) : void{
+		//bundles all share the same container ID, so the dynamic ID has to be part of the key to tell them apart
+		$key = $containerName->getContainerId() . ":" . ($containerName->getDynamicId() ?? "");
+		$this->changedContainers[$key] = $containerName;
+		$this->changedSlots[$key][$slotId] = $slotId;
 	}
 
 	/**
 	 * @phpstan-return array{Inventory, int}
 	 */
-	private function getInventoryAndSlot(int $containerInterfaceId, int $slotId) : ?array{
-		[$windowId, $slotId] = ItemStackContainerIdTranslator::translate($containerInterfaceId, $this->inventoryManager->getCurrentWindowId(), $slotId);
-		$windowAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slotId);
+	private function getInventoryAndSlot(FullContainerName $containerName, int $slotId) : ?array{
+		$containerInterfaceId = $containerName->getContainerId();
+		if($containerInterfaceId === ContainerUIIds::DYNAMIC){
+			$bundleId = $containerName->getDynamicId();
+			$windowAndSlot = $bundleId !== null ? $this->inventoryManager->locateBundleSlot($bundleId, $slotId) : null;
+		}else{
+			[$windowId, $slotId] = ItemStackContainerIdTranslator::translate($containerInterfaceId, $this->inventoryManager->getCurrentWindowId(), $slotId);
+			$windowAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slotId);
+		}
 		if($windowAndSlot === null){
 			return null;
 		}
@@ -71,12 +86,13 @@ final class ItemStackResponseBuilder{
 
 	public function build() : ItemStackResponse{
 		$responseInfosByContainer = [];
-		foreach($this->changedSlots as $containerInterfaceId => $slotIds){
-			if($containerInterfaceId === ContainerUIIds::CREATED_OUTPUT){
+		foreach(Utils::stringifyKeys($this->changedSlots) as $key => $slotIds){
+			$containerName = $this->changedContainers[$key];
+			if($containerName->getContainerId() === ContainerUIIds::CREATED_OUTPUT){
 				continue;
 			}
 			foreach($slotIds as $slotId){
-				$inventoryAndSlot = $this->getInventoryAndSlot($containerInterfaceId, $slotId);
+				$inventoryAndSlot = $this->getInventoryAndSlot($containerName, $slotId);
 				if($inventoryAndSlot === null){
 					//a plugin may have closed the inventory during an event, or the slot may have been invalid
 					continue;
@@ -89,7 +105,7 @@ final class ItemStackResponseBuilder{
 				}
 				$item = $inventory->getItem($slot);
 
-				$responseInfosByContainer[$containerInterfaceId][] = new ItemStackResponseSlotInfo(
+				$responseInfosByContainer[$key][] = new ItemStackResponseSlotInfo(
 					$slotId,
 					$slotId,
 					$item->getCount(),
@@ -102,8 +118,8 @@ final class ItemStackResponseBuilder{
 		}
 
 		$responseContainerInfos = [];
-		foreach($responseInfosByContainer as $containerInterfaceId => $responseInfos){
-			$responseContainerInfos[] = new ItemStackResponseContainerInfo(new FullContainerName($containerInterfaceId), $responseInfos);
+		foreach(Utils::stringifyKeys($responseInfosByContainer) as $key => $responseInfos){
+			$responseContainerInfos[] = new ItemStackResponseContainerInfo($this->changedContainers[$key], $responseInfos);
 		}
 
 		return new ItemStackResponse(ItemStackResponse::RESULT_OK, $this->requestId, $responseContainerInfos);

@@ -75,6 +75,7 @@ final class VanillaItems{
 	private static Item $_mBREEZE_ROD;
 	private static Item $_mBRICK;
 	private static Bucket $_mBUCKET;
+	private static Bundle $_mBUNDLE;
 	private static Carrot $_mCARROT;
 	private static Armor $_mCHAINMAIL_BOOTS;
 	private static Armor $_mCHAINMAIL_CHESTPLATE;
@@ -473,6 +474,7 @@ final class VanillaItems{
 			"breeze_rod" => fn(Item $v) => self::$_mBREEZE_ROD = $v,
 			"brick" => fn(Item $v) => self::$_mBRICK = $v,
 			"bucket" => fn(Bucket $v) => self::$_mBUCKET = $v,
+			"bundle" => fn(Bundle $v) => self::$_mBUNDLE = $v,
 			"carrot" => fn(Carrot $v) => self::$_mCARROT = $v,
 			"chainmail_boots" => fn(Armor $v) => self::$_mCHAINMAIL_BOOTS = $v,
 			"chainmail_chestplate" => fn(Armor $v) => self::$_mCHAINMAIL_CHESTPLATE = $v,
@@ -1013,6 +1015,11 @@ final class VanillaItems{
 	public static function BUCKET() : Bucket{
 		if(!isset(self::$_mBUCKET)){ self::init(); }
 		return clone self::$_mBUCKET;
+	}
+
+	public static function BUNDLE() : Bundle{
+		if(!isset(self::$_mBUNDLE)){ self::init(); }
+		return clone self::$_mBUNDLE;
 	}
 
 	public static function CARROT() : Carrot{

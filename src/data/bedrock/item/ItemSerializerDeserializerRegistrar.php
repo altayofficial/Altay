@@ -42,6 +42,7 @@ use pocketmine\data\bedrock\PotionTypeIdMap;
 use pocketmine\data\bedrock\PotterySherdTypeIdMap;
 use pocketmine\data\bedrock\SuspiciousStewTypeIdMap;
 use pocketmine\item\Banner;
+use pocketmine\item\Bundle;
 use pocketmine\item\Cushion;
 use pocketmine\item\Harness;
 use pocketmine\item\Dye;
@@ -650,6 +651,16 @@ final class ItemSerializerDeserializerRegistrar{
 			$this->deserializer?->map($id, fn() => Items::CUSHION()->setColor($color));
 		}
 		$this->serializer?->map(Items::CUSHION(), fn(Cushion $item) => new Data("minecraft:" . strtolower($item->getColor()->name) . "_cushion"));
+		//bundles are the same again, except the plain one has no colour in its id at all
+		$this->deserializer?->map(Ids::BUNDLE, fn() => Items::BUNDLE());
+		foreach(DyeColor::cases() as $color){
+			$id = "minecraft:" . strtolower($color->name) . "_bundle";
+			$this->deserializer?->map($id, fn() => Items::BUNDLE()->setColor($color));
+		}
+		$this->serializer?->map(Items::BUNDLE(), function(Bundle $item) : Data{
+			$color = $item->getColor();
+			return new Data($color === null ? Ids::BUNDLE : "minecraft:" . strtolower($color->name) . "_bundle");
+		});
 		//same deal for harnesses, one id per colour
 		foreach(DyeColor::cases() as $color){
 			$id = "minecraft:" . strtolower($color->name) . "_harness";

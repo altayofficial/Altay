@@ -107,6 +107,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("armadillo_scute", fn(IID $id) => new Item($id, "Armadillo Scute"));
 		self::register("armor_stand", fn(IID $id) => new ArmorStand($id, "Armor Stand"));
 		self::register("arrow", fn(IID $id) => new Arrow($id, "Arrow"));
+		self::register("bundle", fn(IID $id) => new Bundle($id, "Bundle"));
 		self::register("cushion", fn(IID $id) => new Cushion($id, "Cushion"));
 		self::register("harness", fn(IID $id) => new Harness($id, "Harness"));
 		self::register("baked_potato", fn(IID $id) => new BakedPotato($id, "Baked Potato"));

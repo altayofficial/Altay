@@ -38,6 +38,7 @@ use pocketmine\data\bedrock\BedrockDataFiles;
 use pocketmine\data\bedrock\item\BlockItemIdMap;
 use pocketmine\data\bedrock\item\ItemTypeNames;
 use pocketmine\data\SavedDataLoadingException;
+use pocketmine\item\Bundle;
 use pocketmine\item\Item;
 use pocketmine\item\VanillaItems;
 use pocketmine\nbt\LittleEndianNbtSerializer;
@@ -270,6 +271,9 @@ class TypeConverter{
 	 */
 	protected function cleanupUnnecessaryItemNBT(CompoundTag $original) : CompoundTag{
 		$tag = clone $original;
+		//bundle contents go out separately and only to the player holding the bundle, so nobody else gets to see them.
+		//no hash for this one, a bundle never stacks so there's nothing it could be mixed up with
+		$tag->removeTag(Bundle::TAG_CONTENTS);
 		$anythingStripped = false;
 		foreach([
 			$this->stripContainedItemNonVisualNBT($tag),

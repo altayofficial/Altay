@@ -25,6 +25,18 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use pocketmine\block\Block;
+use pocketmine\block\Liquid;
+use pocketmine\block\Water;
+use pocketmine\entity\Location;
+use pocketmine\entity\object\Boat as BoatEntity;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
+use pocketmine\math\Vector3;
+use pocketmine\player\Player;
+use function count;
+use function fmod;
+
 class Boat extends Item{
 	private BoatType $boatType;
 
@@ -45,5 +57,32 @@ class Boat extends Item{
 		return 1;
 	}
 
-	//TODO
+	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
+		if($blockClicked instanceof Water){
+			//dropped on top of the water, the boat sinks in to its floating height by itself
+			$pos = $blockClicked->getPosition()->add(0.5, 1, 0.5);
+		}elseif($face === Facing::UP && $blockReplace->canBeReplaced() && !$blockReplace instanceof Liquid){
+			$pos = $blockReplace->getPosition()->add(0.5, 0, 0.5);
+		}else{
+			return ItemUseResult::NONE;
+		}
+
+		$world = $player->getWorld();
+		$halfWidth = BoatEntity::WIDTH / 2;
+		$boundingBox = new AxisAlignedBB(
+			$pos->x - $halfWidth, $pos->y, $pos->z - $halfWidth,
+			$pos->x + $halfWidth, $pos->y + BoatEntity::HEIGHT, $pos->z + $halfWidth
+		);
+		if(count($world->getCollisionBlocks($boundingBox)) > 0){
+			return ItemUseResult::NONE;
+		}
+
+		//the boat model points sideways compared to the rider, so it gets turned a quarter to face where the player looks
+		$yaw = fmod($player->getLocation()->getYaw() + 90, 360);
+		$boat = new BoatEntity(Location::fromObject($pos, $world, $yaw, 0.0), $this->boatType);
+		$boat->spawnToAll();
+
+		$this->pop();
+		return ItemUseResult::SUCCESS;
+	}
 }

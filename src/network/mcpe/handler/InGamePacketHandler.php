@@ -35,6 +35,7 @@ use pocketmine\block\utils\SignText;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\Attribute;
 use pocketmine\entity\InvalidSkinException;
+use pocketmine\entity\object\Boat;
 use pocketmine\entity\Living;
 use pocketmine\event\player\PlayerEditBookEvent;
 use pocketmine\inventory\transaction\action\DropItemAction;
@@ -196,6 +197,37 @@ class InGamePacketHandler extends PacketHandler{
 		return null;
 	}
 
+	/**
+	 * While driving a boat the client simulates it itself, and the position in the packet is the boat's rather
+	 * than the player's.
+	 */
+	private function handleClientPredictedVehicle(PlayerAuthInputPacket $packet) : void{
+		$vehicle = $this->player->getVehicle();
+		if(!$vehicle instanceof Boat || $packet->getPredictedVehicleActorUniqueId() !== $vehicle->getId()){
+			return;
+		}
+
+		$rotation = $packet->getVehicleRotation();
+		//hmm, x is the pitch and y the yaw here, the reverse of what you'd guess
+		$yaw = $rotation !== null ? $rotation->getY() : $packet->getYaw();
+		if(is_infinite($yaw) || is_nan($yaw)){
+			return;
+		}
+
+		$inputFlags = $packet->getInputFlags();
+		$paddleLeft = $inputFlags->get(PlayerAuthInputFlags::PADDLING_LEFT);
+		$paddleRight = $inputFlags->get(PlayerAuthInputFlags::PADDLING_RIGHT);
+		if(!$paddleLeft && !$paddleRight){
+			//only touch controls send the paddle flags, everyone else steers with the move vector like on java:
+			//turning one way rows with the oar on the other side
+			$forward = $packet->getMoveVecZ() > 0;
+			$paddleLeft = $forward || $packet->getMoveVecX() < 0;
+			$paddleRight = $forward || $packet->getMoveVecX() > 0;
+		}
+
+		$vehicle->handleRiderInput($this->player, $packet->getPosition(), $yaw, $paddleLeft, $paddleRight);
+	}
+
 	public function handlePlayerAuthInput(PlayerAuthInputPacket $packet) : bool{
 		$rawPos = $packet->getPosition();
 		$rawYaw = $packet->getYaw();
@@ -271,6 +303,10 @@ class InGamePacketHandler extends PacketHandler{
 			if($inputFlags->get(PlayerAuthInputFlags::MISSED_SWING)){
 				$this->player->missSwing();
 			}
+		}
+
+		if($inputFlags->get(PlayerAuthInputFlags::IN_CLIENT_PREDICTED_VEHICLE)){
+			$this->handleClientPredictedVehicle($packet);
 		}
 
 		if(!$this->forceMoveSync && $hasMoved){

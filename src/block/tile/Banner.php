@@ -34,7 +34,7 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ListTag;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\BaseBanner
  */
 class Banner extends Spawnable{

@@ -32,7 +32,7 @@ use pocketmine\network\mcpe\convert\TypeConverter;
 use function count;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\Lectern
  */
 class Lectern extends Spawnable{

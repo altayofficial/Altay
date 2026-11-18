@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\block\tile;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\ItemFrame
  */
 final class GlowingItemFrame extends ItemFrame{

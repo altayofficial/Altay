@@ -30,7 +30,7 @@ use pocketmine\block\utils\CopperGolemStatuePose;
 use pocketmine\nbt\tag\CompoundTag;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\CopperGolemStatue
  */
 class CopperGolemStatue extends Spawnable{

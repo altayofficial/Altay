@@ -29,7 +29,7 @@ use pocketmine\block\RedstoneComparator;
 use pocketmine\nbt\tag\CompoundTag;
 
 /**
- * @deprecated
+ * @internal
  * @see RedstoneComparator
  */
 class Comparator extends Tile{

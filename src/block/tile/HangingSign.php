@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\block\tile;
 
 /**
- * @deprecated
+ * @internal
  */
 final class HangingSign extends Sign{
 

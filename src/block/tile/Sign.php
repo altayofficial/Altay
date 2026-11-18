@@ -34,16 +34,13 @@ use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\utils\Binary;
 use pocketmine\world\World;
-use function array_pad;
-use function array_slice;
-use function explode;
 use function implode;
 use function mb_scrub;
 use function rtrim;
 use function sprintf;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\BaseSign
  */
 class Sign extends Spawnable{
@@ -62,14 +59,6 @@ class Sign extends Spawnable{
 	public const TAG_BACK_TEXT = "BackText"; //TAG_Compound
 	public const TAG_WAXED = "IsWaxed"; //TAG_Byte
 	public const TAG_LOCKED_FOR_EDITING_BY = "LockedForEditingBy"; //TAG_Long
-
-	/**
-	 * @return string[]
-	 * @deprecated
-	 */
-	public static function fixTextBlob(string $blob) : array{
-		return array_slice(array_pad(explode("\n", $blob, limit: 5), 4, ""), 0, 4);
-	}
 
 	protected SignText $text;
 	protected SignText $backText;

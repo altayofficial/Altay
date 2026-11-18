@@ -274,9 +274,18 @@ abstract class Projectile extends Entity{
 	}
 
 	/**
-	 * Called when the projectile collides with an Entity.
+	 * Called when the projectile collides with an Entity. By default, this damages the entity and despawns the
+	 * projectile. Override it and call {@link Projectile::damageHitEntity()} if the projectile should stay alive.
 	 */
 	protected function onHitEntity(Entity $entityHit, RayTraceResult $hitResult) : void{
+		$this->damageHitEntity($entityHit);
+		$this->flagForDespawn();
+	}
+
+	/**
+	 * Deals this projectile's damage to the entity it hit, setting it on fire if the projectile is burning.
+	 */
+	protected function damageHitEntity(Entity $entityHit) : void{
 		$damage = $this->getResultDamage();
 
 		if($damage >= 0){
@@ -297,10 +306,6 @@ abstract class Projectile extends Entity{
 				}
 			}
 		}
-
-		if($this->despawnsOnEntityHit()){
-			$this->flagForDespawn();
-		}
 	}
 
 	/**
@@ -309,12 +314,5 @@ abstract class Projectile extends Entity{
 	protected function onHitBlock(Block $blockHit, RayTraceResult $hitResult) : void{
 		$this->blockHit = $blockHit->getPosition()->asVector3();
 		$blockHit->onProjectileHit($this, $hitResult);
-	}
-
-	/**
-	 * @deprecated This will be dropped in favor of deciding whether to despawn within `onHitEntity()` method.
-	 */
-	protected function despawnsOnEntityHit() : bool{
-		return true;
 	}
 }

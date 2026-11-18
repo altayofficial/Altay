@@ -403,8 +403,14 @@ final class ItemTypeIds{
 	public const FLOW_ARMOR_TRIM_SMITHING_TEMPLATE = 20362;
 	public const CROSSBOW = 20363;
 	public const HARNESS = 20364;
+	public const LEATHER_HORSE_ARMOR = 20365;
+	public const COPPER_HORSE_ARMOR = 20366;
+	public const IRON_HORSE_ARMOR = 20367;
+	public const GOLDEN_HORSE_ARMOR = 20368;
+	public const DIAMOND_HORSE_ARMOR = 20369;
+	public const NETHERITE_HORSE_ARMOR = 20370;
 
-	public const FIRST_UNUSED_ITEM_ID = 20365;
+	public const FIRST_UNUSED_ITEM_ID = 20371;
 
 	private static int $nextDynamicId = self::FIRST_UNUSED_ITEM_ID;
 

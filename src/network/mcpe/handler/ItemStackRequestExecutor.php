@@ -131,8 +131,14 @@ class ItemStackRequestExecutor{
 	 * @throws ItemStackRequestProcessException
 	 */
 	protected function getBuilderInventoryAndSlot(ItemStackRequestSlotInfo $info) : array{
-		[$windowId, $slotId] = ItemStackContainerIdTranslator::translate($info->getContainerName()->getContainerId(), $this->inventoryManager->getCurrentWindowId(), $info->getSlotId());
-		$windowAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slotId);
+		$containerName = $info->getContainerName();
+		if($containerName->getContainerId() === ContainerUIIds::DYNAMIC){
+			$bundleId = $containerName->getDynamicId() ?? throw new ItemStackRequestProcessException("Dynamic container is missing its ID");
+			$windowAndSlot = $this->inventoryManager->locateBundleSlot($bundleId, $info->getSlotId());
+		}else{
+			[$windowId, $slotId] = ItemStackContainerIdTranslator::translate($containerName->getContainerId(), $this->inventoryManager->getCurrentWindowId(), $info->getSlotId());
+			$windowAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slotId);
+		}
 		if($windowAndSlot === null){
 			throw new ItemStackRequestProcessException("No open inventory matches container UI ID: " . $info->getContainerName()->getContainerId() . ", slot ID: " . $info->getSlotId());
 		}
@@ -519,7 +525,7 @@ class ItemStackRequestExecutor{
 	public function getItemStackResponseBuilder() : ItemStackResponseBuilder{
 		$builder = new ItemStackResponseBuilder($this->request->getRequestId(), $this->inventoryManager);
 		foreach($this->requestSlotInfos as $requestInfo){
-			$builder->addSlot($requestInfo->getContainerName()->getContainerId(), $requestInfo->getSlotId());
+			$builder->addSlot($requestInfo->getContainerName(), $requestInfo->getSlotId());
 		}
 
 		return $builder;

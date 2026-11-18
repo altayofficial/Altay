@@ -39,12 +39,15 @@ use pocketmine\block\inventory\StonecutterInventory;
 use pocketmine\block\tile\Container;
 use pocketmine\crafting\FurnaceType;
 use pocketmine\data\bedrock\EnchantmentIdMap;
+use pocketmine\inventory\BundleInventory;
+use pocketmine\inventory\CallbackInventoryListener;
 use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\inventory\transaction\CraftingTransaction;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\item\enchantment\EnchantingOption;
 use pocketmine\item\enchantment\EnchantmentInstance;
+use pocketmine\item\Bundle;
 use pocketmine\item\Item;
 use pocketmine\network\mcpe\cache\CreativeInventoryCache;
 use pocketmine\network\mcpe\protocol\ClientboundPacket;
@@ -59,6 +62,7 @@ use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\types\Enchant;
 use pocketmine\network\mcpe\protocol\types\EnchantOption as ProtocolEnchantOption;
 use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
+use pocketmine\network\mcpe\protocol\types\inventory\ContainerUIIds;
 use pocketmine\network\mcpe\protocol\types\inventory\FullContainerName;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStack;
 use pocketmine\network\mcpe\protocol\types\inventory\ItemStackWrapper;
@@ -71,6 +75,7 @@ use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\Binary;
 use pocketmine\utils\ObjectSet;
 use function array_fill_keys;
+use function array_key_first;
 use function array_keys;
 use function array_map;
 use function array_search;
@@ -85,6 +90,9 @@ use function spl_object_id;
  * @phpstan-type ContainerOpenClosure \Closure(int $id, Inventory $inventory) : (list<ClientboundPacket>|null)
  */
 class InventoryManager{
+	/** The client looks up a bundle's contents by this ID, which only has to make sense for the current session. */
+	private const TAG_BUNDLE_ID = "bundle_id"; //TAG_Int
+
 	/**
 	 * @var InventoryManagerEntry[] spl_object_id(Inventory) => InventoryManagerEntry
 	 * @phpstan-var array<int, InventoryManagerEntry>
@@ -118,6 +126,23 @@ class InventoryManager{
 	private ?int $currentItemStackRequestId = null;
 
 	private bool $fullSyncRequested = false;
+
+	/**
+	 * @var BundleInventory[] bundle network ID => contents of the bundle
+	 * @phpstan-var array<int, BundleInventory>
+	 */
+	private array $bundleInventories = [];
+	/**
+	 * @var int[][] spl_object_id(holder inventory) => slot => bundle network ID
+	 * @phpstan-var array<int, array<int, int>>
+	 */
+	private array $bundleIdsByHolderSlot = [];
+	/**
+	 * @var true[] bundle network ID => dummy
+	 * @phpstan-var array<int, true>
+	 */
+	private array $pendingBundleSyncs = [];
+	private int $nextBundleId = 1;
 
 	/** @var int[] network recipe ID => enchanting table option index */
 	private array $enchantingTableOptions = [];
@@ -198,6 +223,7 @@ class InventoryManager{
 		unset($this->networkIdToInventoryMap[$id]);
 		if($this->getWindowId($inventory) === null){
 			unset($this->inventories[spl_object_id($inventory)]);
+			$this->forgetBundlesHeldBy($inventory);
 			foreach($this->complexSlotToInventoryMap as $netSlot => $entry){
 				if($entry->getInventory() === $inventory){
 					unset($this->complexSlotToInventoryMap[$netSlot]);
@@ -234,13 +260,27 @@ class InventoryManager{
 		return null;
 	}
 
+	/**
+	 * Finds a slot inside a bundle the client knows about.
+	 *
+	 * @phpstan-return array{Inventory, int}|null
+	 */
+	public function locateBundleSlot(int $bundleId, int $slot) : ?array{
+		$inventory = $this->bundleInventories[$bundleId] ?? null;
+		return $inventory !== null && $inventory->getBundle() !== null && $inventory->slotExists($slot) ? [$inventory, $slot] : null;
+	}
+
 	private function addPredictedSlotChangeInternal(Inventory $inventory, int $slot, ItemStack $item) : void{
 		$this->inventories[spl_object_id($inventory)]->predictions[$slot] = $item;
 	}
 
 	public function addPredictedSlotChange(Inventory $inventory, int $slot, Item $item) : void{
-		$typeConverter = $this->session->getTypeConverter();
-		$itemStack = $typeConverter->coreItemStackToNet($item);
+		if($item instanceof Bundle){
+			//yeah, a bundle never counts as predicted: its network ID belongs to the slot, so one that moved to another
+			//slot gets a new ID the client hasn't heard of yet and has to be sent again anyway
+			return;
+		}
+		$itemStack = $this->itemToNet($inventory, $slot, $item);
 		$this->addPredictedSlotChangeInternal($inventory, $slot, $itemStack);
 	}
 
@@ -515,7 +555,18 @@ class InventoryManager{
 			//is cleared before removal.
 			return;
 		}
-		$currentItem = $this->session->getTypeConverter()->coreItemStackToNet($inventory->getItem($slot));
+		$bundleId = $this->bundleIdsByHolderSlot[spl_object_id($inventory)][$slot] ?? null;
+		if($bundleId !== null && $this->bundleInventories[$bundleId]->isUpdatingBundle()){
+			//the change came in through the bundle's own inventory, which syncs itself, and the bundle item looks
+			//exactly the same on the network as it did before
+			return;
+		}
+		$currentItem = $this->itemToNet($inventory, $slot, $inventory->getItem($slot));
+		$bundleId = $this->bundleIdsByHolderSlot[spl_object_id($inventory)][$slot] ?? null;
+		if($bundleId !== null){
+			//someone swapped or edited the bundle directly, so whatever the client thinks is inside is out of date
+			$this->pendingBundleSyncs[$bundleId] = true;
+		}
 		$clientSideItem = $inventoryEntry->predictions[$slot] ?? null;
 		if($clientSideItem === null || !$this->itemStacksEqual($currentItem, $clientSideItem)){
 			//no prediction or incorrect - do not associate this with the currently active itemstack request
@@ -588,6 +639,18 @@ class InventoryManager{
 		if($itemStackInfo === null){
 			throw new \LogicException("Cannot sync an untracked inventory slot");
 		}
+		if($inventory instanceof BundleInventory){
+			$this->session->sendDataPacket(InventorySlotPacket::create(
+				ContainerIds::CONTAINER_ID_REGISTRY,
+				$slot,
+				$this->getBundleContainerName($inventory),
+				$this->getBundleStorageItem($inventory),
+				new ItemStackWrapper($itemStackInfo->getStackId(), $itemStack)
+			));
+			unset($entry->predictions[$slot], $entry->pendingSyncs[$slot]);
+			$this->flushPendingBundleSyncs();
+			return;
+		}
 		if($entry->complexSlotMap !== null){
 			$windowId = ContainerIds::UI;
 			$netSlot = $entry->complexSlotMap->mapCoreToNet($slot) ?? throw new AssumptionFailedError("We already have an ItemStackInfo, so this should not be null");
@@ -608,6 +671,7 @@ class InventoryManager{
 			$this->sendInventorySlotPackets($windowId, $netSlot, $itemStackWrapper);
 		}
 		unset($entry->predictions[$slot], $entry->pendingSyncs[$slot]);
+		$this->flushPendingBundleSyncs();
 	}
 
 	public function syncContents(Inventory $inventory) : void{
@@ -615,6 +679,10 @@ class InventoryManager{
 		if($entry === null){
 			//this can happen when an inventory changed during InventoryCloseEvent, or when a temporary inventory
 			//is cleared before removal.
+			return;
+		}
+		if($inventory instanceof BundleInventory){
+			$this->syncBundleContents($entry, $inventory);
 			return;
 		}
 		if($entry->complexSlotMap !== null){
@@ -626,9 +694,8 @@ class InventoryManager{
 			$entry->predictions = [];
 			$entry->pendingSyncs = [];
 			$contents = [];
-			$typeConverter = $this->session->getTypeConverter();
 			foreach($inventory->getContents(true) as $slot => $item){
-				$itemStack = $typeConverter->coreItemStackToNet($item);
+				$itemStack = $this->itemToNet($inventory, $slot, $item);
 				$info = $this->trackItemStack($entry, $slot, $itemStack, null);
 				$contents[] = new ItemStackWrapper($info->getStackId(), $itemStack);
 			}
@@ -643,6 +710,7 @@ class InventoryManager{
 			}else{
 				$this->sendInventoryContentPackets($windowId, $contents);
 			}
+			$this->flushPendingBundleSyncs();
 		}
 	}
 
@@ -657,7 +725,6 @@ class InventoryManager{
 	}
 
 	public function syncMismatchedPredictedSlotChanges() : void{
-		$typeConverter = $this->session->getTypeConverter();
 		foreach($this->inventories as $entry){
 			$inventory = $entry->inventory;
 			foreach($entry->predictions as $slot => $expectedItem){
@@ -667,7 +734,7 @@ class InventoryManager{
 
 				//any prediction that still exists at this point is a slot that was predicted to change but didn't
 				$this->session->getLogger()->debug("Detected prediction mismatch in inventory " . get_class($inventory) . "#" . spl_object_id($inventory) . " slot $slot");
-				$entry->pendingSyncs[$slot] = $typeConverter->coreItemStackToNet($inventory->getItem($slot));
+				$entry->pendingSyncs[$slot] = $this->itemToNet($inventory, $slot, $inventory->getItem($slot));
 			}
 
 			$entry->predictions = [];
@@ -681,7 +748,8 @@ class InventoryManager{
 			$this->syncAll();
 		}else{
 			foreach($this->inventories as $entry){
-				if(count($entry->pendingSyncs) === 0){
+				if(count($entry->pendingSyncs) === 0 || !isset($this->inventories[spl_object_id($entry->inventory)])){
+					//the second check is for bundles that were forgotten while syncing something earlier in this loop
 					continue;
 				}
 				$inventory = $entry->inventory;
@@ -692,6 +760,7 @@ class InventoryManager{
 				$entry->pendingSyncs = [];
 			}
 		}
+		$this->flushPendingBundleSyncs();
 	}
 
 	public function syncData(Inventory $inventory, int $propertyId, int $value) : void{
@@ -720,7 +789,7 @@ class InventoryManager{
 
 			$this->session->sendDataPacket(MobEquipmentPacket::create(
 				$this->player->getId(),
-				new ItemStackWrapper($itemStackInfo->getStackId(), $this->session->getTypeConverter()->coreItemStackToNet($playerInventory->getItemInHand())),
+				new ItemStackWrapper($itemStackInfo->getStackId(), $this->itemToNet($playerInventory, $selected, $playerInventory->getItemInHand())),
 				$selected,
 				$selected,
 				ContainerIds::INVENTORY
@@ -765,6 +834,131 @@ class InventoryManager{
 
 	public function getEnchantingTableOptionIndex(int $recipeId) : ?int{
 		return $this->enchantingTableOptions[$recipeId] ?? null;
+	}
+
+	/**
+	 * Converts an item in a tracked slot for the network. Bundles get tagged with the ID the client uses to find
+	 * their contents, and the contents themselves are left out since those are sent separately.
+	 */
+	private function itemToNet(Inventory $inventory, int $slot, Item $item) : ItemStack{
+		$typeConverter = $this->session->getTypeConverter();
+		if(!$item instanceof Bundle){
+			$this->forgetBundle($inventory, $slot);
+			return $typeConverter->coreItemStackToNet($item);
+		}
+
+		$netItem = (clone $item)->setContents([]);
+		$tag = $netItem->getNamedTag();
+		$tag->setInt(self::TAG_BUNDLE_ID, $this->getBundleId($inventory, $slot));
+		$netItem->setNamedTag($tag);
+		return $typeConverter->coreItemStackToNet($netItem);
+	}
+
+	/**
+	 * Returns the network ID of the bundle in the given slot, giving it one if it doesn't have one yet. The ID goes
+	 * with the slot rather than with the bundle, because items get copied around too much to keep track of which
+	 * bundle is which.
+	 */
+	private function getBundleId(Inventory $holder, int $slot) : int{
+		$holderId = spl_object_id($holder);
+		if(isset($this->bundleIdsByHolderSlot[$holderId][$slot])){
+			return $this->bundleIdsByHolderSlot[$holderId][$slot];
+		}
+
+		$bundleId = $this->nextBundleId++;
+		$inventory = new BundleInventory($holder, $slot);
+		$inventory->getListeners()->add(new CallbackInventoryListener(
+			function(Inventory $unused, int $slot) use ($inventory) : void{
+				$this->onSlotChange($inventory, $slot);
+			},
+			function(Inventory $unused) use ($inventory) : void{
+				$this->syncContents($inventory);
+			}
+		));
+		$this->inventories[spl_object_id($inventory)] = new InventoryManagerEntry($inventory);
+		$this->bundleInventories[$bundleId] = $inventory;
+		$this->bundleIdsByHolderSlot[$holderId][$slot] = $bundleId;
+		$this->pendingBundleSyncs[$bundleId] = true;
+
+		return $bundleId;
+	}
+
+	private function forgetBundle(Inventory $holder, int $slot) : void{
+		$holderId = spl_object_id($holder);
+		$bundleId = $this->bundleIdsByHolderSlot[$holderId][$slot] ?? null;
+		if($bundleId === null){
+			return;
+		}
+		unset($this->bundleIdsByHolderSlot[$holderId][$slot]);
+		if(count($this->bundleIdsByHolderSlot[$holderId]) === 0){
+			unset($this->bundleIdsByHolderSlot[$holderId]);
+		}
+		$this->forgetBundleInventory($bundleId);
+	}
+
+	private function forgetBundlesHeldBy(Inventory $holder) : void{
+		$bundleIds = $this->bundleIdsByHolderSlot[spl_object_id($holder)] ?? [];
+		unset($this->bundleIdsByHolderSlot[spl_object_id($holder)]);
+		foreach($bundleIds as $bundleId){
+			$this->forgetBundleInventory($bundleId);
+		}
+	}
+
+	private function forgetBundleInventory(int $bundleId) : void{
+		$inventory = $this->bundleInventories[$bundleId];
+		unset($this->bundleInventories[$bundleId], $this->pendingBundleSyncs[$bundleId], $this->inventories[spl_object_id($inventory)]);
+		$inventory->getListeners()->clear();
+		//bundles can be nested, and the ones inside go away with the one holding them
+		$this->forgetBundlesHeldBy($inventory);
+	}
+
+	private function getBundleContainerName(BundleInventory $inventory) : FullContainerName{
+		$bundleId = array_search($inventory, $this->bundleInventories, true);
+		if($bundleId === false){
+			throw new AssumptionFailedError("Bundle inventory should be tracked");
+		}
+		return new FullContainerName(ContainerUIIds::DYNAMIC, $bundleId);
+	}
+
+	private function getBundleStorageItem(BundleInventory $inventory) : ItemStackWrapper{
+		$holder = $inventory->getHolder();
+		$slot = $inventory->getHolderSlot();
+		return new ItemStackWrapper(
+			$this->getItemStackInfo($holder, $slot)?->getStackId() ?? 0,
+			$this->itemToNet($holder, $slot, $holder->getItem($slot))
+		);
+	}
+
+	private function syncBundleContents(InventoryManagerEntry $entry, BundleInventory $inventory) : void{
+		$entry->predictions = [];
+		$entry->pendingSyncs = [];
+		$contents = [];
+		//every slot gets tracked so the client can put things in the empty ones, but only the filled ones are sent,
+		//since a bundle has no gaps
+		foreach($inventory->getContents(true) as $slot => $item){
+			$itemStack = $this->itemToNet($inventory, $slot, $item);
+			$info = $this->trackItemStack($entry, $slot, $itemStack, null);
+			if(!$item->isNull()){
+				$contents[] = new ItemStackWrapper($info->getStackId(), $itemStack);
+			}
+		}
+		$containerName = $this->getBundleContainerName($inventory);
+		unset($this->pendingBundleSyncs[$containerName->getDynamicId() ?? throw new AssumptionFailedError("Bundle container names always have a dynamic ID")]);
+
+		$this->session->sendDataPacket(InventoryContentPacket::create(
+			ContainerIds::CONTAINER_ID_REGISTRY,
+			$contents,
+			$containerName,
+			$this->getBundleStorageItem($inventory)
+		));
+	}
+
+	private function flushPendingBundleSyncs() : void{
+		//sending one bundle can turn up more of them nested inside it, so keep going until there's nothing left
+		while(($bundleId = array_key_first($this->pendingBundleSyncs)) !== null){
+			$inventory = $this->bundleInventories[$bundleId];
+			$this->syncBundleContents($this->inventories[spl_object_id($inventory)], $inventory);
+		}
 	}
 
 	private function newItemStackId() : int{

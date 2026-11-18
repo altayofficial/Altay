@@ -91,6 +91,7 @@ use pocketmine\network\mcpe\protocol\SpawnExperienceOrbPacket;
 use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
+use pocketmine\network\mcpe\protocol\types\inventory\ContainerUIIds;
 use pocketmine\network\mcpe\protocol\types\inventory\MismatchTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
 use pocketmine\network\mcpe\protocol\types\inventory\NormalTransactionData;
@@ -382,6 +383,11 @@ class InGamePacketHandler extends PacketHandler{
 		//rejects the transaction. The most common example of this is equipping armor by right-click, which doesn't send
 		//a legacy prediction action for the destination armor slot.
 		foreach($packet->requestChangedSlots as $containerInfo){
+			if($containerInfo->getContainerId() === ContainerUIIds::DYNAMIC){
+				//there's no dynamic ID here to tell which bundle this is about, and legacy transactions can't touch
+				//bundles anyway
+				continue;
+			}
 			foreach($containerInfo->getChangedSlotIndexes() as $netSlot){
 				[$windowId, $slot] = ItemStackContainerIdTranslator::translate($containerInfo->getContainerId(), $this->inventoryManager->getCurrentWindowId(), $netSlot);
 				$inventoryAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slot);

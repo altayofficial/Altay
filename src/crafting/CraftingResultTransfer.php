@@ -26,12 +26,13 @@ declare(strict_types=1);
 namespace pocketmine\crafting;
 
 use pocketmine\block\tile\Container;
+use pocketmine\item\Bundle;
 use pocketmine\item\Item;
 use pocketmine\nbt\tag\CompoundTag;
 use function count;
 
 /**
- * Helper for recipes whose outputs must inherit container NBT from inputs (e.g. dyeing shulkers).
+ * Helper for recipes whose outputs must inherit container NBT from inputs (e.g. dyeing shulkers or bundles).
  * Shulker contents live under the root Items tag; we also mirror them into BlockEntityTag.
  */
 final class CraftingResultTransfer{
@@ -46,6 +47,8 @@ final class CraftingResultTransfer{
 	 * @phpstan-param array<int, Item> $results
 	 */
 	public static function transferContainerNamedTag(array $inputs, array $results) : void{
+		self::transferBundleContents($inputs, $results);
+
 		foreach($inputs as $input){
 			$inputTag = $input->getNamedTag();
 			$itemsTag = $inputTag->getTag(Container::TAG_ITEMS);
@@ -76,6 +79,28 @@ final class CraftingResultTransfer{
 				$lore = $input->getLore();
 				if(count($lore) > 0){
 					$result->setLore($lore);
+				}
+			}
+			return;
+		}
+	}
+
+	/**
+	 * Dyeing a bundle gives back a new one, so whatever was inside has to be carried over or it would vanish.
+	 *
+	 * @param Item[] $inputs
+	 * @param Item[] $results
+	 * @phpstan-param array<int, Item> $inputs
+	 * @phpstan-param array<int, Item> $results
+	 */
+	private static function transferBundleContents(array $inputs, array $results) : void{
+		foreach($inputs as $input){
+			if(!$input instanceof Bundle || $input->isEmpty()){
+				continue;
+			}
+			foreach($results as $result){
+				if($result instanceof Bundle){
+					$result->setContents($input->getContents());
 				}
 			}
 			return;

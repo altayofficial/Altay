@@ -1332,6 +1332,7 @@ final class StringToItemParser extends StringToTParser{
 		foreach(DyeColor::cases() as $color){
 			$prefix = fn(string $name) => strtolower($color->name) . "_" . $name;
 
+			$result->register($prefix("bundle"), fn() => Items::BUNDLE()->setColor($color));
 			$result->register($prefix("cushion"), fn() => Items::CUSHION()->setColor($color));
 			$result->register($prefix("dye"), fn() => Items::DYE()->setColor($color));
 			$result->register($prefix("harness"), fn() => Items::HARNESS()->setColor($color));
@@ -1474,6 +1475,7 @@ final class StringToItemParser extends StringToTParser{
 		$result->register("cooked_rabbit", fn() => Items::COOKED_RABBIT());
 		$result->register("cooked_salmon", fn() => Items::COOKED_SALMON());
 		$result->register("cookie", fn() => Items::COOKIE());
+		$result->register("bundle", fn() => Items::BUNDLE());
 		$result->register("cushion", fn() => Items::CUSHION());
 		$result->register("copper_axe", fn() => Items::COPPER_AXE());
 		$result->register("copper_boots", fn() => Items::COPPER_BOOTS());

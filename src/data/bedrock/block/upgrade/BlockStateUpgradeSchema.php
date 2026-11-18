@@ -86,8 +86,8 @@ final class BlockStateUpgradeSchema{
 	}
 
 	/**
-	 * @deprecated This is defined by Mojang, and therefore cannot be relied on. Use getSchemaId() instead for
-	 * internal version management.
+	 * @internal
+	 * This is defined by Mojang, and therefore cannot be relied on. Use getSchemaId() instead for version management.
 	 */
 	public function getVersionId() : int{
 		return $this->versionId;

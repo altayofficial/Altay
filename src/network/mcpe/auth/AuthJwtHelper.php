@@ -125,7 +125,7 @@ final class AuthJwtHelper{
 	}
 
 	/**
-	 * @deprecated
+	 * @internal
 	 * @throws VerifyLoginException if errors are encountered
 	 */
 	public static function validateLegacyAuthToken(string $jwt, ?string $expectedKeyDer) : LegacyAuthJwtBody{

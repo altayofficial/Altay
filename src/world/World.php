@@ -780,19 +780,6 @@ class World implements ChunkManager{
 	}
 
 	/**
-	 * @deprecated WARNING: This function has a misleading name. Contrary to what the name might imply, this function
-	 * DOES NOT return players who are IN a chunk, rather, it returns players who can SEE the chunk.
-	 *
-	 * Returns a list of players who have the target chunk within their view distance.
-	 *
-	 * @return Player[] spl_object_id => Player
-	 * @phpstan-return array<int, Player>
-	 */
-	public function getChunkPlayers(int $chunkX, int $chunkZ) : array{
-		return $this->playerChunkListeners[World::chunkHash($chunkX, $chunkZ)] ?? [];
-	}
-
-	/**
 	 * Gets the chunk loaders being used in a specific chunk
 	 *
 	 * @return ChunkLoader[]
@@ -809,7 +796,7 @@ class World implements ChunkManager{
 	 * @phpstan-return array<int, Player>
 	 */
 	public function getViewersForPosition(Vector3 $pos) : array{
-		return $this->getChunkPlayers($pos->getFloorX() >> Chunk::COORD_BIT_SIZE, $pos->getFloorZ() >> Chunk::COORD_BIT_SIZE);
+		return $this->playerChunkListeners[World::chunkHash($pos->getFloorX() >> Chunk::COORD_BIT_SIZE, $pos->getFloorZ() >> Chunk::COORD_BIT_SIZE)] ?? [];
 	}
 
 	/**
@@ -1045,7 +1032,7 @@ class World implements ChunkManager{
 					}
 					if(count($blocks) > 512){
 						$chunk = $this->getChunk($chunkX, $chunkZ) ?? throw new AssumptionFailedError("We already checked that the chunk is loaded");
-						foreach($this->getChunkPlayers($chunkX, $chunkZ) as $p){
+						foreach(($this->playerChunkListeners[$index] ?? []) as $p){
 							$p->onChunkChanged($chunkX, $chunkZ, $chunk);
 						}
 					}else{
@@ -1065,8 +1052,7 @@ class World implements ChunkManager{
 		}
 
 		foreach($this->packetBuffersByChunk as $index => $entries){
-			World::getXZ($index, $chunkX, $chunkZ);
-			$chunkPlayers = $this->getChunkPlayers($chunkX, $chunkZ);
+			$chunkPlayers = $this->playerChunkListeners[$index] ?? [];
 			if(count($chunkPlayers) > 0){
 				NetworkBroadcastUtils::broadcastPackets($chunkPlayers, $entries);
 			}
@@ -1729,25 +1715,6 @@ class World implements ChunkManager{
 						}
 					}
 				}
-			}
-		}
-
-		return $collides;
-	}
-
-	/**
-	 * @deprecated Use {@link World::getBlockCollisionBoxes()} instead (alongside {@link World::getCollidingEntities()}
-	 * if entity collision boxes are also required).
-	 *
-	 * @return AxisAlignedBB[]
-	 * @phpstan-return list<AxisAlignedBB>
-	 */
-	public function getCollisionBoxes(Entity $entity, AxisAlignedBB $bb, bool $entities = true) : array{
-		$collides = $this->getBlockCollisionBoxes($bb);
-
-		if($entities){
-			foreach($this->getCollidingEntities($bb->expandedCopy(0.25, 0.25, 0.25), $entity) as $ent){
-				$collides[] = clone $ent->boundingBox;
 			}
 		}
 

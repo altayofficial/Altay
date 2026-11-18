@@ -63,7 +63,6 @@ use pocketmine\event\world\WorldSaveEvent;
 use pocketmine\event\world\WorldSoundEvent;
 use pocketmine\item\Item;
 use pocketmine\item\ItemUseResult;
-use pocketmine\item\LegacyStringToItemParser;
 use pocketmine\item\StringToItemParser;
 use pocketmine\item\VanillaItems;
 use pocketmine\lang\KnownTranslationFactory;
@@ -2219,10 +2218,10 @@ class World implements ChunkManager{
 
 			if($player->isAdventure(true) && !$ev->isCancelled()){
 				$canBreak = false;
-				$itemParser = LegacyStringToItemParser::getInstance();
+				$itemParser = StringToItemParser::getInstance();
 				foreach($item->getCanDestroy() as $v){
 					$entry = $itemParser->parse($v);
-					if($entry->getBlock()->hasSameTypeId($target)){
+					if($entry !== null && $entry->getBlock()->hasSameTypeId($target)){
 						$canBreak = true;
 						break;
 					}
@@ -2379,10 +2378,10 @@ class World implements ChunkManager{
 
 			if($player->isAdventure(true) && !$ev->isCancelled()){
 				$canPlace = false;
-				$itemParser = LegacyStringToItemParser::getInstance();
+				$itemParser = StringToItemParser::getInstance();
 				foreach($item->getCanPlaceOn() as $v){
 					$entry = $itemParser->parse($v);
-					if($entry->getBlock()->hasSameTypeId($blockClicked)){
+					if($entry !== null && $entry->getBlock()->hasSameTypeId($blockClicked)){
 						$canPlace = true;
 						break;
 					}

@@ -28,8 +28,6 @@ namespace pocketmine\command\defaults;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
-use pocketmine\item\LegacyStringToItemParser;
-use pocketmine\item\LegacyStringToItemParserException;
 use pocketmine\item\StringToItemParser;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\nbt\JsonNbtParser;
@@ -65,9 +63,8 @@ class GiveCommand extends VanillaCommand{
 			return true;
 		}
 
-		try{
-			$item = StringToItemParser::getInstance()->parse($args[1]) ?? LegacyStringToItemParser::getInstance()->parse($args[1]);
-		}catch(LegacyStringToItemParserException $e){
+		$item = StringToItemParser::getInstance()->parse($args[1]);
+		if($item === null){
 			$sender->sendMessage(KnownTranslationFactory::commands_give_item_notFound($args[1])->prefix(TextFormat::RED));
 			return true;
 		}

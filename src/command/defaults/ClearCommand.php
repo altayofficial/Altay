@@ -30,8 +30,6 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\inventory\Inventory;
 use pocketmine\item\Item;
-use pocketmine\item\LegacyStringToItemParser;
-use pocketmine\item\LegacyStringToItemParserException;
 use pocketmine\item\StringToItemParser;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\permission\DefaultPermissionNames;
@@ -63,16 +61,15 @@ class ClearCommand extends VanillaCommand{
 		$targetItem = null;
 		$maxCount = -1;
 		if(isset($args[1])){
-			try{
-				$targetItem = StringToItemParser::getInstance()->parse($args[1]) ?? LegacyStringToItemParser::getInstance()->parse($args[1]);
-
-				if(isset($args[2])){
-					$targetItem->setCount($maxCount = $this->getInteger($sender, $args[2], -1));
-				}
-			}catch(LegacyStringToItemParserException $e){
+			$targetItem = StringToItemParser::getInstance()->parse($args[1]);
+			if($targetItem === null){
 				//vanilla checks this at argument parsing layer, can't come up with a better alternative
 				$sender->sendMessage(KnownTranslationFactory::commands_give_item_notFound($args[1])->prefix(TextFormat::RED));
 				return true;
+			}
+
+			if(isset($args[2])){
+				$targetItem->setCount($maxCount = $this->getInteger($sender, $args[2], -1));
 			}
 		}
 

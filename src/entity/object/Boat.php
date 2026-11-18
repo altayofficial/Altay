@@ -60,7 +60,7 @@ class Boat extends Entity{
 	private const MAX_PASSENGERS = 2;
 
 	/**
-	 * hmm, the client draws a boat this far above where it actually is, and the positions it sends back for a boat
+	 * The client draws a boat this far above where it actually is, and the positions it sends back for a boat
 	 * it's driving are raised by the same amount
 	 */
 	private const NETWORK_OFFSET = 0.375;
@@ -70,10 +70,8 @@ class Boat extends Entity{
 
 	private const HURT_ANIMATION_TICKS = 10;
 
-	/** yeah, this is the rate PowerNukkitX settled on, the client only uses it to swing the oars of other riders */
 	private const PADDLE_SPEED = 0.04;
 
-	//the client keeps its own copy of the floating behaviour for the boat it drives, so it has to be told how
 	private const BUOYANCY_DATA = '{"apply_gravity":true,"base_buoyancy":1.0,"big_wave_probability":0.03,"big_wave_speed":10.0,"can_auto_step_from_liquid":false,"drag_down_on_buoyancy_removed":0.0,"liquid_blocks":["minecraft:water","minecraft:flowing_water"],"movement_type":"waves"}';
 
 	public static function getNetworkTypeId() : string{ return "minecraft:boat"; }

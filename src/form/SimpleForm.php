@@ -51,7 +51,7 @@ use function is_int;
  * ));
  * ```
  */
-final class SimpleForm implements TranslatableForm{
+final class SimpleForm implements Form{
 	/** @phpstan-var list<SimpleFormElement> */
 	private array $elements;
 	/** @phpstan-var list<Button> */
@@ -132,6 +132,9 @@ final class SimpleForm implements TranslatableForm{
 		($this->onSubmit)($player, $this->parseResponse($data));
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 */
 	public function serializeForLanguage(Language $language) : array{
 		return [
 			"type" => FormType::SIMPLE->value,

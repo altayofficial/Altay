@@ -36,7 +36,7 @@ use function is_bool;
 /**
  * Two button dialog. The submit handler gets true for the confirm button and false for the cancel one.
  */
-final class ModalForm implements TranslatableForm{
+final class ModalForm implements Form{
 	/** @phpstan-var \Closure(Player, bool) : void */
 	private \Closure $onSubmit;
 	/** @phpstan-var (\Closure(Player) : void)|null */
@@ -95,6 +95,9 @@ final class ModalForm implements TranslatableForm{
 		($this->onSubmit)($player, $this->parseResponse($data));
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 */
 	public function serializeForLanguage(Language $language) : array{
 		return [
 			"type" => FormType::MODAL->value,

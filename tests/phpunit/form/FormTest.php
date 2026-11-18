@@ -43,7 +43,7 @@ use const JSON_THROW_ON_ERROR;
 
 class FormTest extends TestCase{
 
-	private static function encode(TranslatableForm $form) : string{
+	private static function encode(SimpleForm|CustomForm|ModalForm $form) : string{
 		return json_encode($form->serializeForLanguage(new Language(Language::FALLBACK_LANGUAGE)), JSON_THROW_ON_ERROR);
 	}
 

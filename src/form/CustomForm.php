@@ -58,7 +58,7 @@ use function is_array;
  * ));
  * ```
  */
-final class CustomForm implements TranslatableForm{
+final class CustomForm implements Form{
 	/** @phpstan-var list<CustomFormElement> */
 	private array $elements;
 	/** @phpstan-var \Closure(Player, CustomFormResponse) : void */
@@ -156,6 +156,9 @@ final class CustomForm implements TranslatableForm{
 		($this->onSubmit)($player, $this->parseResponse($data));
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 */
 	public function serializeForLanguage(Language $language) : array{
 		$result = [
 			"type" => FormType::CUSTOM_FORM->value,

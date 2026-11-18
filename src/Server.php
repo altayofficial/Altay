@@ -172,7 +172,6 @@ use function spl_object_id;
 use function sprintf;
 use function str_repeat;
 use function str_replace;
-use function stripos;
 use function strlen;
 use function strrpos;
 use function strtolower;
@@ -183,7 +182,6 @@ use function trim;
 use function yaml_parse;
 use const DIRECTORY_SEPARATOR;
 use const PHP_EOL;
-use const PHP_INT_MAX;
 
 /**
  * The class that manages everything
@@ -609,36 +607,6 @@ class Server {
 		}
 
 		return $playerPromiseResolver->getPromise();
-	}
-
-	/**
-	 * @deprecated This method's results are unpredictable. The string "Steve" will return the player named "SteveJobs",
-	 * until another player named "SteveJ" joins the server, at which point it will return that player instead. Prefer
-	 * filtering the results of {@link Server::getOnlinePlayers()} yourself.
-	 *
-	 * Returns an online player whose name begins with or equals the given string (case insensitive).
-	 * The closest match will be returned, or null if there are no online matches.
-	 *
-	 * @see Server::getPlayerExact()
-	 */
-	public function getPlayerByPrefix(string $name) : ?Player{
-		$found = null;
-		$name = strtolower($name);
-		$delta = PHP_INT_MAX;
-		foreach($this->getOnlinePlayers() as $player){
-			if(stripos($player->getName(), $name) === 0){
-				$curDelta = strlen($player->getName()) - strlen($name);
-				if($curDelta < $delta){
-					$found = $player;
-					$delta = $curDelta;
-				}
-				if($curDelta === 0){
-					break;
-				}
-			}
-		}
-
-		return $found;
 	}
 
 	/**

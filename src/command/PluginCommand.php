@@ -37,8 +37,7 @@ use pocketmine\plugin\PluginOwned;
 final class PluginCommand extends Command implements PluginOwned{
 	public function __construct(
 		string $name,
-		private Plugin $owner,
-		private CommandExecutor $executor
+		private PluginBase $owner
 	){
 		parent::__construct($name);
 		$this->usageMessage = "";
@@ -50,7 +49,7 @@ final class PluginCommand extends Command implements PluginOwned{
 			return false;
 		}
 
-		$success = $this->executor->onCommand($sender, $this, $commandLabel, $args);
+		$success = $this->owner->onCommand($sender, $this, $commandLabel, $args);
 
 		if(!$success && $this->usageMessage !== ""){
 			throw new InvalidCommandSyntaxException();
@@ -61,13 +60,5 @@ final class PluginCommand extends Command implements PluginOwned{
 
 	public function getOwningPlugin() : Plugin{
 		return $this->owner;
-	}
-
-	public function getExecutor() : CommandExecutor{
-		return $this->executor;
-	}
-
-	public function setExecutor(CommandExecutor $executor) : void{
-		$this->executor = $executor;
 	}
 }

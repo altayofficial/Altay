@@ -55,7 +55,7 @@ class TeleportCommand extends VanillaCommand{
 	}
 
 	private function findPlayer(CommandSender $sender, string $playerName) : ?Player{
-		$subject = $sender->getServer()->getPlayerByPrefix($playerName);
+		$subject = $this->getPlayerByPrefix($sender, $playerName);
 		if($subject === null){
 			$sender->sendMessage(KnownTranslationFactory::pocketmine_command_error_playerNotFound($playerName)->prefix(TextFormat::RED));
 			return null;

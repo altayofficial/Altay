@@ -32,7 +32,11 @@ use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 use function is_numeric;
+use function stripos;
+use function strlen;
+use function strtolower;
 use function substr;
+use const PHP_INT_MAX;
 
 abstract class VanillaCommand extends Command{
 	public const MAX_COORD = 30000000;
@@ -41,7 +45,7 @@ abstract class VanillaCommand extends Command{
 	protected function fetchPermittedPlayerTarget(CommandSender $sender, ?string $target, string $selfPermission, string $otherPermission) : ?Player{
 		//TODO: we need proper command selector support, but this one is useful and easy to hack in for now
 		if($target !== null && $target !== "@s"){
-			$player = $sender->getServer()->getPlayerByPrefix($target);
+			$player = $this->getPlayerByPrefix($sender, $target);
 			if($player === null){
 				$sender->sendMessage(KnownTranslationFactory::pocketmine_command_error_playerNotFound($target)->prefix(TextFormat::RED));
 				return null;
@@ -59,6 +63,33 @@ abstract class VanillaCommand extends Command{
 			return $player;
 		}
 		return null;
+	}
+
+	/**
+	 * Returns the online player whose name starts with the given string (case insensitive), picking the shortest
+	 * name if there's more than one match.
+	 *
+	 * so "Steve" picks "SteveJobs" until someone called "SteveJ" joins. fine for typing names in commands, don't rely
+	 * on it anywhere else
+	 */
+	protected function getPlayerByPrefix(CommandSender $sender, string $name) : ?Player{
+		$found = null;
+		$name = strtolower($name);
+		$delta = PHP_INT_MAX;
+		foreach($sender->getServer()->getOnlinePlayers() as $player){
+			if(stripos($player->getName(), $name) === 0){
+				$curDelta = strlen($player->getName()) - strlen($name);
+				if($curDelta < $delta){
+					$found = $player;
+					$delta = $curDelta;
+				}
+				if($curDelta === 0){
+					break;
+				}
+			}
+		}
+
+		return $found;
 	}
 
 	protected function getInteger(CommandSender $sender, string $value, int $min = self::MIN_COORD, int $max = self::MAX_COORD) : int{

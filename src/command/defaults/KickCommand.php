@@ -56,7 +56,7 @@ class KickCommand extends VanillaCommand{
 		$name = array_shift($args);
 		$reason = trim(implode(" ", $args));
 
-		if(($player = $sender->getServer()->getPlayerByPrefix($name)) instanceof Player){
+		if(($player = $this->getPlayerByPrefix($sender, $name)) instanceof Player){
 			$player->kick($reason !== "" ? KnownTranslationFactory::pocketmine_disconnect_kick($reason) : KnownTranslationFactory::pocketmine_disconnect_kick_noReason());
 			if($reason !== ""){
 				Command::broadcastCommandMessage($sender, KnownTranslationFactory::commands_kick_success_reason($player->getName(), $reason));

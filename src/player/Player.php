@@ -1690,19 +1690,22 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 		$positionChanged = $delta > 0.0001;
 		$rotationChanged = $deltaAngle > 1.0;
+		//the vehicle already asked about the position before it carried us, only the head turn is left to ask about
+		$carried = $positionChanged && $this->isRiding();
 		if($positionChanged || $rotationChanged){
-			if(PlayerMoveEvent::hasHandlers()){
+			if(PlayerMoveEvent::hasHandlers() && (!$carried || $rotationChanged)){
 				$moveType = match(true){
+					$carried => PlayerMoveType::ROTATE,
 					$positionChanged && $rotationChanged => PlayerMoveType::ALL,
 					$positionChanged => PlayerMoveType::POSITION_CHANGE,
 					default => PlayerMoveType::ROTATE,
 				};
-				$ev = new PlayerMoveEvent($this, $from, $to, $moveType);
+				$ev = new PlayerMoveEvent($this, $carried ? Location::fromObject($to, $to->getWorld(), $from->yaw, $from->pitch) : $from, $to, $moveType);
 
 				$ev->call();
 
 				if($ev->isCancelled()){
-					$this->revertMovement($from);
+					$this->revertMovement($ev->getFrom());
 					return;
 				}
 

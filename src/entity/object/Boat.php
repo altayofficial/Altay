@@ -32,6 +32,7 @@ use pocketmine\entity\EntitySizeInfo;
 use pocketmine\entity\Location;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\item\BoatType;
 use pocketmine\item\Item;
 use pocketmine\item\VanillaItems;
@@ -44,6 +45,7 @@ use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataCollection;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataFlags;
 use pocketmine\network\mcpe\protocol\types\entity\EntityMetadataProperties;
 use pocketmine\player\Player;
+use pocketmine\player\PlayerMoveType;
 use function count;
 use function floor;
 use function fmod;
@@ -291,7 +293,11 @@ class Boat extends Entity{
 		}
 
 		$newPos = $networkPos->subtract(0, self::NETWORK_OFFSET, 0);
-		if($newPos->distanceSquared($this->location) > 225 || !$this->getWorld()->isInLoadedTerrain($newPos)){
+		if(
+			$newPos->distanceSquared($this->location) > 225 ||
+			!$this->getWorld()->isInLoadedTerrain($newPos) ||
+			!$this->callPassengerMoveEvents($newPos)
+		){
 			$rider->getNetworkSession()->sendDataPacket(MoveActorAbsolutePacket::create(
 				$this->getId(),
 				$this->getOffsetPosition($this->location),
@@ -317,6 +323,35 @@ class Boat extends Entity{
 		);
 
 		$this->scheduleUpdate();
+	}
+
+	/**
+	 * Asks plugins whether every player in the boat may be carried to where the driver wants to take it.
+	 * Returns false if the move should be refused.
+	 *
+	 * A boat can't put two riders in two different places, so a listener changing the destination with
+	 * PlayerMoveEvent::setTo() gets the same treatment as cancelling.
+	 */
+	private function callPassengerMoveEvents(Vector3 $newPos) : bool{
+		if(!PlayerMoveEvent::hasHandlers() || $newPos->distanceSquared($this->location) <= 0.0001){
+			return true;
+		}
+
+		$world = $this->getWorld();
+		foreach($this->getPassengers() as $passenger){
+			if(!$passenger instanceof Player){
+				continue;
+			}
+			$from = $passenger->getLocation();
+			$to = Location::fromObject($newPos->addVector($this->getSeatPosition($passenger)), $world, $from->yaw, $from->pitch);
+			$ev = new PlayerMoveEvent($passenger, $from, $to, PlayerMoveType::POSITION_CHANGE);
+			$ev->call();
+			if($ev->isCancelled() || $to->distanceSquared($ev->getTo()) > 0.01){
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private function setPaddles(float $left, float $right) : void{

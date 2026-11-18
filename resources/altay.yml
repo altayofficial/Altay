@@ -1,9 +1,28 @@
 # Main configuration file for Altay
-# These settings are the ones that cannot be included in server.properties
 # Some of these settings are safe, others can break your server if modified incorrectly
 # New settings/defaults won't appear automatically in this file when upgrading.
+# Any setting can be overridden for a single run from the command line, e.g. --server.motd="My Server"
+
+server:
+  #Name of the server shown in the server list
+  motd: "Altay Server"
+  #Second line shown under the name on the friends tab and LAN list
+  sub-motd: "Altay"
+  #Address and port to listen on. Leave the address empty to listen on all of them.
+  ip: ""
+  port: 19132
+  ipv6:
+    enabled: true
+    ip: ""
+    port: 19133
+  #Answer query requests, used by server lists and monitoring tools
+  enable-query: true
+  #Require players to be signed in to Xbox Live. Turning this off lets anyone join with any name.
+  xbox-auth: true
 
 settings:
+  #Language used for console messages and, with force-language, for everything sent to players
+  language: eng
   #Whether to send all strings translated to server locale or let the device handle them
   force-language: false
   shutdown-message: "Server closed"
@@ -73,7 +92,7 @@ network:
     identity-domain: ""
     #Reject connections that do not carry a signed identity assertion. That signature is what ties a
     #connection to the account it logs in with, and without it a captured login can be replayed, so
-    #"auto" requires it from everyone whenever xbox-auth is on. Clients that do not sign their offers
+    #"auto" requires it from everyone whenever server.xbox-auth is on. Clients that do not sign their offers
     #on the local network cannot join then; set this to false to let them in anyway. true or false
     #apply to everyone. If players cannot join, the debug log names every connection that arrived
     #without one.
@@ -106,8 +125,8 @@ network:
     #plus the address a player typed in to join, which is how a server behind NAT finds its public one.
     advertise-addresses: []
     #TCP port the join endpoint listens on, which is where the Servers tab asks for the MOTD and
-    #posts its offer. Set to 0 to serve it on the server port. With enable-ipv6 on it also listens on
-    #server-ipv6, on this port or on server-portv6 when this is 0.
+    #posts its offer. Set to 0 to serve it on the server port. With server.ipv6.enabled on it also listens on
+    #server.ipv6.ip, on this port or on server.ipv6.port when this is 0.
     signalling-port: 0
     #UDP ports a player's media may use, written as "first-last" and at least 100 ports wide. Leave
     #empty to let the system pick, which is fine until the ports have to be forwarded.
@@ -143,22 +162,45 @@ debug:
   level: 1
 
 player:
+  max-players: 20
+  #Maximum render distance in chunks a player may ask for
+  view-distance: 16
+  #Game mode new players start in: survival, creative, adventure or spectator
+  gamemode: survival
+  #Put every player back into the default game mode when they join
+  force-gamemode: false
+  #Only let players listed in white-list.txt join
+  white-list: false
+  pvp: true
+  #0 = peaceful, 1 = easy, 2 = normal, 3 = hard
+  difficulty: 2
+  #Ban players when they die. This also forces the difficulty to hard.
+  hardcore: false
   #Choose whether to enable player data saving.
   save-player-data: true
   #If true, checks that joining players' Xbox user ID (XUID) match what was previously recorded.
-  #This also prevents non-XBL players using XBL players' usernames to steal their data on servers with xbox-auth=off.
+  #This also prevents non-XBL players using XBL players' usernames to steal their data on servers with server.xbox-auth off.
   verify-xuid: true
 
 level-settings:
   #The default format that worlds will use when created
   default-format: leveldb
+  #Save worlds periodically, see ticks-per.autosave for the interval
+  auto-save: true
+  #World loaded at startup, generated with the settings below if it doesn't exist yet
+  default-world:
+    name: world
+    #Leave empty for a random seed
+    seed: ""
+    generator: DEFAULT
+    generator-settings: ""
 
 education:
   #Show Education Edition items (chemistry, elements, compounds) in the creative inventory and send the chemistry resource packs
   enabled: true
 
 chunk-sending:
-  #To change server normal render distance, change view-distance in server.properties.
+  #To change server normal render distance, change player.view-distance.
   #Amount of chunks sent to players per tick
   per-tick: 4
   #Radius of chunks that need to be sent before spawning the player
@@ -252,7 +294,7 @@ aliases:
   #tp: [suicide]
 
 worlds:
-  #These settings will override the generator set in server.properties and allows loading multiple worlds
+  #These settings will override the generator set in level-settings.default-world and allows loading multiple worlds
   #Example:
   #world:
   # seed: 404
@@ -264,3 +306,30 @@ plugins:
   #False will place plugin data under plugin_data under --data.
   #This option exists for backwards compatibility with existing installations.
   legacy-data-dir: false
+  #Controls which plugins are allowed to load.
+  # - blacklist: Only plugins which ARE NOT listed will load.
+  # - whitelist: Only plugins which ARE listed will load.
+  list-mode: blacklist
+  #Names of the plugins the mode above applies to.
+  list: []
+
+resource-packs:
+  #Choose whether players must use your chosen resource packs to join the server.
+  #NOTE: This will do nothing if there are no resource packs in the stack below.
+  force-resources: false
+  #Optional CDN URLs for resource packs. Keys must match entries in resource-stack.
+  #When set, clients may download the pack from the URL instead of receiving it in chunks from the server.
+  #The pack file must still exist locally so the server can read its manifest, size and SHA256 hash.
+  #Example:
+  #cdn-urls:
+  #  natural.zip: https://cdn.example.com/resource_packs/natural.zip
+  cdn-urls: {}
+  #Resource packs here are applied from bottom to top. This means that resources in higher packs will override those in lower packs.
+  #Entries here must indicate the filename of the resource pack inside the resource_packs folder.
+  #Example:
+  #resource-stack:
+  #  - natural.zip
+  #  - vanilla.zip
+  #If you want to force clients to use vanilla resources, you must place a vanilla resource pack in your resource_packs folder and add it to the stack here.
+  #To specify a resource encryption key, put the key in the <resource>.key file alongside the resource pack. Example: vanilla.zip.key
+  resource-stack: []

@@ -24,15 +24,15 @@ docker run -it -p 19132:19132/udp -v $PWD/data:/data -v $PWD/plugins:/plugins gh
 ```
 
 ## Changing the server port
-Docker allows you to map ports, so you don't need to edit `server.properties`.
+Docker allows you to map ports, so you don't need to edit `altay.yml`.
 
 In the run command shown above, change `19132:19132/udp` to `<port number you want>:19132/udp`. **Note: Do not change the second number.**
 
 > [!WARNING]
-> Do not change the port in `server.properties`. This is unnecessary when using Docker and will make things more complicated.
+> Do not change the port in `altay.yml`. This is unnecessary when using Docker and will make things more complicated.
 
 ## Editing the server data
-The server data (e.g. worlds, `server.properties`, etc.) will be stored in the `data` folder you created above.
+The server data (e.g. worlds, `altay.yml`, etc.) will be stored in the `data` folder you created above.
 
 **Note: If you add new files (e.g. a world), don't forget to change the ownership of the file/folder to `1000:1000`**:
 ```

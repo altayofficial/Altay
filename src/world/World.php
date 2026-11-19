@@ -1546,27 +1546,16 @@ class World implements ChunkManager{
 	}
 
 	/**
-	 * Identical to {@link World::notifyNeighbourBlockUpdate()}, but without the Vector3 requirement. We don't want or
-	 * need Vector3 in the places where this is called.
+	 * Notify the blocks at and around the position that the block at the position may have changed.
+	 * This will cause onNearbyBlockChange() to be called for these blocks.
 	 *
-	 * TODO: make this the primary method in PM6
+	 * @see Block::onNearbyBlockChange()
 	 */
-	private function internalNotifyNeighbourBlockUpdate(int $x, int $y, int $z) : void{
+	public function notifyNeighbourBlockUpdate(int $x, int $y, int $z) : void{
 		$this->tryAddToNeighbourUpdateQueue($x, $y, $z);
 		foreach(Facing::OFFSET as [$dx, $dy, $dz]){
 			$this->tryAddToNeighbourUpdateQueue($x + $dx, $y + $dy, $z + $dz);
 		}
-	}
-
-	/**
-	 * Notify the blocks at and around the position that the block at the position may have changed.
-	 * This will cause onNearbyBlockChange() to be called for these blocks.
-	 * TODO: Accept plain integers in PM6 - the Vector3 requirement is an unnecessary inconvenience
-	 *
-	 * @see Block::onNearbyBlockChange()
-	 */
-	public function notifyNeighbourBlockUpdate(Vector3 $pos) : void{
-		$this->internalNotifyNeighbourBlockUpdate($pos->getFloorX(), $pos->getFloorY(), $pos->getFloorZ());
 	}
 
 	/**
@@ -2168,7 +2157,7 @@ class World implements ChunkManager{
 
 		if($update){
 			$this->updateAllLight($x, $y, $z);
-			$this->internalNotifyNeighbourBlockUpdate($x, $y, $z);
+			$this->notifyNeighbourBlockUpdate($x, $y, $z);
 		}
 
 		$this->timings->setBlock->stopTiming();

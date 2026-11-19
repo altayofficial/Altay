@@ -65,10 +65,6 @@ class BanIpCommand extends VanillaCommand{
 				$this->processIPBan($ip, $sender, $reason);
 
 				Command::broadcastCommandMessage($sender, KnownTranslationFactory::commands_banip_success_players($ip, $player->getName()));
-			}else{
-				$sender->sendMessage(KnownTranslationFactory::commands_banip_invalid());
-
-				return false;
 			}
 		}
 

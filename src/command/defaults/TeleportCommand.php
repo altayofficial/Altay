@@ -33,7 +33,6 @@ use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
-use pocketmine\utils\TextFormat;
 use pocketmine\world\World;
 use function array_shift;
 use function count;
@@ -55,12 +54,7 @@ class TeleportCommand extends VanillaCommand{
 	}
 
 	private function findPlayer(CommandSender $sender, string $playerName) : ?Player{
-		$subject = $this->getPlayerByPrefix($sender, $playerName);
-		if($subject === null){
-			$sender->sendMessage(KnownTranslationFactory::pocketmine_command_error_playerNotFound($playerName)->prefix(TextFormat::RED));
-			return null;
-		}
-		return $subject;
+		return $this->getPlayerByPrefix($sender, $playerName);
 	}
 
 	public function execute(CommandSender $sender, string $commandLabel, array $args){

@@ -31,7 +31,6 @@ use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\player\Player;
-use pocketmine\utils\TextFormat;
 use function array_shift;
 use function count;
 use function implode;
@@ -63,8 +62,6 @@ class KickCommand extends VanillaCommand{
 			}else{
 				Command::broadcastCommandMessage($sender, KnownTranslationFactory::commands_kick_success($player->getName()));
 			}
-		}else{
-			$sender->sendMessage(KnownTranslationFactory::commands_generic_player_notFound()->prefix(TextFormat::RED));
 		}
 
 		return true;

@@ -281,9 +281,12 @@ class Boat extends Entity{
 	}
 
 	/**
-	 * Takes the position of the boat from the client of the player driving it. Anything from a passenger who
-	 * isn't steering is ignored, and a position that is too far away or in unloaded terrain gets the driver
-	 * snapped back instead, for the same reasons as Player::handleMovement().
+	 * Moves the boat towards where the client of the player driving it has it. The server still collides it with
+	 * blocks on the way, so the client only decides where the boat is trying to go. Anything from a passenger who
+	 * isn't steering is ignored, and a position that is too far away, in unloaded terrain or refused by a plugin gets
+	 * the driver snapped back instead, for the same reasons as Player::handleMovement().
+	 *
+	 * @internal
 	 *
 	 * @param Vector3 $networkPos where the client has the boat, raised by the network offset
 	 */
@@ -293,19 +296,15 @@ class Boat extends Entity{
 		}
 
 		$newPos = $networkPos->subtract(0, self::NETWORK_OFFSET, 0);
+		$delta = $newPos->subtractVector($this->location);
 		if(
-			$newPos->distanceSquared($this->location) > 225 ||
+			$delta->lengthSquared() > 225 ||
 			!$this->getWorld()->isInLoadedTerrain($newPos) ||
+			//nothing but water lifts a boat, so a client sending it upwards anywhere else is making it fly
+			($delta->y > 0 && !$this->onGround && $this->getWaterSurfaceHeight() === null) ||
 			!$this->callPassengerMoveEvents($newPos)
 		){
-			$rider->getNetworkSession()->sendDataPacket(MoveActorAbsolutePacket::create(
-				$this->getId(),
-				$this->getOffsetPosition($this->location),
-				$this->location->pitch,
-				$this->location->yaw,
-				$this->location->yaw,
-				MoveActorAbsolutePacket::FLAG_TELEPORT
-			));
+			$this->syncDriverPosition($rider);
 			return;
 		}
 
@@ -313,9 +312,15 @@ class Boat extends Entity{
 		if($yaw < 0){
 			$yaw += 360;
 		}
-		$this->setPositionAndRotation($newPos, $yaw, 0);
+		$this->setRotation($yaw, 0);
+		$this->move($delta->x, $delta->y, $delta->z);
 		$this->motion = Vector3::zero();
 		$this->resetFallDistance();
+
+		if($this->location->distanceSquared($newPos) > 0.0625){
+			//we got stopped by something the client went through, put it back where we think it is
+			$this->syncDriverPosition($rider);
+		}
 
 		$this->setPaddles(
 			$paddleLeft ? $this->paddleTimeLeft + self::PADDLE_SPEED : 0.0,
@@ -323,6 +328,17 @@ class Boat extends Entity{
 		);
 
 		$this->scheduleUpdate();
+	}
+
+	private function syncDriverPosition(Player $driver) : void{
+		$driver->getNetworkSession()->sendDataPacket(MoveActorAbsolutePacket::create(
+			$this->getId(),
+			$this->getOffsetPosition($this->location),
+			$this->location->pitch,
+			$this->location->yaw,
+			$this->location->yaw,
+			MoveActorAbsolutePacket::FLAG_TELEPORT
+		));
 	}
 
 	/**

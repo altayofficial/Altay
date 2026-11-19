@@ -493,17 +493,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		return parent::getUniqueId();
 	}
 
-	/**
-	 * TODO: not sure this should be nullable
-	 */
-	public function getFirstPlayed() : ?int{
+	public function getFirstPlayed() : int{
 		return $this->firstPlayed;
 	}
 
-	/**
-	 * TODO: not sure this should be nullable
-	 */
-	public function getLastPlayed() : ?int{
+	public function getLastPlayed() : int{
 		return $this->lastPlayed;
 	}
 

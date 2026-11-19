@@ -46,7 +46,9 @@ class LightPopulationTask extends AsyncTask{
 	private string $resultBlockLightArrays;
 
 	/**
-	 * @phpstan-param \Closure(array<int, LightArray> $blockLight, array<int, LightArray> $skyLight, non-empty-list<int> $heightMap) : void $onCompletion
+	 * Light arrays that hold the same level everywhere reach $onCompletion as that level instead of an array.
+	 *
+	 * @phpstan-param \Closure(array<int, LightArray|int> $blockLight, array<int, LightArray|int> $skyLight, non-empty-list<int> $heightMap) : void $onCompletion
 	 */
 	public function __construct(Chunk $chunk, \Closure $onCompletion){
 		$this->chunk = FastChunkSerializer::serializeTerrain($chunk);
@@ -74,8 +76,8 @@ class LightPopulationTask extends AsyncTask{
 		$skyLightArrays = [];
 		$blockLightArrays = [];
 		foreach($chunk->getSubChunks() as $y => $subChunk){
-			$skyLightArrays[$y] = $subChunk->getBlockSkyLightArray();
-			$blockLightArrays[$y] = $subChunk->getBlockLightArray();
+			$skyLightArrays[$y] = self::compactLightArray($subChunk->getBlockSkyLightArray());
+			$blockLightArrays[$y] = self::compactLightArray($subChunk->getBlockLightArray());
 		}
 		$this->resultSkyLightArrays = igbinary_serialize($skyLightArrays);
 		$this->resultBlockLightArrays = igbinary_serialize($blockLightArrays);
@@ -88,16 +90,30 @@ class LightPopulationTask extends AsyncTask{
 		 */
 		$heightMapArray = igbinary_unserialize($this->resultHeightMap);
 
-		/** @var LightArray[] $skyLightArrays */
+		/** @var (LightArray|int)[] $skyLightArrays */
 		$skyLightArrays = igbinary_unserialize($this->resultSkyLightArrays);
-		/** @var LightArray[] $blockLightArrays */
+		/** @var (LightArray|int)[] $blockLightArrays */
 		$blockLightArrays = igbinary_unserialize($this->resultBlockLightArrays);
 
 		/**
 		 * @var \Closure
-		 * @phpstan-var \Closure(array<int, LightArray> $blockLight, array<int, LightArray> $skyLight, non-empty-list<int> $heightMap) : void
+		 * @phpstan-var \Closure(array<int, LightArray|int> $blockLight, array<int, LightArray|int> $skyLight, non-empty-list<int> $heightMap) : void
 		 */
 		$callback = $this->fetchLocal(self::TLS_KEY_COMPLETION_CALLBACK);
 		$callback($blockLightArrays, $skyLightArrays, $heightMapArray);
+	}
+
+	/**
+	 * Swaps an all-dark or all-lit array for its level, which is much smaller to send back and lets the sub chunk
+	 * share one array with everyone else.
+	 */
+	private static function compactLightArray(LightArray $array) : LightArray|int{
+		if($array->isUniform(0)){
+			return 0;
+		}
+		if($array->isUniform(15)){
+			return 15;
+		}
+		return $array;
 	}
 }

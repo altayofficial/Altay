@@ -51,9 +51,11 @@ class WorldTimings{
 	public TimingsHandler $syncChunkLoadFixInvalidBlocks;
 	public TimingsHandler $syncChunkLoadEntities;
 	public TimingsHandler $syncChunkLoadTileEntities;
+	public TimingsHandler $syncChunkLoadLight;
 
 	public TimingsHandler $syncDataSave;
 	public TimingsHandler $syncChunkSave;
+	public TimingsHandler $syncChunkSaveLight;
 
 	public TimingsHandler $chunkPopulationOrder;
 	public TimingsHandler $chunkPopulationCompletion;
@@ -95,9 +97,11 @@ class WorldTimings{
 		$this->syncChunkLoadFixInvalidBlocks = self::newTimer($name, "Chunk Load - Fix Invalid Blocks");
 		$this->syncChunkLoadEntities = self::newTimer($name, "Chunk Load - Entities");
 		$this->syncChunkLoadTileEntities = self::newTimer($name, "Chunk Load - Block Entities");
+		$this->syncChunkLoadLight = self::newTimer($name, "Chunk Load - Light Cache");
 
 		$this->syncDataSave = self::newTimer($name, "Data Save");
 		$this->syncChunkSave = self::newTimer($name, "Chunk Save");
+		$this->syncChunkSaveLight = self::newTimer($name, "Chunk Save - Light Cache");
 
 		$this->chunkPopulationOrder = self::newTimer($name, "Chunk Population - Order");
 		$this->chunkPopulationCompletion = self::newTimer($name, "Chunk Population - Completion");

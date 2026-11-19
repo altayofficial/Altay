@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\world\light;
 
+use pocketmine\utils\AssumptionFailedError;
 use pocketmine\world\format\LightArray;
 use pocketmine\world\format\SubChunk;
 use pocketmine\world\utils\SubChunkExplorer;
@@ -50,6 +51,10 @@ class BlockLightUpdate extends LightUpdate{
 		return $this->subChunkExplorer->currentSubChunk->getBlockLightArray();
 	}
 
+	protected function getCurrentLight(int $x, int $y, int $z) : int{
+		return ($this->subChunkExplorer->currentSubChunk ?? throw new AssumptionFailedError("Explorer should be on a valid sub chunk"))->getBlockLightAt($x, $y, $z);
+	}
+
 	public function recalculateNode(int $x, int $y, int $z) : void{
 		if($this->subChunkExplorer->moveTo($x, $y, $z) !== SubChunkExplorerStatus::INVALID){
 			$block = $this->subChunkExplorer->currentSubChunk->getBlockStateId($x & SubChunk::COORD_MASK, $y & SubChunk::COORD_MASK, $z & SubChunk::COORD_MASK);
@@ -65,7 +70,7 @@ class BlockLightUpdate extends LightUpdate{
 
 		$lightSources = 0;
 		foreach($chunk->getSubChunks() as $subChunkY => $subChunk){
-			$subChunk->setBlockLightArray(LightArray::fill(0));
+			$subChunk->setUniformBlockLight(0);
 
 			foreach($subChunk->getBlockLayers() as $layer){
 				foreach($layer->getPalette() as $state){

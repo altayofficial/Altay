@@ -150,6 +150,9 @@ player:
 level-settings:
   #The default format that worlds will use when created
   default-format: leveldb
+  #Seconds an unused chunk stays loaded before it is unloaded. Players moving back and forth across the edge of their
+  #view need the same chunks again soon, and with auto-save off an unloaded chunk has to be generated from scratch.
+  chunk-unload-delay: 120
 
 chunk-sending:
   #To change server normal render distance, change view-distance in server.properties.
@@ -162,8 +165,8 @@ chunk-ticking:
   #Radius of chunks around a player to tick
   tick-radius: 3
   #Number of blocks inside ticking areas' subchunks that get ticked every tick. Higher values will accelerate events
-  #like tree and plant growth, but at a higher performance cost.
-  blocks-per-subchunk-per-tick: 3
+  #like tree and plant growth, but at a higher performance cost. 1 is the vanilla Bedrock randomtickspeed, Java uses 3.
+  blocks-per-subchunk-per-tick: 1
   #IDs of blocks not to perform random ticking on.
   disable-block-ticking:
     #- grass
@@ -172,7 +175,7 @@ chunk-ticking:
 
 chunk-generation:
   #Max. amount of chunks in the waiting queue to be populated
-  population-queue-size: 32
+  population-queue-size: 128
 
 ticks-per:
   autosave: 6000

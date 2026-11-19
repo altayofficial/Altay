@@ -50,4 +50,36 @@ class SubChunkTest extends TestCase{
 		self::assertNotSame($sub1->getBlockLightArray()->get(0, 0, 0), $sub2->getBlockLightArray()->get(0, 0, 0));
 		self::assertNotSame($sub1->getBlockSkyLightArray()->get(0, 0, 0), $sub2->getBlockSkyLightArray()->get(0, 0, 0));
 	}
+
+	/**
+	 * Writing through one sub chunk must never leak into another that shares the same uniform light
+	 */
+	public function testUniformLightIsCopiedOnWrite() : void{
+		$sub1 = new SubChunk(0, [], new PalettedBlockArray(BiomeIds::OCEAN));
+		$sub2 = new SubChunk(0, [], new PalettedBlockArray(BiomeIds::OCEAN));
+		$sub1->setUniformBlockSkyLight(15);
+		$sub2->setUniformBlockSkyLight(15);
+		$sub1->setUniformBlockLight(7);
+		$sub2->setUniformBlockLight(7);
+
+		self::assertSame(15, $sub1->getBlockSkyLightAt(3, 4, 5));
+		self::assertSame(7, $sub2->getBlockLightAt(3, 4, 5));
+
+		$sub1->getBlockSkyLightArray()->set(3, 4, 5, 2);
+		$sub1->getBlockLightArray()->set(3, 4, 5, 1);
+
+		self::assertSame(2, $sub1->getBlockSkyLightAt(3, 4, 5));
+		self::assertSame(1, $sub1->getBlockLightAt(3, 4, 5));
+		self::assertSame(15, $sub2->getBlockSkyLightAt(3, 4, 5));
+		self::assertSame(7, $sub2->getBlockLightAt(3, 4, 5));
+
+		$sub3 = clone $sub2;
+		$sub3->getBlockSkyLightArray()->set(0, 0, 0, 0);
+		self::assertSame(15, $sub2->getBlockSkyLightAt(0, 0, 0));
+		self::assertSame(0, $sub3->getBlockSkyLightAt(0, 0, 0));
+
+		$sub2->setUniformBlockSkyLight(0);
+		self::assertSame(0, $sub2->getBlockSkyLightAt(3, 4, 5));
+		self::assertTrue($sub2->getBlockSkyLightArray()->isUniform(0));
+	}
 }

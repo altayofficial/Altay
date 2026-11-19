@@ -37,6 +37,7 @@ use pocketmine\entity\Attribute;
 use pocketmine\entity\InvalidSkinException;
 use pocketmine\entity\Living;
 use pocketmine\event\player\PlayerEditBookEvent;
+use pocketmine\form\datadriven\DataDrivenScreenCloseReason;
 use pocketmine\inventory\transaction\action\DropItemAction;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\inventory\transaction\TransactionBuilder;
@@ -84,12 +85,17 @@ use pocketmine\network\mcpe\protocol\PlayerHotbarPacket;
 use pocketmine\network\mcpe\protocol\PlayerSkinPacket;
 use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
 use pocketmine\network\mcpe\protocol\serializer\BitSet;
+use pocketmine\network\mcpe\protocol\ServerboundDataDrivenScreenClosedPacket;
+use pocketmine\network\mcpe\protocol\ServerboundDataStorePacket;
 use pocketmine\network\mcpe\protocol\ServerboundDiagnosticsPacket;
 use pocketmine\network\mcpe\protocol\SetActorMotionPacket;
 use pocketmine\network\mcpe\protocol\SetPlayerGameTypePacket;
 use pocketmine\network\mcpe\protocol\SpawnExperienceOrbPacket;
 use pocketmine\network\mcpe\protocol\TextPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
+use pocketmine\network\mcpe\protocol\types\ddui\update\BoolDataStoreUpdateValue;
+use pocketmine\network\mcpe\protocol\types\ddui\update\DoubleDataStoreUpdateValue;
+use pocketmine\network\mcpe\protocol\types\ddui\update\StringDataStoreUpdateValue;
 use pocketmine\network\mcpe\protocol\types\inventory\ContainerIds;
 use pocketmine\network\mcpe\protocol\types\inventory\MismatchTransactionData;
 use pocketmine\network\mcpe\protocol\types\inventory\NetworkInventoryAction;
@@ -104,6 +110,7 @@ use pocketmine\network\mcpe\protocol\types\PlayerAction;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
 use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
 use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
+use pocketmine\network\mcpe\protocol\types\ScreenCloseReason;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
@@ -1240,6 +1247,38 @@ class InGamePacketHandler extends PacketHandler{
 		}else{
 			throw new PacketHandlingException("Expected either formData or cancelReason to be set in ModalFormResponsePacket");
 		}
+	}
+
+	public function handleServerboundDataStore(ServerboundDataStorePacket $packet) : bool{
+		$update = $packet->getUpdate();
+		if($update->getName() !== NetworkSession::DATA_DRIVEN_UI_DATA_STORE){
+			return false;
+		}
+		$data = $update->getData();
+		$value = match(true){
+			$data instanceof BoolDataStoreUpdateValue => $data->getValue(),
+			$data instanceof DoubleDataStoreUpdateValue => $data->getValue(),
+			$data instanceof StringDataStoreUpdateValue => $data->getValue(),
+			default => throw new PacketHandlingException("Unexpected DataStore value " . $data::class),
+		};
+		return $this->player->onDataDrivenScreenWrite($update->getProperty(), $update->getPath(), $value);
+	}
+
+	public function handleServerboundDataDrivenScreenClosed(ServerboundDataDrivenScreenClosedPacket $packet) : bool{
+		$reason = match($packet->getCloseReason()){
+			ScreenCloseReason::PROGRAMMATIC_CLOSE => DataDrivenScreenCloseReason::Programmatic,
+			//hmm, some protocol libs spell this one with a single m, take both
+			ScreenCloseReason::PROGRAMMATIC_CLOSE_ALL, "programaticcloseall" => DataDrivenScreenCloseReason::ProgrammaticAll,
+			ScreenCloseReason::CLIENT_CANCELED => DataDrivenScreenCloseReason::ClientCanceled,
+			ScreenCloseReason::USER_BUSY => DataDrivenScreenCloseReason::UserBusy,
+			ScreenCloseReason::INVALID_FORM => DataDrivenScreenCloseReason::InvalidForm,
+			default => null,
+		};
+		if($reason === null){
+			$this->session->getLogger()->debug("Unknown data driven screen close reason \"" . $packet->getCloseReason() . "\", treating it as canceled");
+			$reason = DataDrivenScreenCloseReason::ClientCanceled;
+		}
+		return $this->player->onDataDrivenScreenClosed($packet->getFormId(), $reason);
 	}
 
 	public function handleLecternUpdate(LecternUpdatePacket $packet) : bool{

@@ -499,7 +499,10 @@ class Server {
 	}
 
 	/**
+	 * Returns all online players, keyed by their raw UUID bytes (see {@link Server::getPlayerByRawUUID()}).
+	 *
 	 * @return Player[]
+	 * @phpstan-return array<string, Player>
 	 */
 	public function getOnlinePlayers() : array{
 		return $this->playerList;

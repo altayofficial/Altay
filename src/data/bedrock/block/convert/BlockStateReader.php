@@ -316,12 +316,12 @@ final class BlockStateReader{
 	 * @deprecated
 	 * @throws BlockStateDeserializeException
 	 */
-	public function readWallConnectionType(string $name) : ?WallConnectionType{
+	public function readWallConnectionType(string $name) : WallConnectionType{
 		return match($type = $this->readString($name)){
 			//TODO: this looks a bit confusing due to use of EAST, but the values are the same for all connections
 			//we need to find a better way to auto-generate the constant names when they are reused
 			//for now, using these constants is better than nothing since it still gives static analysability
-			StringValues::WALL_CONNECTION_TYPE_EAST_NONE => null,
+			StringValues::WALL_CONNECTION_TYPE_EAST_NONE => WallConnectionType::NONE,
 			StringValues::WALL_CONNECTION_TYPE_EAST_SHORT => WallConnectionType::SHORT,
 			StringValues::WALL_CONNECTION_TYPE_EAST_TALL => WallConnectionType::TALL,
 			default => throw $this->badValueException($name, $type),

@@ -31,6 +31,7 @@ use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\math\Axis;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
+use function array_filter;
 
 /**
  * @phpstan-type WallConnectionSet array<Facing::NORTH|Facing::EAST|Facing::SOUTH|Facing::WEST, WallConnectionType>
@@ -55,8 +56,8 @@ class Wall extends Transparent implements StateDeriving{
 	 */
 	public function getConnections() : array{ return $this->connections; }
 
-	public function getConnection(int $face) : ?WallConnectionType{
-		return $this->connections[$face] ?? null;
+	public function getConnection(int $face) : WallConnectionType{
+		return $this->connections[$face] ?? WallConnectionType::NONE;
 	}
 
 	/**
@@ -65,16 +66,17 @@ class Wall extends Transparent implements StateDeriving{
 	 * @return $this
 	 */
 	public function setConnections(array $connections) : self{
-		$this->connections = $connections;
+		//NONE is stored as a missing key, same as setConnection() does
+		$this->connections = array_filter($connections, fn(WallConnectionType $type) => $type !== WallConnectionType::NONE);
 		return $this;
 	}
 
 	/** @return $this */
-	public function setConnection(int $face, ?WallConnectionType $type) : self{
+	public function setConnection(int $face, WallConnectionType $type) : self{
 		if($face !== Facing::NORTH && $face !== Facing::SOUTH && $face !== Facing::WEST && $face !== Facing::EAST){
 			throw new \InvalidArgumentException("Facing can only be north, east, south or west");
 		}
-		if($type !== null){
+		if($type !== WallConnectionType::NONE){
 			$this->connections[$face] = $type;
 		}else{
 			unset($this->connections[$face]);

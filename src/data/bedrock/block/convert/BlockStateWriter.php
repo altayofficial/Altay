@@ -275,9 +275,9 @@ final class BlockStateWriter{
 	 * @deprecated
 	 * @return $this
 	 */
-	public function writeWallConnectionType(string $name, ?WallConnectionType $wallConnectionType) : self{
+	public function writeWallConnectionType(string $name, WallConnectionType $wallConnectionType) : self{
 		$this->writeString($name, match($wallConnectionType){
-			null => StringValues::WALL_CONNECTION_TYPE_EAST_NONE,
+			WallConnectionType::NONE => StringValues::WALL_CONNECTION_TYPE_EAST_NONE,
 			WallConnectionType::SHORT => StringValues::WALL_CONNECTION_TYPE_EAST_SHORT,
 			WallConnectionType::TALL => StringValues::WALL_CONNECTION_TYPE_EAST_TALL,
 		});

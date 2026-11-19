@@ -72,6 +72,10 @@ final class BroadcastLoggerForwarder implements CommandSender{
 		return "Broadcast Logger Forwarder";
 	}
 
+	public function isOnline() : bool{
+		return true;
+	}
+
 	public function getScreenLineHeight() : int{
 		return PHP_INT_MAX;
 	}

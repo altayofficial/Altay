@@ -46,6 +46,19 @@ stack:
 empty: {}
 YAML;
 
+	/**
+	 * Parses the document and digs out the value at the given key path, so phpstan doesn't have to see mixed offsets.
+	 */
+	private static function read(string $text, string ...$path) : mixed{
+		$value = yaml_parse($text);
+		foreach($path as $key){
+			self::assertIsArray($value);
+			self::assertArrayHasKey($key, $value);
+			$value = $value[$key];
+		}
+		return $value;
+	}
+
 	public function testReplaceKeepsComments() : void{
 		$editor = new YamlEditor(self::DOCUMENT);
 		$editor->set(["server", "motd"], "New #1");
@@ -53,7 +66,7 @@ YAML;
 
 		self::assertStringContainsString("  #name shown in the list\n  motd: \"New #1\" # keep me\n", $text);
 		self::assertStringContainsString("#header\n", $text);
-		self::assertSame("New #1", yaml_parse($text)["server"]["motd"]);
+		self::assertSame("New #1", self::read($text, "server", "motd"));
 	}
 
 	public function testReplaceBlockValue() : void{
@@ -61,7 +74,7 @@ YAML;
 		$editor->set(["stack"], ["b.zip", "c.zip"]);
 		$text = $editor->getText();
 
-		self::assertSame(["b.zip", "c.zip"], yaml_parse($text)["stack"]);
+		self::assertSame(["b.zip", "c.zip"], self::read($text, "stack"));
 		self::assertStringContainsString("#trailing comment belongs to the next key\n", $text);
 	}
 
@@ -71,11 +84,11 @@ YAML;
 		$editor->set(["empty", "nested", "value"], false);
 		$editor->set(["brand-new"], ["x" => 1]);
 
-		$parsed = yaml_parse($editor->getText());
-		self::assertSame(["enabled" => true, "port" => 19133], $parsed["server"]["ipv6"]);
-		self::assertSame(["nested" => ["value" => false]], $parsed["empty"]);
-		self::assertSame(["x" => 1], $parsed["brand-new"]);
-		self::assertSame(19132, $parsed["server"]["port"]);
+		$text = $editor->getText();
+		self::assertSame(["enabled" => true, "port" => 19133], self::read($text, "server", "ipv6"));
+		self::assertSame(["nested" => ["value" => false]], self::read($text, "empty"));
+		self::assertSame(["x" => 1], self::read($text, "brand-new"));
+		self::assertSame(19132, self::read($text, "server", "port"));
 	}
 
 	public function testRefusesToWalkIntoScalar() : void{

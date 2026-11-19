@@ -48,10 +48,10 @@ class RedstoneWire extends Flowable implements AnalogRedstoneSignalEmitter, Stat
 	 * @phpstan-var array<int, RedstoneWireConnection>
 	 */
 	protected array $connections = [
-		Facing::NORTH => RedstoneWireConnection::NONE,
-		Facing::SOUTH => RedstoneWireConnection::NONE,
-		Facing::WEST => RedstoneWireConnection::NONE,
-		Facing::EAST => RedstoneWireConnection::NONE
+		Facing::NORTH->value => RedstoneWireConnection::NONE,
+		Facing::SOUTH->value => RedstoneWireConnection::NONE,
+		Facing::WEST->value => RedstoneWireConnection::NONE,
+		Facing::EAST->value => RedstoneWireConnection::NONE
 	];
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
@@ -59,11 +59,11 @@ class RedstoneWire extends Flowable implements AnalogRedstoneSignalEmitter, Stat
 		//four 2-bit enums would push the state past 11 bits, but there are only 3^4 combinations, which fit in 7
 		$packed = 0;
 		foreach(array_reverse(Facing::HORIZONTAL) as $facing){
-			$packed = $packed * 3 + self::connectionIndex($this->connections[$facing]);
+			$packed = $packed * 3 + self::connectionIndex($this->connections[$facing->value]);
 		}
 		$w->boundedIntAuto(0, 80, $packed);
 		foreach(Facing::HORIZONTAL as $facing){
-			$this->connections[$facing] = self::CONNECTIONS[$packed % 3];
+			$this->connections[$facing->value] = self::CONNECTIONS[$packed % 3];
 			$packed = intdiv($packed, 3);
 		}
 	}
@@ -76,16 +76,16 @@ class RedstoneWire extends Flowable implements AnalogRedstoneSignalEmitter, Stat
 		};
 	}
 
-	public function getConnection(int $facing) : RedstoneWireConnection{
-		return $this->connections[$facing] ?? throw new \InvalidArgumentException("Facing must be horizontal");
+	public function getConnection(Facing $facing) : RedstoneWireConnection{
+		return $this->connections[$facing->value] ?? throw new \InvalidArgumentException("Facing must be horizontal");
 	}
 
 	/** @return $this */
-	public function setConnection(int $facing, RedstoneWireConnection $connection) : self{
-		if(!isset($this->connections[$facing])){
+	public function setConnection(Facing $facing, RedstoneWireConnection $connection) : self{
+		if(!isset($this->connections[$facing->value])){
 			throw new \InvalidArgumentException("Facing must be horizontal");
 		}
-		$this->connections[$facing] = $connection;
+		$this->connections[$facing->value] = $connection;
 		return $this;
 	}
 
@@ -105,15 +105,15 @@ class RedstoneWire extends Flowable implements AnalogRedstoneSignalEmitter, Stat
 		$changed = false;
 		foreach(Facing::HORIZONTAL as $facing){
 			$connection = $this->findConnection($facing, $canClimb);
-			if($connection !== $this->connections[$facing]){
-				$this->connections[$facing] = $connection;
+			if($connection !== $this->connections[$facing->value]){
+				$this->connections[$facing->value] = $connection;
 				$changed = true;
 			}
 		}
 		return $changed;
 	}
 
-	private function findConnection(int $facing, bool $canClimb) : RedstoneWireConnection{
+	private function findConnection(Facing $facing, bool $canClimb) : RedstoneWireConnection{
 		$side = $this->getSide($facing);
 		if($canClimb && $side->getSupportType(Facing::UP) === SupportType::FULL && $side->getSide(Facing::UP) instanceof RedstoneWire){
 			return RedstoneWireConnection::UP;
@@ -136,10 +136,10 @@ class RedstoneWire extends Flowable implements AnalogRedstoneSignalEmitter, Stat
 		return $block->isSolid() && !$block->isTransparent();
 	}
 
-	private static function connectsTo(Block $block, int $facing) : bool{
+	private static function connectsTo(Block $block, Facing $facing) : bool{
 		return match(true){
 			//a repeater only takes and gives a signal along the line it faces
-			$block instanceof RedstoneRepeater => Facing::axis($block->getFacing()) === Facing::axis($facing),
+			$block instanceof RedstoneRepeater => Facing::axis($block->getFacing()->toFacing()) === Facing::axis($facing),
 			$block instanceof RedstoneWire,
 			$block instanceof RedstoneComparator,
 			$block instanceof RedstoneTorch,

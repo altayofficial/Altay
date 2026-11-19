@@ -92,13 +92,13 @@ class PointedDripstone extends Transparent implements Fallable{
 
 	protected function recalculateCollisionBoxes() : array{
 		if($this->thickness === DripstoneThickness::TIP){
-			$box = AxisAlignedBB::one()->squash(Axis::X, 6 / 16)->squash(Axis::Z, 6 / 16);
-			return [$this->hanging ? $box->trim(Facing::DOWN, 5 / 16) : $box->trim(Facing::UP, 5 / 16)];
+			$box = AxisAlignedBB::one()->squashedCopy(Axis::X, 6 / 16)->squashedCopy(Axis::Z, 6 / 16);
+			return [$this->hanging ? $box->trimmedCopy(Facing::DOWN, 5 / 16) : $box->trimmedCopy(Facing::UP, 5 / 16)];
 		}
-		return [AxisAlignedBB::one()->squash(Axis::X, 2 / 16)->squash(Axis::Z, 2 / 16)];
+		return [AxisAlignedBB::one()->squashedCopy(Axis::X, 2 / 16)->squashedCopy(Axis::Z, 2 / 16)];
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		$world = $blockReplace->getPosition()->getWorld();
 		$pos = $blockReplace->getPosition();
 		$above = $world->getBlock($pos->up());

@@ -57,7 +57,7 @@ class Thin extends Transparent implements HorizontalConnections, StateDeriving{
 		return $this->recalculateConnections();
 	}
 
-	protected function canConnectTo(int $facing) : bool{
+	protected function canConnectTo(Facing $facing) : bool{
 		$side = $this->getSide($facing);
 		return $side instanceof Thin || $side instanceof Wall || $side->getSupportType(Facing::opposite($facing)) === SupportType::FULL;
 	}

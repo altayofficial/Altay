@@ -1850,7 +1850,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				$this->fireTicks = 1;
 			}
 
-			$item = $this->getInventory()->getItemInHand();
+			$item = $this->getMainHandItem();
 			if($item instanceof Spear && $this->isUsingItem()){
 				$item->whileSpearUsing($this);
 			}
@@ -2405,7 +2405,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * @return bool whether the held item was a spear, even if the jab itself didn't go through (e.g. on cooldown)
 	 */
 	public function jabWithHeldSpear() : bool{
-		$item = $this->inventory->getItemInHand();
+		$item = $this->getMainHandItem();
 		if(!$item instanceof Spear){
 			return false;
 		}

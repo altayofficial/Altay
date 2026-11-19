@@ -1014,7 +1014,7 @@ class NetworkSession{
 			}
 			$cdnUrl = $packManager->getPackCdnUrl($resourcePack->getPackId());
 			if($cdnUrl !== null){
-				$cdnUrls[$resourcePack->getPackId()] = $cdnUrl;
+				$cdnUrls[$resourcePack->getPackId()->toString()] = $cdnUrl;
 			}
 		}
 		$event = new PlayerResourcePackOfferEvent($this->info, $resourcePacks, $keys, $packManager->resourcePacksRequired());

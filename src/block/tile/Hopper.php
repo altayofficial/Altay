@@ -46,7 +46,7 @@ class Hopper extends Spawnable implements ContainerTile, Nameable{
 
 	public function __construct(World $world, Vector3 $pos){
 		parent::__construct($world, $pos);
-		$this->inventory = new HopperInventory($this->position);
+		$this->inventory = new SimpleInventory(5);
 		// Hopper::onScheduledUpdate() keeps rescheduling itself, but something has to start that chain off - both for
 		// newly placed hoppers and for the ones read back from disk.
 		$world->scheduleDelayedBlockUpdate($pos, 1);

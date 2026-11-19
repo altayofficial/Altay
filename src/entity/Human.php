@@ -417,7 +417,7 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 	}
 
 	public function getShieldInHand() : ?Shield{
-		$hand = $this->inventory->getItemInHand();
+		$hand = $this->getMainHandItem();
 		if($hand instanceof Shield){
 			return $hand;
 		}
@@ -549,10 +549,10 @@ class Human extends Living implements ProjectileSource, InventoryHolder{
 	}
 
 	private function damageShield(int $durabilityRemoved) : void{
-		$hand = $this->inventory->getItemInHand();
+		$hand = $this->getMainHandItem();
 		if($hand instanceof Shield){
 			$hand->applyDamage($durabilityRemoved);
-			$this->inventory->setItemInHand($hand);
+			$this->setMainHandItem($hand);
 		}else{
 			$offHand = $this->offHandInventory->getItem(0);
 			if(!$offHand instanceof Shield){

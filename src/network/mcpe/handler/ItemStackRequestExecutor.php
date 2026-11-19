@@ -25,15 +25,13 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
-use pocketmine\block\inventory\AnvilInventory;
-use pocketmine\block\inventory\EnchantInventory;
-use pocketmine\block\inventory\SmithingTableInventory;
+use pocketmine\block\inventory\window\AnvilInventoryWindow;
+use pocketmine\block\inventory\window\SmithingTableInventoryWindow;
 use pocketmine\block\utils\AnvilHelper;
 use pocketmine\crafting\CraftingResultTransfer;
 use pocketmine\crafting\ShapelessRecipe;
 use pocketmine\crafting\SmithingTrimRecipe;
 use pocketmine\data\bedrock\item\ArmorTrimIdMap;
-use pocketmine\inventory\Inventory;
 use pocketmine\block\inventory\window\EnchantingTableInventoryWindow;
 use pocketmine\inventory\transaction\action\CreateItemAction;
 use pocketmine\inventory\transaction\action\DestroyItemAction;
@@ -44,7 +42,6 @@ use pocketmine\inventory\transaction\EnchantingTransaction;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\inventory\transaction\SmithingTrimTransaction;
 use pocketmine\inventory\transaction\TransactionBuilder;
-use pocketmine\inventory\transaction\TransactionBuilderInventory;
 use pocketmine\item\Armor;
 use pocketmine\item\ArmorTrim;
 use pocketmine\inventory\transaction\SlotChangeActionBuilder;
@@ -273,8 +270,8 @@ class ItemStackRequestExecutor{
 		//CraftingConsumeInput is handled below (needed for shulker box dyeing etc.)
 		$craftingResults = $recipe->getResultsFor($this->player->getCraftingGrid());
 		$window = $this->player->getCurrentWindow();
-		if($recipe instanceof ShapelessRecipe && $window instanceof SmithingTableInventory){
-			CraftingResultTransfer::transferSmithingBaseNamedTag($recipe, $window->getContents(), $craftingResults);
+		if($recipe instanceof ShapelessRecipe && $window instanceof SmithingTableInventoryWindow){
+			CraftingResultTransfer::transferSmithingBaseNamedTag($recipe, $window->getInventory()->getContents(), $craftingResults);
 		}
 		foreach($craftingResults as $k => $craftingResult){
 			$craftingResult->setCount($craftingResult->getCount() * $repetitions);
@@ -291,7 +288,7 @@ class ItemStackRequestExecutor{
 	 */
 	private function beginSmithingTrim() : void{
 		$window = $this->player->getCurrentWindow();
-		if(!$window instanceof SmithingTableInventory){
+		if(!$window instanceof SmithingTableInventoryWindow){
 			throw new ItemStackRequestProcessException("The armor trim recipe requires an open smithing table");
 		}
 
@@ -299,7 +296,7 @@ class ItemStackRequestExecutor{
 		$equipment = null;
 		$patternId = null;
 		$materialId = null;
-		foreach($window->getContents() as $item){
+		foreach($window->getInventory()->getContents() as $item){
 			if($item instanceof Armor){
 				if($equipment !== null){
 					throw new ItemStackRequestProcessException("More than 1 item to apply a trim to");
@@ -333,7 +330,7 @@ class ItemStackRequestExecutor{
 	 */
 	private function beginAnvil(int $filterStringIndex) : void{
 		$window = $this->player->getCurrentWindow();
-		if(!$window instanceof AnvilInventory){
+		if(!$window instanceof AnvilInventoryWindow){
 			throw new ItemStackRequestProcessException("The optional recipe requires an open anvil");
 		}
 
@@ -348,8 +345,8 @@ class ItemStackRequestExecutor{
 		}
 
 		$result = AnvilHelper::calculateResult(
-			$window->getItem(AnvilInventory::SLOT_INPUT),
-			$window->getItem(AnvilInventory::SLOT_MATERIAL),
+			$window->getInventory()->getItem(AnvilInventoryWindow::SLOT_INPUT),
+			$window->getInventory()->getItem(AnvilInventoryWindow::SLOT_MATERIAL),
 			$name,
 			!$this->player->hasFiniteResources()
 		);

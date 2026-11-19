@@ -28,6 +28,7 @@ namespace pocketmine\block;
 use pocketmine\block\utils\Ageable;
 use pocketmine\block\utils\AgeableTrait;
 use pocketmine\block\utils\BlockEventHelper;
+use pocketmine\block\utils\HorizontalFacingOption;
 use pocketmine\block\utils\SupportType;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\event\block\BlockBurnEvent;
@@ -38,6 +39,7 @@ use function intdiv;
 use function max;
 use function min;
 use function mt_rand;
+use function spl_object_id;
 
 class Fire extends BaseFire implements Ageable, StateDeriving{
 	use AgeableTrait;
@@ -46,32 +48,33 @@ class Fire extends BaseFire implements Ageable, StateDeriving{
 
 	/**
 	 * Sides the fire is licking at, only ever set when it is not sitting on a floor.
-	 * @var int[]
-	 * @phpstan-var array<int, int>
+	 * @var HorizontalFacingOption[]
+	 * @phpstan-var array<int, HorizontalFacingOption>
 	 */
 	protected array $connections = [];
 	protected bool $connectedUp = false;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
 		$w->boundedIntAuto(0, self::MAX_AGE, $this->age);
-		$w->horizontalFacingFlags($this->connections);
+		$w->enumSet($this->connections, HorizontalFacingOption::cases());
 		$w->bool($this->connectedUp);
 	}
 
-	public function isConnected(int $facing) : bool{
-		return $facing === Facing::UP ? $this->connectedUp : isset($this->connections[$facing]);
+	public function isConnected(Facing $facing) : bool{
+		return $facing === Facing::UP ? $this->connectedUp : isset($this->connections[spl_object_id(HorizontalFacingOption::fromFacing($facing))]);
 	}
 
 	/** @return $this */
-	public function setConnected(int $facing, bool $connected) : self{
+	public function setConnected(Facing $facing, bool $connected) : self{
 		if($facing === Facing::UP){
 			$this->connectedUp = $connected;
 		}elseif($facing === Facing::DOWN){
 			throw new \InvalidArgumentException("Fire cannot connect downwards");
 		}elseif($connected){
-			$this->connections[$facing] = $facing;
+			$option = HorizontalFacingOption::fromFacing($facing);
+			$this->connections[spl_object_id($option)] = $option;
 		}else{
-			unset($this->connections[$facing]);
+			unset($this->connections[spl_object_id(HorizontalFacingOption::fromFacing($facing))]);
 		}
 		return $this;
 	}

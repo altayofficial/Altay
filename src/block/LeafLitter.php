@@ -37,7 +37,7 @@ class LeafLitter extends BaseFlowerBed{
 		return $supportBlock->getSupportType(Facing::UP) === SupportType::FULL;
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		//unlike the other flower beds, bone meal does nothing to leaf litter
 		return false;
 	}

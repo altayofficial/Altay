@@ -92,16 +92,16 @@ class Composter extends Transparent{
 
 	protected function recalculateCollisionBoxes() : array{
 		$result = [
-			AxisAlignedBB::one()->trim(Facing::UP, 1 - $this->getContentHeight())
+			AxisAlignedBB::one()->trimmedCopy(Facing::UP, 1 - $this->getContentHeight())
 		];
 
 		foreach(Facing::HORIZONTAL as $facing){
-			$result[] = AxisAlignedBB::one()->trim($facing, 14 / 16);
+			$result[] = AxisAlignedBB::one()->trimmedCopy($facing, 14 / 16);
 		}
 		return $result;
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return $facing === Facing::UP ? SupportType::EDGE : SupportType::NONE;
 	}
 
@@ -113,7 +113,7 @@ class Composter extends Transparent{
 		return 20;
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		$world = $this->position->getWorld();
 		$soundPos = $this->position->add(0.5, 0.5, 0.5);
 

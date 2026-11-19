@@ -3097,7 +3097,7 @@ class World implements ChunkManager{
 		}
 
 		foreach(Facing::HORIZONTAL as $facing){
-			[$offsetX, $_, $offsetZ] = Facing::OFFSET[$facing];
+			[$offsetX, $_, $offsetZ] = Facing::OFFSET[$facing->value];
 			if(!isset($this->chunks[World::chunkHash($chunkX + $offsetX, $chunkZ + $offsetZ)])){
 				return;
 			}

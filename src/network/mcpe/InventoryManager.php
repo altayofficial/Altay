@@ -25,18 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe;
 
-use pocketmine\block\inventory\AnvilInventory;
-use pocketmine\block\inventory\BlockInventory;
-use pocketmine\block\inventory\BrewingStandInventory;
-use pocketmine\block\inventory\CartographyTableInventory;
-use pocketmine\block\inventory\CraftingTableInventory;
-use pocketmine\block\inventory\EnchantInventory;
-use pocketmine\block\inventory\FurnaceInventory;
-use pocketmine\block\inventory\HopperInventory;
-use pocketmine\block\inventory\LoomInventory;
-use pocketmine\block\inventory\SmithingTableInventory;
-use pocketmine\block\inventory\StonecutterInventory;
-use pocketmine\block\tile\Container;
+use pocketmine\block\tile\ContainerTile;
 use pocketmine\block\inventory\window\AnvilInventoryWindow;
 use pocketmine\block\inventory\window\BlockInventoryWindow;
 use pocketmine\block\inventory\window\BrewingStandInventoryWindow;
@@ -284,7 +273,7 @@ class InventoryManager implements InventoryListener{
 	}
 
 	public function discardPredictedSlotChange(Inventory $inventory, int $slot) : void{
-		$entry = $this->inventories[spl_object_id($inventory)] ?? null;
+		$entry = $this->getEntry($inventory);
 		if($entry !== null){
 			unset($entry->predictions[$slot]);
 		}
@@ -297,7 +286,7 @@ class InventoryManager implements InventoryListener{
 				//The client predicts the plain recipe result; ItemStackResponse doesn't send full NBT
 				if(
 					$tx instanceof CraftingTransaction &&
-					$action->getTargetItem()->getNamedTag()->getTag(Container::TAG_ITEMS) !== null
+					$action->getTargetItem()->getNamedTag()->getTag(ContainerTile::TAG_ITEMS) !== null
 				){
 					continue;
 				}

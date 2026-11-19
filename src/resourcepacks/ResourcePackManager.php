@@ -139,7 +139,7 @@ class ResourcePackManager{
 				$this->uuidList[$printableId] = $newPack;
 				$this->resourcePacks[] = $newPack;
 				if(isset($configuredCdnUrls[$pack])){
-					$this->cdnUrls[$index] = $configuredCdnUrls[$pack];
+					$this->cdnUrls[$printableId] = $configuredCdnUrls[$pack];
 				}
 
 				$keyPath = Path::join($this->path, $pack . ".key");
@@ -267,8 +267,8 @@ class ResourcePackManager{
 	/**
 	 * Returns the CDN URL for the specified resource pack, or null if the pack should be sent by the server.
 	 */
-	public function getPackCdnUrl(string $id) : ?string{
-		return $this->cdnUrls[strtolower($id)] ?? null;
+	public function getPackCdnUrl(UuidInterface $id) : ?string{
+		return $this->cdnUrls[$id->toString()] ?? null;
 	}
 
 	/**

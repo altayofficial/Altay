@@ -53,7 +53,7 @@ class Shelf extends Transparent implements HorizontalFacing, WoodMaterial{
 	protected PoweredShelfType $poweredShelfType = PoweredShelfType::UNCONNECTED;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->horizontalFacing($this->facing);
+		$w->enum($this->facing);
 		$w->bool($this->powered);
 		$w->enum($this->poweredShelfType);
 	}
@@ -80,14 +80,14 @@ class Shelf extends Transparent implements HorizontalFacing, WoodMaterial{
 
 	protected function recalculateCollisionBoxes() : array{
 		return [
-			AxisAlignedBB::one()->trim($this->facing, 13 / 16),
-			AxisAlignedBB::one()->trim($this->facing, 11 / 16)->trim(Facing::UP, 12 / 16),
-			AxisAlignedBB::one()->trim($this->facing, 11 / 16)->trim(Facing::DOWN, 12 / 16)
+			AxisAlignedBB::one()->trimmedCopy($this->facing->toFacing(), 13 / 16),
+			AxisAlignedBB::one()->trimmedCopy($this->facing->toFacing(), 11 / 16)->trimmedCopy(Facing::UP, 12 / 16),
+			AxisAlignedBB::one()->trimmedCopy($this->facing->toFacing(), 11 / 16)->trimmedCopy(Facing::DOWN, 12 / 16)
 		];
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
-		if($face !== $this->facing || $clickVector->y <= 0.25 || $clickVector->y >= 0.75){
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+		if($face !== $this->facing->toFacing() || $clickVector->y <= 0.25 || $clickVector->y >= 0.75){
 			return false;
 		}
 
@@ -118,7 +118,7 @@ class Shelf extends Transparent implements HorizontalFacing, WoodMaterial{
 	/**
 	 * Slot 0 is the one on the left as seen by whoever is looking at the front.
 	 */
-	private function getSlotFromClick(int $face, Vector3 $clickVector) : int{
+	private function getSlotFromClick(Facing $face, Vector3 $clickVector) : int{
 		$x = Facing::axis($face) === Axis::X ? $clickVector->z : $clickVector->x;
 		$offset = Facing::isPositive(Facing::rotateY($face, true)) ? 1 - $x : $x;
 		return min(self::SLOT_COUNT - 1, (int) floor($offset * self::SLOT_COUNT));
@@ -157,7 +157,7 @@ class Shelf extends Transparent implements HorizontalFacing, WoodMaterial{
 		}
 
 		//yeah, "right" is the shelf's own right, so it's on the viewer's left
-		$rightFace = Facing::rotateY($this->facing, true);
+		$rightFace = Facing::rotateY($this->facing->toFacing(), true);
 		$leftFace = Facing::opposite($rightFace);
 		$right = $this->getSide($rightFace);
 		$left = $this->getSide($leftFace);

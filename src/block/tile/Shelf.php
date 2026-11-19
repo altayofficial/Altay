@@ -40,8 +40,8 @@ use pocketmine\nbt\UnexpectedTagTypeException;
 use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\world\World;
 
-class Shelf extends Spawnable implements Container{
-	use ContainerTrait;
+class Shelf extends Spawnable implements ContainerTile{
+	use ContainerTileTrait;
 
 	private SimpleInventory $inventory;
 
@@ -69,7 +69,7 @@ class Shelf extends Spawnable implements Container{
 
 	public function readSaveData(CompoundTag $nbt) : void{
 		try{
-			$itemsTag = $nbt->getListTag(Container::TAG_ITEMS, CompoundTag::class);
+			$itemsTag = $nbt->getListTag(ContainerTile::TAG_ITEMS, CompoundTag::class);
 		}catch(UnexpectedTagTypeException){
 			$itemsTag = null;
 		}
@@ -97,12 +97,12 @@ class Shelf extends Spawnable implements Container{
 	}
 
 	protected function writeSaveData(CompoundTag $nbt) : void{
-		$nbt->setTag(Container::TAG_ITEMS, $this->buildItemList(fn(Item $item) => $item->nbtSerialize()));
+		$nbt->setTag(ContainerTile::TAG_ITEMS, $this->buildItemList(fn(Item $item) => $item->nbtSerialize()));
 	}
 
 	protected function addAdditionalSpawnData(CompoundTag $nbt) : void{
 		$translator = TypeConverter::getInstance()->getItemTranslator();
-		$nbt->setTag(Container::TAG_ITEMS, $this->buildItemList(fn(Item $item) => $translator->toNetworkNbt($item)));
+		$nbt->setTag(ContainerTile::TAG_ITEMS, $this->buildItemList(fn(Item $item) => $translator->toNetworkNbt($item)));
 	}
 
 	/**

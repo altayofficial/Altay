@@ -441,7 +441,7 @@ final class CraftingManagerFromDataHelper{
 				throw new SavedDataLoadingException("Invalid entry at index $i: expected object, got " . get_debug_type($item));
 			}
 			try{
-				$result[] = $mapper->map($item, (new \ReflectionClass($modelCLass))->newInstanceWithoutConstructor());
+				$result[] = $mapper->map($item, (new \ReflectionClass($modelClass))->newInstanceWithoutConstructor());
 			}catch(\JsonMapper_Exception $e){
 				throw new SavedDataLoadingException("Invalid entry at index $i: " . $e->getMessage(), 0, $e);
 			}

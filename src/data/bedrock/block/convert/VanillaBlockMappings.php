@@ -96,7 +96,6 @@ use pocketmine\block\ShelfMushroom;
 use pocketmine\block\SmallDripleaf;
 use pocketmine\block\SnowLayer;
 use pocketmine\block\Sponge;
-use pocketmine\block\StraightOnlyRail;
 use pocketmine\block\StrawBed;
 use pocketmine\block\Sugarcane;
 use pocketmine\block\SweetBerryBush;

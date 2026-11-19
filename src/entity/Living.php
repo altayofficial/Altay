@@ -501,7 +501,7 @@ abstract class Living extends Entity{
 			return 1.0;
 		}
 
-		$weapon = $damager->getInventory()->getItemInHand();
+		$weapon = $damager->getMainHandItem();
 
 		return $weapon instanceof Mace ? $weapon->getArmorEfficiency() : 1.0;
 	}

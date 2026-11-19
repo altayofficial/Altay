@@ -58,7 +58,7 @@ class Fence extends Transparent implements HorizontalConnections, StateDeriving{
 		return $this->recalculateConnections();
 	}
 
-	protected function canConnectTo(int $facing) : bool{
+	protected function canConnectTo(Facing $facing) : bool{
 		$block = $this->getSide($facing);
 		return $block instanceof static || $block instanceof FenceGate || $block->getSupportType(Facing::opposite($facing)) === SupportType::FULL;
 	}

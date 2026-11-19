@@ -27,7 +27,7 @@ namespace pocketmine\network\mcpe\handler;
 
 use pocketmine\block\Anvil;
 use pocketmine\block\BaseSign;
-use pocketmine\block\inventory\AnvilInventory;
+use pocketmine\block\inventory\window\AnvilInventoryWindow;
 use pocketmine\block\Lectern;
 use pocketmine\block\tile\Sign;
 use pocketmine\block\utils\BlockEventHelper;
@@ -102,6 +102,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionD
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\types\PlayerAction;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
+use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
 use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
@@ -342,7 +343,7 @@ class InGamePacketHandler extends PacketHandler{
 		if(count($trData->getActions()) > 50){
 			throw new PacketHandlingException("Too many actions in inventory transaction");
 		}
-		if($packet->requestChangedSlots !== null && count($packet->requestChangedSlots) > 10){
+		if(count($packet->requestChangedSlots) > 10){
 			throw new PacketHandlingException("Too many slot sync requests in inventory transaction");
 		}
 
@@ -382,14 +383,12 @@ class InGamePacketHandler extends PacketHandler{
 		//haven't changed. Handling these is necessary to ensure the client inventory stays in sync if the server
 		//rejects the transaction. The most common example of this is equipping armor by right-click, which doesn't send
 		//a legacy prediction action for the destination armor slot.
-		if($packet->requestChangedSlots !== null){
-			foreach($packet->requestChangedSlots as $containerInfo){
-				foreach($containerInfo->getChangedSlotIndexes() as $netSlot){
-					[$windowId, $slot] = ItemStackContainerIdTranslator::translate($containerInfo->getContainerId(), $this->inventoryManager->getCurrentWindowId(), $netSlot);
-					$inventoryAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slot);
-					if($inventoryAndSlot !== null){ //trigger the normal slot sync logic
-						$this->inventoryManager->requestSyncSlot($inventoryAndSlot[0], $inventoryAndSlot[1]);
-					}
+		foreach($packet->requestChangedSlots as $containerInfo){
+			foreach($containerInfo->getChangedSlotIndexes() as $netSlot){
+				[$windowId, $slot] = ItemStackContainerIdTranslator::translate($containerInfo->getContainerId(), $this->inventoryManager->getCurrentWindowId(), $netSlot);
+				$inventoryAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slot);
+				if($inventoryAndSlot !== null){ //trigger the normal slot sync logic
+					$this->inventoryManager->requestSyncSlot($inventoryAndSlot[0], $inventoryAndSlot[1]);
 				}
 			}
 		}
@@ -560,15 +559,15 @@ class InGamePacketHandler extends PacketHandler{
 				if($face === 255){
 					return $this->handleRightClickItemUse();
 				}
-				$item = $this->player->getInventory()->getItemInHand();
+				$item = $this->player->getMainHandItem();
 				if($item instanceof ConsumableItem){
 					return $this->handleHoldToUseItemTransaction();
 				}
-				self::validateFacing($face);
+				$facing = self::deserializeFacing($face);
 				$blockPos = $data->getBlockPosition();
 				$vBlockPos = new Vector3($blockPos->getX(), $blockPos->getY(), $blockPos->getZ());
 				if(!$this->player->breakBlock($vBlockPos)){
-					$this->syncBlocksNearby($vBlockPos, $data->getFace());
+					$this->syncBlocksNearby($vBlockPos, $facing);
 				}
 				return true;
 			case UseItemTransactionData::ACTION_USE_AS_ATTACK:
@@ -576,11 +575,11 @@ class InGamePacketHandler extends PacketHandler{
 					return true;
 				}
 				$face = $data->getFace();
-				if($face !== 255 && in_array($face, Facing::ALL, true)){
+				if($face !== 255 && ($facing = Facing::tryFrom($face)) !== null){
 					$blockPos = $data->getBlockPosition();
 					$vBlockPos = new Vector3($blockPos->getX(), $blockPos->getY(), $blockPos->getZ());
-					if(!$this->player->attackBlock($vBlockPos, $face)){
-						$this->syncBlocksNearby($vBlockPos, $face);
+					if(!$this->player->attackBlock($vBlockPos, $facing)){
+						$this->syncBlocksNearby($vBlockPos, $facing);
 					}
 					return true;
 				}
@@ -678,7 +677,7 @@ class InGamePacketHandler extends PacketHandler{
 		$result = match($data->getActionType()){
 			ReleaseItemTransactionData::ACTION_RELEASE,
 			ReleaseItemTransactionData::ACTION_CONSUME => $this->handleHeldItemReleaseOrConsume(),
-			default => $this->player->getInventory()->getItemInHand() instanceof Releasable
+			default => $this->player->getMainHandItem() instanceof Releasable
 				? $this->handleHeldItemReleaseOrConsume()
 				: false,
 		};
@@ -696,7 +695,7 @@ class InGamePacketHandler extends PacketHandler{
 
 	private function handleRightClickItemUse() : bool{
 		if($this->player->isUsingItem()){
-			$held = $this->player->getInventory()->getItemInHand();
+			$held = $this->player->getMainHandItem();
 			if($held instanceof ConsumableItem){
 				if($this->player->getItemUseDuration() < $held->getMinUseDuration()){
 					//the client may send a duplicate click-air in the same tick it started using the item,
@@ -713,7 +712,7 @@ class InGamePacketHandler extends PacketHandler{
 			return true;
 		}
 
-		$item = $this->player->getInventory()->getItemInHand();
+		$item = $this->player->getMainHandItem();
 		if($this->isHoldToUseItem($item)){
 			return $this->handleHoldToUseItemTransaction();
 		}
@@ -729,7 +728,7 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	private function handleHoldToUseItemTransaction() : bool{
-		$item = $this->player->getInventory()->getItemInHand();
+		$item = $this->player->getMainHandItem();
 		if($item instanceof ConsumableItem){
 			if($this->player->isUsingItem() || $this->player->isAwaitingConsumableRelease()){
 				return true;
@@ -752,8 +751,7 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	private function discardHeldItemUsePredictions() : void{
-		$inventory = $this->player->getInventory();
-		$this->inventoryManager->discardPredictedSlotChange($inventory, $inventory->getHeldItemIndex());
+		$this->inventoryManager->discardPredictedSlotChange($this->player->getInventory(), $this->player->getHotbar()->getSelectedIndex());
 	}
 
 	private function discardHeldItemUsePredictionsIfUsing() : void{
@@ -763,7 +761,7 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	private function handleHeldItemReleaseOrConsume() : bool{
-		$item = $this->player->getInventory()->getItemInHand();
+		$item = $this->player->getMainHandItem();
 		if($item instanceof ConsumableItem){
 			if($this->player->consumeHeldItem()){
 				return true;
@@ -1028,7 +1026,7 @@ class InGamePacketHandler extends PacketHandler{
 		//the client only tells us that it used an anvil - it can't be trusted to tell us which one, so we only accept
 		//this for the anvil the player currently has open
 		$window = $this->player->getCurrentWindow();
-		if(!($window instanceof AnvilInventory)){
+		if(!($window instanceof AnvilInventoryWindow)){
 			return false;
 		}
 

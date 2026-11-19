@@ -454,11 +454,11 @@ final class CommonProperties{
 
 		$horizontalConnectionProperties = [];
 		foreach([
-			Facing::NORTH => StateNames::MC_CONNECTION_NORTH,
-			Facing::SOUTH => StateNames::MC_CONNECTION_SOUTH,
-			Facing::WEST => StateNames::MC_CONNECTION_WEST,
-			Facing::EAST => StateNames::MC_CONNECTION_EAST
-		] as $facing => $stateName){
+			[Facing::NORTH, StateNames::MC_CONNECTION_NORTH],
+			[Facing::SOUTH, StateNames::MC_CONNECTION_SOUTH],
+			[Facing::WEST, StateNames::MC_CONNECTION_WEST],
+			[Facing::EAST, StateNames::MC_CONNECTION_EAST]
+		] as [$facing, $stateName]){
 			$horizontalConnectionProperties[] = new BoolProperty(
 				$stateName,
 				fn(HorizontalConnections $b) => $b->isConnected($facing),

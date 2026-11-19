@@ -66,15 +66,15 @@ class Stair extends Transparent implements HorizontalFacing, StateDeriving{
 	}
 
 	public function deriveStateFromWorld() : bool{
-		$clockwise = Facing::rotateY($this->facing, true);
+		$clockwise = HorizontalFacingOption::fromFacing(Facing::rotateY($this->facing->toFacing(), true));
 		if(
 			($backFacing = $this->getPossibleCornerFacing(false)) !== null &&
-			$this->canTakeShape(Facing::opposite($backFacing))
+			$this->canTakeShape(Facing::opposite($backFacing->toFacing()))
 		){
 			$shape = $backFacing === $clockwise ? StairShape::OUTER_RIGHT : StairShape::OUTER_LEFT;
 		}elseif(
 			($frontFacing = $this->getPossibleCornerFacing(true)) !== null &&
-			$this->canTakeShape($frontFacing)
+			$this->canTakeShape($frontFacing->toFacing())
 		){
 			$shape = $frontFacing === $clockwise ? StairShape::INNER_RIGHT : StairShape::INNER_LEFT;
 		}else{

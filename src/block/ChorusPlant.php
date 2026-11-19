@@ -33,30 +33,31 @@ use pocketmine\math\Axis;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
 use function mt_rand;
+use function spl_object_id;
 
 final class ChorusPlant extends Flowable implements StateDeriving{
 	use StaticSupportTrait;
 
 	/**
-	 * @var int[]
-	 * @phpstan-var array<int, int>
+	 * @var Facing[]
+	 * @phpstan-var array<int, Facing>
 	 */
 	protected array $connections = [];
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->facingFlags($this->connections);
+		$w->enumSet($this->connections, Facing::cases());
 	}
 
-	public function isConnected(int $facing) : bool{
-		return isset($this->connections[$facing]);
+	public function isConnected(Facing $facing) : bool{
+		return isset($this->connections[spl_object_id($facing)]);
 	}
 
 	/** @return $this */
-	public function setConnected(int $facing, bool $connected) : self{
+	public function setConnected(Facing $facing, bool $connected) : self{
 		if($connected){
-			$this->connections[$facing] = $facing;
+			$this->connections[spl_object_id($facing)] = $facing;
 		}else{
-			unset($this->connections[$facing]);
+			unset($this->connections[spl_object_id($facing)]);
 		}
 		return $this;
 	}
@@ -64,7 +65,7 @@ final class ChorusPlant extends Flowable implements StateDeriving{
 	protected function recalculateCollisionBoxes() : array{
 		$bb = AxisAlignedBB::one();
 		foreach(Facing::ALL as $facing){
-			if(!isset($this->connections[$facing->value])){
+			if(!isset($this->connections[spl_object_id($facing)])){
 				$bb = $bb->trimmedCopy($facing, 2 / 16);
 			}
 		}
@@ -96,7 +97,7 @@ final class ChorusPlant extends Flowable implements StateDeriving{
 				BlockTypeIds::END_STONE, BlockTypeIds::CHORUS_FLOWER, $this->getTypeId() => true,
 				default => false
 			};
-			if($connected !== isset($this->connections[$facing])){
+			if($connected !== isset($this->connections[spl_object_id($facing)])){
 				$this->setConnected($facing, $connected);
 				$changed = true;
 			}

@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\command\defaults;
 
-use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\SimpleCommandMap;
 use pocketmine\lang\KnownTranslationFactory;

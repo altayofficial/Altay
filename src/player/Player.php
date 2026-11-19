@@ -362,6 +362,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	private int $dataDrivenScreenIdCounter = 0;
 	private ?DataDrivenScreenSession $dataDrivenScreenSession = null;
+	private bool $replacingDataDrivenScreen = false;
 
 	protected \Logger $logger;
 
@@ -2703,14 +2704,26 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * Opens a data driven screen, closing the one the player had open first.
 	 */
 	public function openDataDrivenScreen(DataDrivenScreen $screen) : DataDrivenScreenSession{
-		//wait, an onClose callback might open yet another screen, so keep closing until nothing is left
-		while(($current = $this->getDataDrivenScreenSession()) !== null){
-			$current->finish(DataDrivenScreenCloseReason::Programmatic, true);
-		}
-
 		$id = $this->dataDrivenScreenIdCounter;
 		$this->dataDrivenScreenIdCounter = ($id + 1) & 0xffffffff; //the client keeps form ids as uint32
 		$session = new DataDrivenScreenSession($this, $screen, $id);
+
+		//nothing would ever close it again, and the binder would keep us alive through any shared Observable
+		if(!$this->isConnected() || $this->replacingDataDrivenScreen){
+			return $session;
+		}
+
+		$current = $this->getDataDrivenScreenSession();
+		if($current !== null){
+			//hmm, onClose might try to open another screen, which would close this one, and so on forever. this one wins
+			$this->replacingDataDrivenScreen = true;
+			try{
+				$current->finish(DataDrivenScreenCloseReason::Programmatic, true);
+			}finally{
+				$this->replacingDataDrivenScreen = false;
+			}
+		}
+
 		$this->dataDrivenScreenSession = $session;
 		$session->open();
 		return $session;

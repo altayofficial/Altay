@@ -55,6 +55,9 @@ abstract class DataDrivenScreen{
 	 * Opens the screen for the player, closing whatever data driven screen they had open. The same instance can
 	 * be shown to many players at once; Observables shared between them stay in sync for everyone.
 	 *
+	 * Nothing is opened if the player is offline, or if this is called from an onClose fired because another screen
+	 * is replacing this one. The returned session is then already closed and onClose never fires for it.
+	 *
 	 * The layout is frozen after the first call, later changes have to go through Observables.
 	 */
 	final public function show(Player $player) : DataDrivenScreenSession{

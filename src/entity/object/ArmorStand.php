@@ -173,7 +173,7 @@ class ArmorStand extends Living{
 	}
 
 	public function onInteract(Player $player, Vector3 $clickPos) : bool{
-		if($player->isSpectator()){
+		if(!$this->isAlive() || $player->isSpectator()){
 			return false;
 		}
 
@@ -353,6 +353,14 @@ class ArmorStand extends Living{
 
 	public function getDrops() : array{
 		return [...$this->getEquipmentDrops(), VanillaItems::ARMOR_STAND()];
+	}
+
+	protected function onDeath() : void{
+		parent::onDeath();
+
+		//the equipment is on the ground now, and the stand sticks around until the next tick
+		$this->armorInventory->clearAll();
+		$this->handInventory->clearAll();
 	}
 
 	protected function startDeathAnimation() : void{

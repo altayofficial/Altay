@@ -27,6 +27,7 @@ namespace pocketmine\block;
 
 use pocketmine\block\utils\SupportType;
 use pocketmine\item\Item;
+use pocketmine\math\Facing;
 use function mt_rand;
 
 class MonsterSpawner extends Transparent{
@@ -43,7 +44,7 @@ class MonsterSpawner extends Transparent{
 		//TODO
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 }

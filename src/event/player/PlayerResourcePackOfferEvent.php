@@ -62,7 +62,7 @@ class PlayerResourcePackOfferEvent extends Event{
 	public function addResourcePack(ResourcePack $entry, ?string $encryptionKey = null) : void{
 		array_unshift($this->resourcePacks, $entry);
 		if($encryptionKey !== null){
-			$this->encryptionKeys[$entry->getPackId()] = $encryptionKey;
+			$this->encryptionKeys[$entry->getPackId()->toString()] = $encryptionKey;
 		}
 	}
 

@@ -29,6 +29,7 @@ use pocketmine\block\Block;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 use pocketmine\item\Item;
+use pocketmine\math\Facing;
 use pocketmine\player\Player;
 
 /**
@@ -40,7 +41,7 @@ abstract class PlayerBucketEvent extends PlayerEvent implements Cancellable{
 	public function __construct(
 		Player $who,
 		private Block $blockClicked,
-		private int $blockFace,
+		private Facing $blockFace,
 		private Item $bucket,
 		private Item $itemInHand
 	){
@@ -69,7 +70,7 @@ abstract class PlayerBucketEvent extends PlayerEvent implements Cancellable{
 		return $this->blockClicked;
 	}
 
-	public function getBlockFace() : int{
+	public function getBlockFace() : Facing{
 		return $this->blockFace;
 	}
 }

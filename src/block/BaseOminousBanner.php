@@ -30,6 +30,7 @@ use pocketmine\block\utils\DyeColor;
 use pocketmine\block\utils\SupportType;
 use pocketmine\item\Item;
 use pocketmine\item\VanillaItems;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
@@ -62,7 +63,7 @@ abstract class BaseOminousBanner extends Transparent{
 		return [];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 
@@ -70,7 +71,7 @@ abstract class BaseOminousBanner extends Transparent{
 		return $block->isSolid();
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if(!$this->canBeSupportedBy($blockReplace->getSide($this->getSupportingFace()))){
 			return false;
 		}
@@ -78,7 +79,7 @@ abstract class BaseOminousBanner extends Transparent{
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
-	abstract protected function getSupportingFace() : int;
+	abstract protected function getSupportingFace() : Facing;
 
 	public function onNearbyBlockChange() : void{
 		if(!$this->canBeSupportedBy($this->getSide($this->getSupportingFace()))){

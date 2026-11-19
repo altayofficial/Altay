@@ -39,8 +39,8 @@ use pocketmine\nbt\UnexpectedTagTypeException;
 use pocketmine\world\World;
 use function count;
 
-class ChiseledBookshelf extends Tile implements Container{
-	use ContainerTrait;
+class ChiseledBookshelf extends Tile implements ContainerTile{
+	use ContainerTileTrait;
 
 	private const TAG_LAST_INTERACTED_SLOT = "LastInteractedSlot"; //TAG_Int
 
@@ -89,7 +89,7 @@ class ChiseledBookshelf extends Tile implements Container{
 
 	protected function loadItems(CompoundTag $tag) : void{
 		try{
-			$inventoryTag = $tag->getListTag(Container::TAG_ITEMS, CompoundTag::class);
+			$inventoryTag = $tag->getListTag(ContainerTile::TAG_ITEMS, CompoundTag::class);
 		}catch(UnexpectedTagTypeException){
 			//preserve the old behaviour of not throwing on wrong types
 			$inventoryTag = null;
@@ -113,7 +113,7 @@ class ChiseledBookshelf extends Tile implements Container{
 			$inventory->getListeners()->add(...$listeners);
 		}
 
-		if(($lockTag = $tag->getTag(Container::TAG_LOCK)) instanceof StringTag){
+		if(($lockTag = $tag->getTag(ContainerTile::TAG_LOCK)) instanceof StringTag){
 			$this->lock = $lockTag->getValue();
 		}
 	}
@@ -132,10 +132,10 @@ class ChiseledBookshelf extends Tile implements Container{
 			}
 		}
 
-		$tag->setTag(Container::TAG_ITEMS, new ListTag($items, NBT::TAG_Compound));
+		$tag->setTag(ContainerTile::TAG_ITEMS, new ListTag($items, NBT::TAG_Compound));
 
 		if($this->lock !== null){
-			$tag->setString(Container::TAG_LOCK, $this->lock);
+			$tag->setString(ContainerTile::TAG_LOCK, $this->lock);
 		}
 	}
 }

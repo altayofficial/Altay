@@ -37,6 +37,7 @@ use pocketmine\event\block\SignChangeEvent;
 use pocketmine\item\Dye;
 use pocketmine\item\Item;
 use pocketmine\item\ItemTypeIds;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
@@ -54,7 +55,7 @@ use function strlen;
 abstract class BaseSign extends Transparent implements WoodMaterial{
 	use WoodTypeTrait;
 
-	protected SignText $text; //TODO: rename this (BC break)
+	protected SignText $frontText;
 	protected SignText $backText;
 	private bool $waxed = false;
 
@@ -69,7 +70,7 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 	public function __construct(BlockIdentifier $idInfo, string $name, BlockTypeInfo $typeInfo, WoodType $woodType, \Closure $asItemCallback){
 		$this->woodType = $woodType;
 		parent::__construct($idInfo, $name, $typeInfo);
-		$this->text = new SignText();
+		$this->frontText = new SignText();
 		$this->backText = new SignText();
 		$this->asItemCallback = $asItemCallback;
 	}
@@ -78,7 +79,7 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 		parent::readStateFromWorld();
 		$tile = $this->position->getWorld()->getTile($this->position);
 		if($tile instanceof TileSign){
-			$this->text = $tile->getText();
+			$this->frontText = $tile->getFrontText();
 			$this->backText = $tile->getBackText();
 			$this->waxed = $tile->isWaxed();
 			$this->editorEntityRuntimeId = $tile->getEditorEntityRuntimeId();
@@ -91,7 +92,7 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 		parent::writeStateToWorld();
 		$tile = $this->position->getWorld()->getTile($this->position);
 		assert($tile instanceof TileSign);
-		$tile->setText($this->text);
+		$tile->setFrontText($this->frontText);
 		$tile->setBackText($this->backText);
 		$tile->setWaxed($this->waxed);
 		$tile->setEditorEntityRuntimeId($this->editorEntityRuntimeId);
@@ -109,11 +110,11 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 		return [];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 
-	abstract protected function getSupportingFace() : int;
+	abstract protected function getSupportingFace() : Facing;
 
 	public function onNearbyBlockChange() : void{
 		if($this->getSide($this->getSupportingFace())->getTypeId() === BlockTypeIds::AIR){
@@ -121,7 +122,7 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 		}
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($player !== null){
 			$this->editorEntityRuntimeId = $player->getId();
 		}
@@ -173,7 +174,7 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 		return true;
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($player === null){
 			return false;
 		}
@@ -231,39 +232,15 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 		return $this->position->add(0.5, 0.5, 0.5);
 	}
 
-	/**
-	 * TODO: make this abstract (BC break)
-	 */
-	protected function getFacingDegrees() : float{
-		return 0;
-	}
-
-	/**
-	 * Returns an object containing information about the sign text.
-	 * @deprecated
-	 * @see self::getFaceText()
-	 */
-	public function getText() : SignText{
-		return $this->text;
-	}
-
-	/**
-	 * @deprecated
-	 * @see self::setFaceText()
-	 * @return $this
-	 */
-	public function setText(SignText $text) : self{
-		$this->text = $text;
-		return $this;
-	}
+	abstract protected function getFacingDegrees() : float;
 
 	public function getFaceText(bool $frontFace) : SignText{
-		return $frontFace ? $this->text : $this->backText;
+		return $frontFace ? $this->frontText : $this->backText;
 	}
 
 	/** @return $this */
 	public function setFaceText(bool $frontFace, SignText $text) : self{
-		$frontFace ? $this->text = $text : $this->backText = $text;
+		$frontFace ? $this->frontText = $text : $this->backText = $text;
 		return $this;
 	}
 
@@ -289,14 +266,6 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 	public function setEditorEntityRuntimeId(?int $editorEntityRuntimeId) : self{
 		$this->editorEntityRuntimeId = $editorEntityRuntimeId;
 		return $this;
-	}
-
-	/**
-	 * @deprecated
-	 * @see self::updateFaceText()
-	 */
-	public function updateText(Player $author, SignText $text) : bool{
-		return $this->updateFaceText($author, true, $text);
 	}
 
 	/**

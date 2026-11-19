@@ -27,7 +27,7 @@ namespace pocketmine\network\mcpe\handler;
 
 use pocketmine\block\Anvil;
 use pocketmine\block\BaseSign;
-use pocketmine\block\inventory\AnvilInventory;
+use pocketmine\block\inventory\window\AnvilInventoryWindow;
 use pocketmine\block\Lectern;
 use pocketmine\block\tile\Sign;
 use pocketmine\block\utils\BlockEventHelper;
@@ -102,6 +102,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\UseItemOnEntityTransactionD
 use pocketmine\network\mcpe\protocol\types\inventory\UseItemTransactionData;
 use pocketmine\network\mcpe\protocol\types\PlayerAction;
 use pocketmine\network\mcpe\protocol\types\PlayerAuthInputFlags;
+use pocketmine\network\mcpe\protocol\types\PlayerBlockActionStopBreak;
 use pocketmine\network\mcpe\protocol\types\PlayerBlockActionWithBlockInfo;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\Player;
@@ -117,7 +118,6 @@ use function count;
 use function fmod;
 use function get_debug_type;
 use function implode;
-use function in_array;
 use function is_infinite;
 use function is_nan;
 use function json_decode;
@@ -314,7 +314,9 @@ class InGamePacketHandler extends PacketHandler{
 			}
 			foreach(Utils::promoteKeys($blockActions) as $k => $blockAction){
 				$actionHandled = false;
-				if($blockAction instanceof PlayerBlockActionWithBlockInfo){
+				if($blockAction instanceof PlayerBlockActionStopBreak){
+					$actionHandled = $this->handlePlayerActionFromData($blockAction->getActionType(), new BlockPosition(0, 0, 0), 0);
+				}elseif($blockAction instanceof PlayerBlockActionWithBlockInfo){
 					$actionHandled = $this->handlePlayerActionFromData($blockAction->getActionType(), $blockAction->getBlockPosition(), $blockAction->getFace());
 				}
 
@@ -386,7 +388,7 @@ class InGamePacketHandler extends PacketHandler{
 				[$windowId, $slot] = ItemStackContainerIdTranslator::translate($containerInfo->getContainerId(), $this->inventoryManager->getCurrentWindowId(), $netSlot);
 				$inventoryAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slot);
 				if($inventoryAndSlot !== null){ //trigger the normal slot sync logic
-					$this->inventoryManager->onSlotChange($inventoryAndSlot[0], $inventoryAndSlot[1]);
+					$this->inventoryManager->requestSyncSlot($inventoryAndSlot[0], $inventoryAndSlot[1]);
 				}
 			}
 		}
@@ -492,7 +494,8 @@ class InGamePacketHandler extends PacketHandler{
 		$droppedItem = $sourceSlotItem->pop($droppedCount);
 
 		$builder = new TransactionBuilder();
-		$builder->getInventory($inventory)->setItem($sourceSlot, $sourceSlotItem);
+		$window = $this->inventoryManager->getInventoryWindow($inventory) ?? throw new AssumptionFailedError("This should never happen");
+		$builder->getActionBuilder($window)->setItem($sourceSlot, $sourceSlotItem);
 		$builder->addAction(new DropItemAction($droppedItem));
 
 		$transaction = new InventoryTransaction($this->player, $builder->generateActions());
@@ -525,11 +528,11 @@ class InGamePacketHandler extends PacketHandler{
 				}
 				//TODO: end hack for client spam bug
 
-				self::validateFacing($data->getFace());
+				$face = self::deserializeFacing($data->getFace());
 
 				$blockPos = $data->getBlockPosition();
 				$vBlockPos = new Vector3($blockPos->getX(), $blockPos->getY(), $blockPos->getZ());
-				$this->player->interactBlock($vBlockPos, $data->getFace(), $clickPos);
+				$this->player->interactBlock($vBlockPos, $face, $clickPos);
 				if($data->getClientInteractPrediction() === PredictedResult::SUCCESS){
 					//If the item has an associated blockstate ID, this means it will only place one block.
 					//We can avoid syncing the adjacent blocks of the place position in this case, since that's only
@@ -541,7 +544,7 @@ class InGamePacketHandler extends PacketHandler{
 					$syncAdjacentFace = null;
 					if($data->getItemInHand()->getItemStack()->getBlockRuntimeId() === ItemTranslator::NO_BLOCK_RUNTIME_ID){
 						$this->session->getLogger()->debug("Placing held item might place multiple blocks client-side; doing full adjacent sync");
-						$syncAdjacentFace = $data->getFace();
+						$syncAdjacentFace = $face;
 					}
 					$this->syncBlocksNearby($vBlockPos, $syncAdjacentFace);
 				}
@@ -556,15 +559,15 @@ class InGamePacketHandler extends PacketHandler{
 				if($face === 255){
 					return $this->handleRightClickItemUse();
 				}
-				$item = $this->player->getInventory()->getItemInHand();
+				$item = $this->player->getMainHandItem();
 				if($item instanceof ConsumableItem){
 					return $this->handleHoldToUseItemTransaction();
 				}
-				self::validateFacing($face);
+				$facing = self::deserializeFacing($face);
 				$blockPos = $data->getBlockPosition();
 				$vBlockPos = new Vector3($blockPos->getX(), $blockPos->getY(), $blockPos->getZ());
 				if(!$this->player->breakBlock($vBlockPos)){
-					$this->syncBlocksNearby($vBlockPos, $data->getFace());
+					$this->syncBlocksNearby($vBlockPos, $facing);
 				}
 				return true;
 			case UseItemTransactionData::ACTION_USE_AS_ATTACK:
@@ -572,11 +575,11 @@ class InGamePacketHandler extends PacketHandler{
 					return true;
 				}
 				$face = $data->getFace();
-				if($face !== 255 && in_array($face, Facing::ALL, true)){
+				if($face !== 255 && ($facing = Facing::tryFrom($face)) !== null){
 					$blockPos = $data->getBlockPosition();
 					$vBlockPos = new Vector3($blockPos->getX(), $blockPos->getY(), $blockPos->getZ());
-					if(!$this->player->attackBlock($vBlockPos, $face)){
-						$this->syncBlocksNearby($vBlockPos, $face);
+					if(!$this->player->attackBlock($vBlockPos, $facing)){
+						$this->syncBlocksNearby($vBlockPos, $facing);
 					}
 					return true;
 				}
@@ -602,16 +605,19 @@ class InGamePacketHandler extends PacketHandler{
 	/**
 	 * @throws PacketHandlingException
 	 */
-	private static function validateFacing(int $facing) : void{
-		if(!in_array($facing, Facing::ALL, true)){
+	private static function deserializeFacing(int $facing) : Facing{
+		//TODO: dodgy use of network facing values as internal values here - they may not be the same in the future
+		$case = Facing::tryFrom($facing);
+		if($case === null){
 			throw new PacketHandlingException("Invalid facing value $facing");
 		}
+		return $case;
 	}
 
 	/**
 	 * Syncs blocks nearby to ensure that the client and server agree on the world's blocks after a block interaction.
 	 */
-	private function syncBlocksNearby(Vector3 $blockPos, ?int $face) : void{
+	private function syncBlocksNearby(Vector3 $blockPos, ?Facing $face) : void{
 		if($blockPos->distanceSquared($this->player->getLocation()) < 10000){
 			$blocks = $blockPos->sidesArray();
 			if($face !== null){
@@ -671,7 +677,7 @@ class InGamePacketHandler extends PacketHandler{
 		$result = match($data->getActionType()){
 			ReleaseItemTransactionData::ACTION_RELEASE,
 			ReleaseItemTransactionData::ACTION_CONSUME => $this->handleHeldItemReleaseOrConsume(),
-			default => $this->player->getInventory()->getItemInHand() instanceof Releasable
+			default => $this->player->getMainHandItem() instanceof Releasable
 				? $this->handleHeldItemReleaseOrConsume()
 				: false,
 		};
@@ -689,7 +695,7 @@ class InGamePacketHandler extends PacketHandler{
 
 	private function handleRightClickItemUse() : bool{
 		if($this->player->isUsingItem()){
-			$held = $this->player->getInventory()->getItemInHand();
+			$held = $this->player->getMainHandItem();
 			if($held instanceof ConsumableItem){
 				if($this->player->getItemUseDuration() < $held->getMinUseDuration()){
 					//the client may send a duplicate click-air in the same tick it started using the item,
@@ -706,7 +712,7 @@ class InGamePacketHandler extends PacketHandler{
 			return true;
 		}
 
-		$item = $this->player->getInventory()->getItemInHand();
+		$item = $this->player->getMainHandItem();
 		if($this->isHoldToUseItem($item)){
 			return $this->handleHoldToUseItemTransaction();
 		}
@@ -722,7 +728,7 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	private function handleHoldToUseItemTransaction() : bool{
-		$item = $this->player->getInventory()->getItemInHand();
+		$item = $this->player->getMainHandItem();
 		if($item instanceof ConsumableItem){
 			if($this->player->isUsingItem() || $this->player->isAwaitingConsumableRelease()){
 				return true;
@@ -745,8 +751,7 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	private function discardHeldItemUsePredictions() : void{
-		$inventory = $this->player->getInventory();
-		$this->inventoryManager->discardPredictedSlotChange($inventory, $inventory->getHeldItemIndex());
+		$this->inventoryManager->discardPredictedSlotChange($this->player->getInventory(), $this->player->getHotbar()->getSelectedIndex());
 	}
 
 	private function discardHeldItemUsePredictionsIfUsing() : void{
@@ -756,7 +761,7 @@ class InGamePacketHandler extends PacketHandler{
 	}
 
 	private function handleHeldItemReleaseOrConsume() : bool{
-		$item = $this->player->getInventory()->getItemInHand();
+		$item = $this->player->getMainHandItem();
 		if($item instanceof ConsumableItem){
 			if($this->player->consumeHeldItem()){
 				return true;
@@ -873,13 +878,13 @@ class InGamePacketHandler extends PacketHandler{
 		return $this->handlePlayerActionFromData($packet->action, $packet->blockPosition, $packet->face);
 	}
 
-	private function handlePlayerActionFromData(int $action, BlockPosition $blockPosition, int $face) : bool{
+	private function handlePlayerActionFromData(int $action, BlockPosition $blockPosition, int $extraData) : bool{
 		$pos = new Vector3($blockPosition->getX(), $blockPosition->getY(), $blockPosition->getZ());
 
 		switch($action){
 			case PlayerAction::START_BREAK:
 			case PlayerAction::CONTINUE_DESTROY_BLOCK: //destroy the next block while holding down left click
-				self::validateFacing($face);
+				$face = self::deserializeFacing($extraData);
 				if($this->lastBlockAttacked !== null && $blockPosition->equals($this->lastBlockAttacked)){
 					//the client will send CONTINUE_DESTROY_BLOCK for the currently targeted block directly before it
 					//sends PREDICT_DESTROY_BLOCK, but also when it starts to break the block
@@ -908,7 +913,7 @@ class InGamePacketHandler extends PacketHandler{
 				$this->player->stopSleep();
 				break;
 			case PlayerAction::CRACK_BREAK:
-				self::validateFacing($face);
+				$face = self::deserializeFacing($extraData);
 				$this->player->continueBreakBlock($pos, $face);
 				$this->lastBlockAttacked = $blockPosition;
 				$this->player->setUsingItem(false);
@@ -919,8 +924,8 @@ class InGamePacketHandler extends PacketHandler{
 				//in server auth block breaking, we get PREDICT_DESTROY_BLOCK anyway, so this action is redundant
 				break;
 			case PlayerAction::PREDICT_DESTROY_BLOCK:
-				self::validateFacing($face);
 				if(!$this->player->breakBlock($pos)){
+					$face = self::deserializeFacing($extraData);
 					$this->syncBlocksNearby($pos, $face);
 				}
 				$this->lastBlockAttacked = null;
@@ -1021,7 +1026,7 @@ class InGamePacketHandler extends PacketHandler{
 		//the client only tells us that it used an anvil - it can't be trusted to tell us which one, so we only accept
 		//this for the anvil the player currently has open
 		$window = $this->player->getCurrentWindow();
-		if(!($window instanceof AnvilInventory)){
+		if(!($window instanceof AnvilInventoryWindow)){
 			return false;
 		}
 

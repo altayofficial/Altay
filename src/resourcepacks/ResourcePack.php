@@ -25,6 +25,8 @@ declare(strict_types=1);
 
 namespace pocketmine\resourcepacks;
 
+use Ramsey\Uuid\UuidInterface;
+
 interface ResourcePack{
 
 	/**
@@ -35,7 +37,7 @@ interface ResourcePack{
 	/**
 	 * Returns the pack's UUID as a human-readable string
 	 */
-	public function getPackId() : string;
+	public function getPackId() : UuidInterface;
 
 	/**
 	 * Returns the size of the pack on disk in bytes.

@@ -53,7 +53,7 @@ class HoneyBlock extends Opaque{
 	}
 
 	protected function recalculateCollisionBoxes() : array{
-		return [AxisAlignedBB::one()->trim(Facing::WEST, self::SLIDE_INSET)->trim(Facing::EAST, self::SLIDE_INSET)->trim(Facing::NORTH, self::SLIDE_INSET)->trim(Facing::SOUTH, self::SLIDE_INSET)];
+		return [AxisAlignedBB::one()->trimmedCopy(Facing::WEST, self::SLIDE_INSET)->trimmedCopy(Facing::EAST, self::SLIDE_INSET)->trimmedCopy(Facing::NORTH, self::SLIDE_INSET)->trimmedCopy(Facing::SOUTH, self::SLIDE_INSET)];
 	}
 
 	public function onEntityInside(Entity $entity) : bool{

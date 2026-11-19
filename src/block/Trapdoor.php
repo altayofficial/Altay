@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\block\utils\HorizontalFacing;
+use pocketmine\block\utils\HorizontalFacingOption;
 use pocketmine\block\utils\HorizontalFacingTrait;
 use pocketmine\block\utils\SupportType;
 use pocketmine\data\runtime\RuntimeDataDescriber;
@@ -44,7 +45,7 @@ class Trapdoor extends Transparent implements HorizontalFacing{
 	protected bool $top = false;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->horizontalFacing($this->facing);
+		$w->enum($this->facing);
 		$w->bool($this->top);
 		$w->bool($this->open);
 	}
@@ -67,16 +68,16 @@ class Trapdoor extends Transparent implements HorizontalFacing{
 
 	protected function recalculateCollisionBoxes() : array{
 		//TODO: like doors, these are slightly too thin in Bugrock (0.1825 instead of 0.1875)
-		return [AxisAlignedBB::one()->trim($this->open ? $this->facing : ($this->top ? Facing::DOWN : Facing::UP), 1 - 0.1825)];
+		return [AxisAlignedBB::one()->trimmedCopy($this->open ? $this->facing->toFacing() : ($this->top ? Facing::DOWN : Facing::UP), 1 - 0.1825)];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($player !== null){
-			$this->facing = Facing::opposite($player->getHorizontalFacing());
+			$this->facing = HorizontalFacingOption::fromFacing(Facing::opposite($player->getHorizontalFacing()));
 		}
 		if(($clickVector->y > 0.5 && $face !== Facing::UP) || $face === Facing::DOWN){
 			$this->top = true;
@@ -85,7 +86,7 @@ class Trapdoor extends Transparent implements HorizontalFacing{
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		$this->open = !$this->open;
 		$world = $this->position->getWorld();
 		$world->setBlock($this->position, $this);

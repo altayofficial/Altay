@@ -53,7 +53,7 @@ class Cushion extends Item{
 		$w->enum($this->color);
 	}
 
-	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
+	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
 		if(!$blockReplace->canBeReplaced() || $blockReplace instanceof Liquid){
 			return ItemUseResult::NONE;
 		}
@@ -67,7 +67,7 @@ class Cushion extends Item{
 		$world = $pos->getWorld();
 
 		//a cushion is barely taller than the floor, so only its own cell has to be clear of other ones
-		$boundingBox = AxisAlignedBB::one()->offset($pos->getX(), $pos->getY(), $pos->getZ());
+		$boundingBox = AxisAlignedBB::one()->offsetCopy($pos->getX(), $pos->getY(), $pos->getZ());
 		foreach($world->getNearbyEntities($boundingBox) as $entity){
 			if($entity instanceof EntityCushion){
 				return ItemUseResult::NONE;

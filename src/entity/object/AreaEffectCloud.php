@@ -72,7 +72,7 @@ class AreaEffectCloud extends Entity{
 	protected const TAG_RADIUS_PER_TICK = "RadiusPerTick"; //TAG_Float
 	protected const TAG_EFFECTS = "mobEffects"; //TAG_List
 
-	public static function getNetworkTypeId() : string{ return EntityIds::AREA_EFFECT_CLOUD; }
+	public function getNetworkTypeId() : string{ return EntityIds::AREA_EFFECT_CLOUD; }
 
 	protected int $age = 0;
 

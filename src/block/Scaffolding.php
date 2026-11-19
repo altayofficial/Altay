@@ -86,10 +86,10 @@ class Scaffolding extends Transparent implements Fallable{
 	 * possible to climb through a scaffolding tower.
 	 */
 	protected function recalculateCollisionBoxes() : array{
-		return [AxisAlignedBB::one()->trim(Facing::DOWN, 14 / 16)];
+		return [AxisAlignedBB::one()->trimmedCopy(Facing::DOWN, 14 / 16)];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return $facing === Facing::UP ? SupportType::FULL : SupportType::NONE;
 	}
 
@@ -101,7 +101,7 @@ class Scaffolding extends Transparent implements Fallable{
 		return 20;
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		$stability = $this->recalculateStability($blockReplace->getPosition());
 		if($stability >= self::MAX_STABILITY){
 			return false;

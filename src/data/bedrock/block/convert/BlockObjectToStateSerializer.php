@@ -27,14 +27,9 @@ namespace pocketmine\data\bedrock\block\convert;
 
 use pocketmine\block\Block;
 use pocketmine\block\RuntimeBlockStateRegistry;
-use pocketmine\block\Slab;
-use pocketmine\block\Stair;
-use pocketmine\block\Wood;
 use pocketmine\data\bedrock\block\BlockStateData;
 use pocketmine\data\bedrock\block\BlockStateSerializeException;
 use pocketmine\data\bedrock\block\BlockStateSerializer;
-use pocketmine\data\bedrock\block\BlockTypeNames as Ids;
-use pocketmine\data\bedrock\block\convert\BlockStateSerializerHelper as Helper;
 use pocketmine\data\bedrock\block\convert\BlockStateWriter as Writer;
 use function get_class;
 
@@ -75,34 +70,6 @@ final class BlockObjectToStateSerializer implements BlockStateSerializer{
 		}
 		//writer accepted for convenience only
 		$this->serializers[$block->getTypeId()] = $serializer instanceof Writer ? $serializer->getBlockStateData() : $serializer;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function mapSimple(Block $block, string $id) : void{
-		$this->map($block, BlockStateData::current($id, []));
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function mapSlab(Slab $block, string $singleId, string $doubleId) : void{
-		$this->map($block, fn(Slab $block) => Helper::encodeSlab($block, $singleId, $doubleId));
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function mapStairs(Stair $block, string $id) : void{
-		$this->map($block, fn(Stair $block) => Helper::encodeStairs($block, Writer::create($id)));
-	}
-
-	/**
-	 * @deprecated
-	 */
-	public function mapLog(Wood $block, string $unstrippedId, string $strippedId) : void{
-		$this->map($block, fn(Wood $block) => Helper::encodeLog($block, $unstrippedId, $strippedId));
 	}
 
 	/**

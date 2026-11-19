@@ -25,15 +25,14 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
-use pocketmine\block\inventory\AnvilInventory;
-use pocketmine\block\inventory\EnchantInventory;
-use pocketmine\block\inventory\SmithingTableInventory;
+use pocketmine\block\inventory\window\AnvilInventoryWindow;
+use pocketmine\block\inventory\window\SmithingTableInventoryWindow;
 use pocketmine\block\utils\AnvilHelper;
 use pocketmine\crafting\CraftingResultTransfer;
 use pocketmine\crafting\ShapelessRecipe;
 use pocketmine\crafting\SmithingTrimRecipe;
 use pocketmine\data\bedrock\item\ArmorTrimIdMap;
-use pocketmine\inventory\Inventory;
+use pocketmine\block\inventory\window\EnchantingTableInventoryWindow;
 use pocketmine\inventory\transaction\action\CreateItemAction;
 use pocketmine\inventory\transaction\action\DestroyItemAction;
 use pocketmine\inventory\transaction\action\DropItemAction;
@@ -43,9 +42,9 @@ use pocketmine\inventory\transaction\EnchantingTransaction;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\inventory\transaction\SmithingTrimTransaction;
 use pocketmine\inventory\transaction\TransactionBuilder;
-use pocketmine\inventory\transaction\TransactionBuilderInventory;
 use pocketmine\item\Armor;
 use pocketmine\item\ArmorTrim;
+use pocketmine\inventory\transaction\SlotChangeActionBuilder;
 use pocketmine\item\Durable;
 use pocketmine\item\Item;
 use pocketmine\network\mcpe\cache\CraftingDataCache;
@@ -70,6 +69,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\SwapStackReque
 use pocketmine\network\mcpe\protocol\types\inventory\stackrequest\TakeStackRequestAction;
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponse;
 use pocketmine\network\mcpe\protocol\types\inventory\UIInventorySlotOffset;
+use pocketmine\player\InventoryWindow;
 use pocketmine\player\Player;
 use pocketmine\utils\AssumptionFailedError;
 use pocketmine\utils\Utils;
@@ -100,25 +100,22 @@ class ItemStackRequestExecutor{
 		$this->builder = new TransactionBuilder();
 	}
 
-	protected function prettyInventoryAndSlot(Inventory $inventory, int $slot) : string{
-		if($inventory instanceof TransactionBuilderInventory){
-			$inventory = $inventory->getActualInventory();
-		}
+	protected function prettyWindowAndSlot(InventoryWindow $inventory, int $slot) : string{
 		return (new \ReflectionClass($inventory))->getShortName() . "#" . spl_object_id($inventory) . ", slot: $slot";
 	}
 
 	/**
 	 * @throws ItemStackRequestProcessException
 	 */
-	private function matchItemStack(Inventory $inventory, int $slotId, int $clientItemStackId) : void{
-		$info = $this->inventoryManager->getItemStackInfo($inventory, $slotId);
+	private function matchItemStack(InventoryWindow $window, int $slotId, int $clientItemStackId) : void{
+		$info = $this->inventoryManager->getItemStackInfo($window, $slotId);
 		if($info === null){
 			throw new AssumptionFailedError("The inventory is tracked and the slot is valid, so this should not be null");
 		}
 
 		if(!($clientItemStackId < 0 ? $info->getRequestId() === $clientItemStackId : $info->getStackId() === $clientItemStackId)){
 			throw new ItemStackRequestProcessException(
-				$this->prettyInventoryAndSlot($inventory, $slotId) . ": " .
+				$this->prettyWindowAndSlot($window, $slotId) . ": " .
 				"Mismatched expected itemstack, " .
 				"client expected: $clientItemStackId, server actual: " . $info->getStackId() . ", last modified by request: " . ($info->getRequestId() ?? "none")
 			);
@@ -126,7 +123,7 @@ class ItemStackRequestExecutor{
 	}
 
 	/**
-	 * @phpstan-return array{TransactionBuilderInventory, int}
+	 * @phpstan-return array{SlotChangeActionBuilder, int}
 	 *
 	 * @throws ItemStackRequestProcessException
 	 */
@@ -136,16 +133,17 @@ class ItemStackRequestExecutor{
 		if($windowAndSlot === null){
 			throw new ItemStackRequestProcessException("No open inventory matches container UI ID: " . $info->getContainerName()->getContainerId() . ", slot ID: " . $info->getSlotId());
 		}
-		[$inventory, $slot] = $windowAndSlot;
+		[$window, $slot] = $windowAndSlot;
+		$inventory = $window->getInventory();
 		if(!$inventory->slotExists($slot)){
-			throw new ItemStackRequestProcessException("No such inventory slot :" . $this->prettyInventoryAndSlot($inventory, $slot));
+			throw new ItemStackRequestProcessException("No such inventory slot :" . $this->prettyWindowAndSlot($window, $slot));
 		}
 
 		if($info->getStackId() !== $this->request->getRequestId()){ //the itemstack may have been modified by the current request
-			$this->matchItemStack($inventory, $slot, $info->getStackId());
+			$this->matchItemStack($window, $slot, $info->getStackId());
 		}
 
-		return [$this->builder->getInventory($inventory), $slot];
+		return [$this->builder->getActionBuilder($window), $slot];
 	}
 
 	/**
@@ -170,12 +168,12 @@ class ItemStackRequestExecutor{
 		[$inventory, $slot] = $this->getBuilderInventoryAndSlot($slotInfo);
 		if($count < 1){
 			//this should be impossible at the protocol level, but in case of buggy core code this will prevent exploits
-			throw new ItemStackRequestProcessException($this->prettyInventoryAndSlot($inventory, $slot) . ": Cannot take less than 1 items from a stack");
+			throw new ItemStackRequestProcessException($this->prettyWindowAndSlot($inventory->getInventoryWindow(), $slot) . ": Cannot take less than 1 items from a stack");
 		}
 
 		$existingItem = $inventory->getItem($slot);
 		if($existingItem->getCount() < $count){
-			throw new ItemStackRequestProcessException($this->prettyInventoryAndSlot($inventory, $slot) . ": Cannot take $count items from a stack of " . $existingItem->getCount());
+			throw new ItemStackRequestProcessException($this->prettyWindowAndSlot($inventory->getInventoryWindow(), $slot) . ": Cannot take $count items from a stack of " . $existingItem->getCount());
 		}
 
 		$removed = $existingItem->pop($count);
@@ -193,12 +191,12 @@ class ItemStackRequestExecutor{
 		[$inventory, $slot] = $this->getBuilderInventoryAndSlot($slotInfo);
 		if($count < 1){
 			//this should be impossible at the protocol level, but in case of buggy core code this will prevent exploits
-			throw new ItemStackRequestProcessException($this->prettyInventoryAndSlot($inventory, $slot) . ": Cannot take less than 1 items from a stack");
+			throw new ItemStackRequestProcessException($this->prettyWindowAndSlot($inventory->getInventoryWindow(), $slot) . ": Cannot take less than 1 items from a stack");
 		}
 
 		$existingItem = $inventory->getItem($slot);
 		if(!$existingItem->isNull() && !$existingItem->canStackWith($item)){
-			throw new ItemStackRequestProcessException($this->prettyInventoryAndSlot($inventory, $slot) . ": Can only add items to an empty slot, or a slot containing the same item");
+			throw new ItemStackRequestProcessException($this->prettyWindowAndSlot($inventory->getInventoryWindow(), $slot) . ": Can only add items to an empty slot, or a slot containing the same item");
 		}
 
 		//we can't use the existing item here; it may be an empty stack
@@ -272,8 +270,8 @@ class ItemStackRequestExecutor{
 		//CraftingConsumeInput is handled below (needed for shulker box dyeing etc.)
 		$craftingResults = $recipe->getResultsFor($this->player->getCraftingGrid());
 		$window = $this->player->getCurrentWindow();
-		if($recipe instanceof ShapelessRecipe && $window instanceof SmithingTableInventory){
-			CraftingResultTransfer::transferSmithingBaseNamedTag($recipe, $window->getContents(), $craftingResults);
+		if($recipe instanceof ShapelessRecipe && $window instanceof SmithingTableInventoryWindow){
+			CraftingResultTransfer::transferSmithingBaseNamedTag($recipe, $window->getInventory()->getContents(), $craftingResults);
 		}
 		foreach($craftingResults as $k => $craftingResult){
 			$craftingResult->setCount($craftingResult->getCount() * $repetitions);
@@ -290,7 +288,7 @@ class ItemStackRequestExecutor{
 	 */
 	private function beginSmithingTrim() : void{
 		$window = $this->player->getCurrentWindow();
-		if(!$window instanceof SmithingTableInventory){
+		if(!$window instanceof SmithingTableInventoryWindow){
 			throw new ItemStackRequestProcessException("The armor trim recipe requires an open smithing table");
 		}
 
@@ -298,7 +296,7 @@ class ItemStackRequestExecutor{
 		$equipment = null;
 		$patternId = null;
 		$materialId = null;
-		foreach($window->getContents() as $item){
+		foreach($window->getInventory()->getContents() as $item){
 			if($item instanceof Armor){
 				if($equipment !== null){
 					throw new ItemStackRequestProcessException("More than 1 item to apply a trim to");
@@ -332,7 +330,7 @@ class ItemStackRequestExecutor{
 	 */
 	private function beginAnvil(int $filterStringIndex) : void{
 		$window = $this->player->getCurrentWindow();
-		if(!$window instanceof AnvilInventory){
+		if(!$window instanceof AnvilInventoryWindow){
 			throw new ItemStackRequestProcessException("The optional recipe requires an open anvil");
 		}
 
@@ -347,8 +345,8 @@ class ItemStackRequestExecutor{
 		}
 
 		$result = AnvilHelper::calculateResult(
-			$window->getItem(AnvilInventory::SLOT_INPUT),
-			$window->getItem(AnvilInventory::SLOT_MATERIAL),
+			$window->getInventory()->getItem(AnvilInventoryWindow::SLOT_INPUT),
+			$window->getInventory()->getItem(AnvilInventoryWindow::SLOT_MATERIAL),
 			$name,
 			!$this->player->hasFiniteResources()
 		);
@@ -448,7 +446,7 @@ class ItemStackRequestExecutor{
 			$this->setNextCreatedItem($item, true);
 		}elseif($action instanceof CraftRecipeStackRequestAction){
 			$window = $this->player->getCurrentWindow();
-			if($window instanceof EnchantInventory){
+			if($window instanceof EnchantingTableInventoryWindow){
 				$optionId = $this->inventoryManager->getEnchantingTableOptionIndex($action->getRecipeId());
 				if($optionId !== null && ($option = $window->getOption($optionId)) !== null){
 					$this->specialTransaction = new EnchantingTransaction($this->player, $option, $optionId + 1);
@@ -484,7 +482,8 @@ class ItemStackRequestExecutor{
 			$predictedDamage = $action->getPredictedDurability();
 			if($usedItem instanceof Durable && $predictedDamage >= 0 && $predictedDamage <= $usedItem->getMaxDurability()){
 				$usedItem->setDamage($predictedDamage);
-				$this->inventoryManager->addPredictedSlotChange($inventory, $slot, $usedItem);
+				$inventoryWindow = $this->inventoryManager->getInventoryWindow($inventory) ?? throw new AssumptionFailedError("The player's inventory should always have an inventory window");
+				$this->inventoryManager->addPredictedSlotChange($inventoryWindow, $slot, $usedItem);
 			}
 		}else{
 			throw new ItemStackRequestProcessException("Unhandled item stack request action");

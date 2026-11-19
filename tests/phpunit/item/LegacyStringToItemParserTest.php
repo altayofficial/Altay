@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\item;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use pocketmine\block\VanillaBlocks;
 
@@ -45,9 +46,7 @@ class LegacyStringToItemParserTest extends TestCase{
 		];
 	}
 
-	/**
-	 * @dataProvider itemFromStringProvider
-	 */
+	#[DataProvider("itemFromStringProvider")]
 	public function testFromStringSingle(string $string, Item $expected) : void{
 		$item = LegacyStringToItemParser::getInstance()->parse($string);
 

@@ -25,17 +25,23 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
+use pocketmine\block\utils\HorizontalFacingOption;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\item\Item;
 use pocketmine\item\VanillaItems;
 use pocketmine\math\Facing;
+use function in_array;
+use function spl_object_id;
 
 class Tripwire extends Flowable implements StateDeriving{
 	protected bool $triggered = false;
 	protected bool $suspended = false; //unclear usage, makes hitbox bigger if set
 	protected bool $connected = false;
 	protected bool $disarmed = false;
-	/** @var int[] facing => facing */
+	/**
+	 * @var HorizontalFacingOption[]
+	 * @phpstan-var array<int, HorizontalFacingOption>
+	 */
 	protected array $connections = [];
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
@@ -43,7 +49,7 @@ class Tripwire extends Flowable implements StateDeriving{
 		$w->bool($this->suspended);
 		$w->bool($this->connected);
 		$w->bool($this->disarmed);
-		$w->horizontalFacingFlags($this->connections);
+		$w->enumSet($this->connections, HorizontalFacingOption::cases());
 	}
 
 	public function isTriggered() : bool{ return $this->triggered; }
@@ -78,19 +84,20 @@ class Tripwire extends Flowable implements StateDeriving{
 		return $this;
 	}
 
-	public function isConnectedTo(int $facing) : bool{
-		return isset($this->connections[$facing]);
+	public function isConnectedTo(Facing $facing) : bool{
+		return isset($this->connections[spl_object_id(HorizontalFacingOption::fromFacing($facing))]);
 	}
 
 	/** @return $this */
-	public function setConnection(int $facing, bool $connected) : self{
+	public function setConnection(Facing $facing, bool $connected) : self{
 		if(!in_array($facing, Facing::HORIZONTAL, true)){
 			throw new \InvalidArgumentException("Facing must be horizontal");
 		}
 		if($connected){
-			$this->connections[$facing] = $facing;
+			$option = HorizontalFacingOption::fromFacing($facing);
+			$this->connections[spl_object_id($option)] = $option;
 		}else{
-			unset($this->connections[$facing]);
+			unset($this->connections[spl_object_id(HorizontalFacingOption::fromFacing($facing))]);
 		}
 		return $this;
 	}
@@ -106,7 +113,7 @@ class Tripwire extends Flowable implements StateDeriving{
 		foreach(Facing::HORIZONTAL as $facing){
 			$side = $this->getSide($facing);
 			$connected = $side instanceof Tripwire || $side instanceof TripwireHook;
-			if($connected !== isset($this->connections[$facing])){
+			if($connected !== isset($this->connections[spl_object_id(HorizontalFacingOption::fromFacing($facing))])){
 				$this->setConnection($facing, $connected);
 				$changed = true;
 			}

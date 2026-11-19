@@ -25,6 +25,8 @@ declare(strict_types=1);
 
 namespace pocketmine\utils;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 use pocketmine\utils\fixtures\TestAbstractClass;
 use pocketmine\utils\fixtures\TestInstantiableClass;
@@ -54,9 +56,7 @@ class UtilsTest extends TestCase{
 		];
 	}
 
-	/**
-	 * @dataProvider parseDocCommentNewlineProvider
-	 */
+	#[DataProvider("parseDocCommentNewlineProvider")]
 	public function testParseDocCommentNewlines(string $docComment) : void{
 		$tags = Utils::parseDocComment($docComment);
 
@@ -78,9 +78,7 @@ class UtilsTest extends TestCase{
 		];
 	}
 
-	/**
-	 * @dataProvider parseDocCommentOneLineProvider
-	 */
+	#[DataProvider("parseDocCommentOneLineProvider")]
 	public function testParseOneLineDocComment(string $comment) : void{
 		$tags = Utils::parseDocComment($comment);
 		self::assertArrayHasKey("ignoreCancelled", $tags);
@@ -122,11 +120,11 @@ class UtilsTest extends TestCase{
 	}
 
 	/**
-	 * @dataProvider validInstanceProvider
-	 * @doesNotPerformAssertions
 	 * @phpstan-param class-string $className
 	 * @phpstan-param class-string $baseName
 	 */
+	#[DataProvider("validInstanceProvider")]
+	#[DoesNotPerformAssertions]
 	public function testValidInstanceWithValidCombinations(string $className, string $baseName) : void{
 		Utils::testValidInstance($className, $baseName);
 	}
@@ -148,9 +146,7 @@ class UtilsTest extends TestCase{
 		];
 	}
 
-	/**
-	 * @dataProvider validInstanceInvalidCombinationsProvider
-	 */
+	#[DataProvider("validInstanceInvalidCombinationsProvider")]
 	public function testValidInstanceInvalidParameters(string $className, string $baseName) : void{
 		$this->expectException(\InvalidArgumentException::class);
 		Utils::testValidInstance($className, $baseName); //@phpstan-ignore-line

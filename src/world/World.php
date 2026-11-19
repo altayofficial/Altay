@@ -285,7 +285,6 @@ class World implements ChunkManager{
 	private float $sunAnglePercentage = 0.0;
 	private int $skyLightReduction = 0;
 
-	private string $folderName;
 	private string $displayName;
 
 	/**
@@ -504,11 +503,10 @@ class World implements ChunkManager{
 	 */
 	public function __construct(
 		private Server $server,
-		string $name, //TODO: this should be folderName (named arguments BC break)
+		private string $folderName,
 		private WritableWorldProvider $provider,
 		private AsyncPool $workerPool
 	){
-		$this->folderName = $name;
 		$this->worldId = self::$worldIdCounter++;
 
 		$this->displayName = $this->provider->getWorldData()->getName();
@@ -1006,7 +1004,7 @@ class World implements ChunkManager{
 					continue;
 				}
 			}
-			foreach($this->getNearbyEntities(AxisAlignedBB::one()->offset($x, $y, $z)) as $entity){
+			foreach($this->getNearbyEntities(AxisAlignedBB::one()->offsetCopy($x, $y, $z)) as $entity){
 				$entity->onNearbyBlockChange();
 			}
 			$block->onNearbyBlockChange();
@@ -1546,27 +1544,16 @@ class World implements ChunkManager{
 	}
 
 	/**
-	 * Identical to {@link World::notifyNeighbourBlockUpdate()}, but without the Vector3 requirement. We don't want or
-	 * need Vector3 in the places where this is called.
+	 * Notify the blocks at and around the position that the block at the position may have changed.
+	 * This will cause onNearbyBlockChange() to be called for these blocks.
 	 *
-	 * TODO: make this the primary method in PM6
+	 * @see Block::onNearbyBlockChange()
 	 */
-	private function internalNotifyNeighbourBlockUpdate(int $x, int $y, int $z) : void{
+	public function notifyNeighbourBlockUpdate(int $x, int $y, int $z) : void{
 		$this->tryAddToNeighbourUpdateQueue($x, $y, $z);
 		foreach(Facing::OFFSET as [$dx, $dy, $dz]){
 			$this->tryAddToNeighbourUpdateQueue($x + $dx, $y + $dy, $z + $dz);
 		}
-	}
-
-	/**
-	 * Notify the blocks at and around the position that the block at the position may have changed.
-	 * This will cause onNearbyBlockChange() to be called for these blocks.
-	 * TODO: Accept plain integers in PM6 - the Vector3 requirement is an unnecessary inconvenience
-	 *
-	 * @see Block::onNearbyBlockChange()
-	 */
-	public function notifyNeighbourBlockUpdate(Vector3 $pos) : void{
-		$this->internalNotifyNeighbourBlockUpdate($pos->getFloorX(), $pos->getFloorY(), $pos->getFloorZ());
 	}
 
 	/**
@@ -1671,7 +1658,7 @@ class World implements ChunkManager{
 		$stateCollisionInfo = $this->getBlockCollisionInfo($x, $y, $z, $collisionInfo);
 		$boxes = match($stateCollisionInfo){
 			RuntimeBlockStateRegistry::COLLISION_NONE => [],
-			RuntimeBlockStateRegistry::COLLISION_CUBE => [AxisAlignedBB::one()->offset($x, $y, $z)],
+			RuntimeBlockStateRegistry::COLLISION_CUBE => [AxisAlignedBB::one()->offsetCopy($x, $y, $z)],
 			default => $this->getBlockAt($x, $y, $z)->getCollisionBoxes()
 		};
 
@@ -1685,7 +1672,7 @@ class World implements ChunkManager{
 				$stateCollisionInfo = $this->getBlockCollisionInfo($offsetX, $offsetY, $offsetZ, $collisionInfo);
 				if($stateCollisionInfo === RuntimeBlockStateRegistry::COLLISION_MAY_OVERFLOW){
 					//avoid allocating this unless it's needed
-					$cellBB ??= AxisAlignedBB::one()->offset($x, $y, $z);
+					$cellBB ??= AxisAlignedBB::one()->offsetCopy($x, $y, $z);
 					$extraBoxes = $this->getBlockAt($offsetX, $offsetY, $offsetZ)->getCollisionBoxes();
 					foreach($extraBoxes as $extraBox){
 						if($extraBox->intersectsWith($cellBB)){
@@ -1729,25 +1716,6 @@ class World implements ChunkManager{
 						}
 					}
 				}
-			}
-		}
-
-		return $collides;
-	}
-
-	/**
-	 * @deprecated Use {@link World::getBlockCollisionBoxes()} instead (alongside {@link World::getCollidingEntities()}
-	 * if entity collision boxes are also required).
-	 *
-	 * @return AxisAlignedBB[]
-	 * @phpstan-return list<AxisAlignedBB>
-	 */
-	public function getCollisionBoxes(Entity $entity, AxisAlignedBB $bb, bool $entities = true) : array{
-		$collides = $this->getBlockCollisionBoxes($bb);
-
-		if($entities){
-			foreach($this->getCollidingEntities($bb->expandedCopy(0.25, 0.25, 0.25), $entity) as $ent){
-				$collides[] = clone $ent->boundingBox;
 			}
 		}
 
@@ -2168,7 +2136,7 @@ class World implements ChunkManager{
 
 		if($update){
 			$this->updateAllLight($x, $y, $z);
-			$this->internalNotifyNeighbourBlockUpdate($x, $y, $z);
+			$this->notifyNeighbourBlockUpdate($x, $y, $z);
 		}
 
 		$this->timings->setBlock->stopTiming();
@@ -2323,7 +2291,7 @@ class World implements ChunkManager{
 	 * @param bool        $playSound      Whether to play a block-place sound if the block was placed successfully.
 	 * @param Item[]      &$returnedItems Items to be added to the target's inventory (or dropped if the inventory is full)
 	 */
-	public function useItemOn(Vector3 $vector, Item &$item, int $face, ?Vector3 $clickVector = null, ?Player $player = null, bool $playSound = false, array &$returnedItems = []) : bool{
+	public function useItemOn(Vector3 $vector, Item &$item, Facing $face, ?Vector3 $clickVector = null, ?Player $player = null, bool $playSound = false, array &$returnedItems = []) : bool{
 		$blockClicked = $this->getBlock($vector);
 		$blockReplace = $blockClicked->getSide($face);
 
@@ -3558,7 +3526,7 @@ class World implements ChunkManager{
 		/** @phpstan-var PromiseResolver<Chunk> $resolver */
 		$resolver = $this->chunkPopulationRequestMap[$chunkHash] = new PromiseResolver();
 		if($associatedChunkLoader === null){
-			$temporaryLoader = new class implements ChunkLoader{};
+			$temporaryLoader = new ChunkLoader();
 			$this->registerChunkLoader($temporaryLoader, $chunkX, $chunkZ);
 			$resolver->getPromise()->onCompletion(
 				fn() => $this->unregisterChunkLoader($temporaryLoader, $chunkX, $chunkZ),
@@ -3605,7 +3573,7 @@ class World implements ChunkManager{
 			return [$resolver, false];
 		}
 
-		$temporaryChunkLoader = new class implements ChunkLoader{};
+		$temporaryChunkLoader = new ChunkLoader();
 		$this->registerChunkLoader($temporaryChunkLoader, $chunkX, $chunkZ);
 		$chunk = $this->loadChunk($chunkX, $chunkZ);
 		$this->unregisterChunkLoader($temporaryChunkLoader, $chunkX, $chunkZ);
@@ -3690,8 +3658,7 @@ class World implements ChunkManager{
 
 			$chunkPopulationLockId = new ChunkLockId();
 
-			$temporaryChunkLoader = new class implements ChunkLoader{
-			};
+			$temporaryChunkLoader = new ChunkLoader();
 			for($xx = -1; $xx <= 1; ++$xx){
 				for($zz = -1; $zz <= 1; ++$zz){
 					$this->lockChunk($chunkX + $xx, $chunkZ + $zz, $chunkPopulationLockId);

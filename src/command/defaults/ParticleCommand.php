@@ -77,9 +77,10 @@ use function strtolower;
 
 class ParticleCommand extends VanillaCommand{
 
-	public function __construct(){
+	public function __construct(string $namespace, string $name){
 		parent::__construct(
-			"particle",
+			$namespace,
+			$name,
 			KnownTranslationFactory::pocketmine_command_particle_description(),
 			KnownTranslationFactory::pocketmine_command_particle_usage()
 		);

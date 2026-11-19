@@ -27,6 +27,7 @@ namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\block\VanillaBlocks;
+use pocketmine\math\Facing;
 
 final class Bamboo extends Item{
 
@@ -34,7 +35,7 @@ final class Bamboo extends Item{
 		return 50;
 	}
 
-	public function getBlock(?int $clickedFace = null) : Block{
+	public function getBlock(?Facing $clickedFace = null) : Block{
 		return VanillaBlocks::BAMBOO_SAPLING();
 	}
 }

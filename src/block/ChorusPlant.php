@@ -64,8 +64,8 @@ final class ChorusPlant extends Flowable implements StateDeriving{
 	protected function recalculateCollisionBoxes() : array{
 		$bb = AxisAlignedBB::one();
 		foreach(Facing::ALL as $facing){
-			if(!isset($this->connections[$facing])){
-				$bb->trim($facing, 2 / 16);
+			if(!isset($this->connections[$facing->value])){
+				$bb = $bb->trimmedCopy($facing, 2 / 16);
 			}
 		}
 

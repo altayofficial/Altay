@@ -29,6 +29,7 @@ use pocketmine\block\Block;
 use pocketmine\block\Lava;
 use pocketmine\block\Liquid;
 use pocketmine\event\player\PlayerBucketEmptyEvent;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 
@@ -56,7 +57,7 @@ class LiquidBucket extends Item{
 		return VanillaItems::BUCKET();
 	}
 
-	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
+	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
 		if(!$blockReplace->canBeReplaced()){
 			return ItemUseResult::NONE;
 		}

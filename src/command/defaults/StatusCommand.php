@@ -40,9 +40,10 @@ use function strval;
 
 class StatusCommand extends VanillaCommand{
 
-	public function __construct(){
+	public function __construct(string $namespace, string $name){
 		parent::__construct(
-			"status",
+			$namespace,
+			$name,
 			l10n::pocketmine_command_status_description()
 		);
 		$this->setPermission(DefaultPermissionNames::COMMAND_STATUS);

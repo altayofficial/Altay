@@ -25,9 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\entity;
 
-use DaveRandom\CallbackValidator\CallbackType;
-use DaveRandom\CallbackValidator\ParameterType;
-use DaveRandom\CallbackValidator\ReturnType;
 use pocketmine\block\RuntimeBlockStateRegistry;
 use pocketmine\data\bedrock\LegacyEntityIdToStringIdMap;
 use pocketmine\data\bedrock\PotionTypeIdMap;
@@ -247,11 +244,7 @@ final class EntityFactory{
 			throw new \InvalidArgumentException("At least one save name must be provided");
 		}
 		Utils::testValidInstance($className, Entity::class);
-		Utils::validateCallableSignature(new CallbackType(
-			new ReturnType(Entity::class),
-			new ParameterType("world", World::class),
-			new ParameterType("nbt", CompoundTag::class)
-		), $creationFunc);
+		Utils::validateCallableSignature(fn(World $world, CompoundTag $nbt) : Entity => die(), $creationFunc);
 
 		foreach($saveNames as $name){
 			$this->creationFuncs[$name] = $creationFunc;

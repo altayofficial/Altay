@@ -30,6 +30,7 @@ use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\InventoryAction;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Item;
+use pocketmine\player\InventoryWindow;
 use pocketmine\player\Player;
 use pocketmine\utils\Utils;
 use function array_values;
@@ -59,10 +60,10 @@ class InventoryTransaction{
 	protected bool $hasExecuted = false;
 
 	/**
-	 * @var Inventory[]
-	 * @phpstan-var array<int, Inventory>
+	 * @var InventoryWindow[]
+	 * @phpstan-var array<int, InventoryWindow>
 	 */
-	protected array $inventories = [];
+	protected array $inventoryWindows = [];
 
 	/**
 	 * @var InventoryAction[]
@@ -87,11 +88,11 @@ class InventoryTransaction{
 	}
 
 	/**
-	 * @return Inventory[]
-	 * @phpstan-return array<int, Inventory>
+	 * @return InventoryWindow[]
+	 * @phpstan-return array<int, InventoryWindow>
 	 */
-	public function getInventories() : array{
-		return $this->inventories;
+	public function getInventoryWindows() : array{
+		return $this->inventoryWindows;
 	}
 
 	/**
@@ -113,9 +114,8 @@ class InventoryTransaction{
 	public function addAction(InventoryAction $action) : void{
 		if(!isset($this->actions[$hash = spl_object_id($action)])){
 			$this->actions[$hash] = $action;
-			$action->onAddToTransaction($this);
-			if($action instanceof SlotChangeAction && !isset($this->inventories[$inventoryId = spl_object_id($action->getInventory())])){
-				$this->inventories[$inventoryId] = $action->getInventory();
+			if($action instanceof SlotChangeAction && !isset($this->inventoryWindows[$inventoryId = spl_object_id($action->getInventoryWindow())])){
+				$this->inventoryWindows[$inventoryId] = $action->getInventoryWindow();
 			}
 		}else{
 			throw new \InvalidArgumentException("Tried to add the same action to a transaction twice");
@@ -188,8 +188,8 @@ class InventoryTransaction{
 
 		foreach($this->actions as $key => $action){
 			if($action instanceof SlotChangeAction){
-				$slotChanges[$h = (spl_object_hash($action->getInventory()) . "@" . $action->getSlot())][] = $action;
-				$inventories[$h] = $action->getInventory();
+				$slotChanges[$h = (spl_object_hash($action->getInventoryWindow()) . "@" . $action->getSlot())][] = $action;
+				$inventories[$h] = $action->getInventoryWindow();
 				$slots[$h] = $action->getSlot();
 			}
 		}
@@ -199,10 +199,11 @@ class InventoryTransaction{
 				continue;
 			}
 
-			$inventory = $inventories[$hash];
+			$window = $inventories[$hash];
+			$inventory = $window->getInventory();
 			$slot = $slots[$hash];
 			if(!$inventory->slotExists($slot)){ //this can get hit for crafting tables because the validation happens after this compaction
-				throw new TransactionValidationException("Slot $slot does not exist in inventory " . get_class($inventory));
+				throw new TransactionValidationException("Slot $slot does not exist in inventory window " . get_class($window));
 			}
 			$sourceItem = $inventory->getItem($slot);
 
@@ -217,7 +218,7 @@ class InventoryTransaction{
 
 			if(!$targetItem->equalsExact($sourceItem)){
 				//sometimes we get actions on the crafting grid whose source and target items are the same, so dump them
-				$this->addAction(new SlotChangeAction($inventory, $slot, $sourceItem, $targetItem));
+				$this->addAction(new SlotChangeAction($window, $slot, $sourceItem, $targetItem));
 			}
 		}
 	}

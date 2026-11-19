@@ -31,6 +31,6 @@ use pocketmine\math\Facing;
 class SoulSand extends Opaque{
 
 	protected function recalculateCollisionBoxes() : array{
-		return [AxisAlignedBB::one()->trim(Facing::UP, 1 / 8)];
+		return [AxisAlignedBB::one()->trimmedCopy(Facing::UP, 1 / 8)];
 	}
 }

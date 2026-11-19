@@ -124,8 +124,8 @@ final class BlockSerializerDeserializerRegistrar{
 	}
 
 	public function mapSimple(Block $block, string $id) : void{
-		$this->deserializer->mapSimple($id, fn() => clone $block);
-		$this->serializer->mapSimple($block, $id);
+		$this->deserializer->map($id, fn() => clone $block);
+		$this->serializer->map($block, BlockStateData::current($id, []));
 	}
 
 	/**

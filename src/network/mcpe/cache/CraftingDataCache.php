@@ -177,7 +177,6 @@ final class CraftingDataCache{
 				FurnaceType::CAMPFIRE => FurnaceRecipeBlockName::CAMPFIRE,
 				FurnaceType::SOUL_CAMPFIRE => FurnaceRecipeBlockName::SOUL_CAMPFIRE
 			};
-
 			foreach($manager->getFurnaceRecipeManager($furnaceType)->getAll() as $recipe){
 				$recipeNetId++;
 				$recipesWithTypeIds[] = new ProtocolShapelessRecipe(

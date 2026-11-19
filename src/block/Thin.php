@@ -67,24 +67,24 @@ class Thin extends Transparent implements HorizontalConnections, StateDeriving{
 
 		$bbs = [];
 
-		if(isset($this->connections[Facing::WEST]) || isset($this->connections[Facing::EAST])){
-			$bb = AxisAlignedBB::one()->squash(Axis::Z, $inset);
+		if(isset($this->connections[Facing::WEST->value]) || isset($this->connections[Facing::EAST->value])){
+			$bb = AxisAlignedBB::one()->squashedCopy(Axis::Z, $inset);
 
-			if(!isset($this->connections[Facing::WEST])){
-				$bb->trim(Facing::WEST, $inset);
-			}elseif(!isset($this->connections[Facing::EAST])){
-				$bb->trim(Facing::EAST, $inset);
+			if(!isset($this->connections[Facing::WEST->value])){
+				$bb = $bb->trimmedCopy(Facing::WEST, $inset);
+			}elseif(!isset($this->connections[Facing::EAST->value])){
+				$bb = $bb->trimmedCopy(Facing::EAST, $inset);
 			}
 			$bbs[] = $bb;
 		}
 
-		if(isset($this->connections[Facing::NORTH]) || isset($this->connections[Facing::SOUTH])){
-			$bb = AxisAlignedBB::one()->squash(Axis::X, $inset);
+		if(isset($this->connections[Facing::NORTH->value]) || isset($this->connections[Facing::SOUTH->value])){
+			$bb = AxisAlignedBB::one()->squashedCopy(Axis::X, $inset);
 
-			if(!isset($this->connections[Facing::NORTH])){
-				$bb->trim(Facing::NORTH, $inset);
-			}elseif(!isset($this->connections[Facing::SOUTH])){
-				$bb->trim(Facing::SOUTH, $inset);
+			if(!isset($this->connections[Facing::NORTH->value])){
+				$bb = $bb->trimmedCopy(Facing::NORTH, $inset);
+			}elseif(!isset($this->connections[Facing::SOUTH->value])){
+				$bb = $bb->trimmedCopy(Facing::SOUTH, $inset);
 			}
 			$bbs[] = $bb;
 		}
@@ -92,14 +92,14 @@ class Thin extends Transparent implements HorizontalConnections, StateDeriving{
 		if(count($bbs) === 0){
 			//centre post AABB (only needed if not connected on any axis - other BBs overlapping will do this if any connections are made)
 			return [
-				AxisAlignedBB::one()->contract($inset, 0, $inset)
+				AxisAlignedBB::one()->contractedCopy($inset, 0, $inset)
 			];
 		}
 
 		return $bbs;
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 }

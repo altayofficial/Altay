@@ -28,9 +28,9 @@ namespace pocketmine\resourcepacks;
 use pocketmine\utils\Config;
 use pocketmine\utils\Filesystem;
 use pocketmine\utils\Utils;
-use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Filesystem\Path;
-use function array_keys;
+use function array_map;
 use function copy;
 use function count;
 use function file_exists;
@@ -135,13 +135,8 @@ class ResourcePackManager{
 			try{
 				$newPack = $this->loadPackFromPath(Path::join($this->path, $pack));
 
-				$index = strtolower($newPack->getPackId());
-				if(!Uuid::isValid($index)){
-					//TODO: we should use Uuid in ResourcePack interface directly but that would break BC
-					//for now we need to validate this here to make sure it doesn't cause crashes later on
-					throw new ResourcePackException("Invalid UUID ($index)");
-				}
-				$this->uuidList[$index] = $newPack;
+				$printableId = $newPack->getPackId()->toString();
+				$this->uuidList[$printableId] = $newPack;
 				$this->resourcePacks[] = $newPack;
 				if(isset($configuredCdnUrls[$pack])){
 					$this->cdnUrls[$index] = $configuredCdnUrls[$pack];
@@ -158,7 +153,7 @@ class ResourcePackManager{
 					if(strlen($key) !== 32){
 						throw new ResourcePackException("Invalid encryption key length, must be exactly 32 bytes");
 					}
-					$this->encryptionKeys[$index] = $key;
+					$this->encryptionKeys[$printableId] = $key;
 				}
 			}catch(ResourcePackException $e){
 				$logger->critical("Could not load resource pack \"$pack\": " . $e->getMessage());
@@ -236,16 +231,11 @@ class ResourcePackManager{
 		$uuidList = [];
 		$resourcePacks = [];
 		foreach($resourceStack as $pack){
-			$uuid = strtolower($pack->getPackId());
-			if(!Uuid::isValid($uuid)){
-				//TODO: we should use Uuid in ResourcePack interface directly but that would break BC
-				//for now we need to validate this here to make sure it doesn't cause crashes later on
-				throw new \InvalidArgumentException("Invalid resource pack UUID ($uuid)");
+			$printableId = $pack->getPackId()->toString();
+			if(isset($uuidList[$printableId])){
+				throw new \InvalidArgumentException("Cannot load two resource pack with the same UUID ($printableId)");
 			}
-			if(isset($uuidList[$uuid])){
-				throw new \InvalidArgumentException("Cannot load two resource pack with the same UUID ($uuid)");
-			}
-			$uuidList[$uuid] = $pack;
+			$uuidList[$printableId] = $pack;
 			$resourcePacks[] = $pack;
 		}
 		$this->resourcePacks = $resourcePacks;
@@ -255,23 +245,23 @@ class ResourcePackManager{
 	/**
 	 * Returns the resource pack matching the specified UUID string, or null if the ID was not recognized.
 	 */
-	public function getPackById(string $id) : ?ResourcePack{
-		return $this->uuidList[strtolower($id)] ?? null;
+	public function getPackById(UuidInterface|string $id) : ?ResourcePack{
+		return $this->uuidList[$id instanceof UuidInterface ? $id->toString() : strtolower($id)] ?? null;
 	}
 
 	/**
 	 * Returns an array of pack IDs for packs currently in use.
-	 * @return string[]
+	 * @return UuidInterface[]
 	 */
 	public function getPackIdList() : array{
-		return array_keys($this->uuidList);
+		return array_map(fn(ResourcePack $p) => $p->getPackId(), $this->uuidList);
 	}
 
 	/**
 	 * Returns the key with which the pack was encrypted, or null if the pack has no key.
 	 */
-	public function getPackEncryptionKey(string $id) : ?string{
-		return $this->encryptionKeys[strtolower($id)] ?? null;
+	public function getPackEncryptionKey(UuidInterface $id) : ?string{
+		return $this->encryptionKeys[$id->toString()] ?? null;
 	}
 
 	/**
@@ -285,18 +275,18 @@ class ResourcePackManager{
 	 * Sets the encryption key to use for decrypting the specified resource pack. The pack will **NOT** be decrypted by
 	 * PocketMine-MP; the key is simply passed to the client to allow it to decrypt the pack after downloading it.
 	 */
-	public function setPackEncryptionKey(string $id, ?string $key) : void{
-		$id = strtolower($id);
+	public function setPackEncryptionKey(UuidInterface $id, ?string $key) : void{
+		$printableId = $id->toString();
 		if($key === null){
 			//allow deprovisioning keys for resource packs that have been removed
-			unset($this->encryptionKeys[$id]);
-		}elseif(isset($this->uuidList[$id])){
+			unset($this->encryptionKeys[$printableId]);
+		}elseif(isset($this->uuidList[$printableId])){
 			if(strlen($key) !== 32){
 				throw new \InvalidArgumentException("Encryption key must be exactly 32 bytes long");
 			}
-			$this->encryptionKeys[$id] = $key;
+			$this->encryptionKeys[$printableId] = $key;
 		}else{
-			throw new \InvalidArgumentException("Unknown pack ID $id");
+			throw new \InvalidArgumentException("Unknown pack ID $printableId");
 		}
 	}
 

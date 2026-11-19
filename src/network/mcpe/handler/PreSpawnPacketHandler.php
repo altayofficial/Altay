@@ -125,6 +125,7 @@ class PreSpawnPacketHandler extends PacketHandler{
 				false,
 				true, //the dictionary uses hashed network IDs from block_palette.nbt
 				new NetworkPermissions(disableClientSounds: true),
+				true,
 				null,
 				new ServerTelemetryData("", "", "", ""),
 				StaticPacketCache::getInstance()->getBlockDefinitions(),

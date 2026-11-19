@@ -36,11 +36,11 @@ use pocketmine\world\BlockTransaction;
 final class FloorSign extends BaseSign implements SignLikeRotation{
 	use SignLikeRotationTrait;
 
-	protected function getSupportingFace() : int{
+	protected function getSupportingFace() : Facing{
 		return Facing::DOWN;
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($face !== Facing::UP){
 			return false;
 		}

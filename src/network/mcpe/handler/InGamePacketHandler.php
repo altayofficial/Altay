@@ -117,7 +117,6 @@ use function count;
 use function fmod;
 use function get_debug_type;
 use function implode;
-use function in_array;
 use function is_infinite;
 use function is_nan;
 use function json_decode;
@@ -314,7 +313,9 @@ class InGamePacketHandler extends PacketHandler{
 			}
 			foreach(Utils::promoteKeys($blockActions) as $k => $blockAction){
 				$actionHandled = false;
-				if($blockAction instanceof PlayerBlockActionWithBlockInfo){
+				if($blockAction instanceof PlayerBlockActionStopBreak){
+					$actionHandled = $this->handlePlayerActionFromData($blockAction->getActionType(), new BlockPosition(0, 0, 0), 0);
+				}elseif($blockAction instanceof PlayerBlockActionWithBlockInfo){
 					$actionHandled = $this->handlePlayerActionFromData($blockAction->getActionType(), $blockAction->getBlockPosition(), $blockAction->getFace());
 				}
 
@@ -341,7 +342,7 @@ class InGamePacketHandler extends PacketHandler{
 		if(count($trData->getActions()) > 50){
 			throw new PacketHandlingException("Too many actions in inventory transaction");
 		}
-		if(count($packet->requestChangedSlots) > 10){
+		if($packet->requestChangedSlots !== null && count($packet->requestChangedSlots) > 10){
 			throw new PacketHandlingException("Too many slot sync requests in inventory transaction");
 		}
 
@@ -381,12 +382,14 @@ class InGamePacketHandler extends PacketHandler{
 		//haven't changed. Handling these is necessary to ensure the client inventory stays in sync if the server
 		//rejects the transaction. The most common example of this is equipping armor by right-click, which doesn't send
 		//a legacy prediction action for the destination armor slot.
-		foreach($packet->requestChangedSlots as $containerInfo){
-			foreach($containerInfo->getChangedSlotIndexes() as $netSlot){
-				[$windowId, $slot] = ItemStackContainerIdTranslator::translate($containerInfo->getContainerId(), $this->inventoryManager->getCurrentWindowId(), $netSlot);
-				$inventoryAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slot);
-				if($inventoryAndSlot !== null){ //trigger the normal slot sync logic
-					$this->inventoryManager->onSlotChange($inventoryAndSlot[0], $inventoryAndSlot[1]);
+		if($packet->requestChangedSlots !== null){
+			foreach($packet->requestChangedSlots as $containerInfo){
+				foreach($containerInfo->getChangedSlotIndexes() as $netSlot){
+					[$windowId, $slot] = ItemStackContainerIdTranslator::translate($containerInfo->getContainerId(), $this->inventoryManager->getCurrentWindowId(), $netSlot);
+					$inventoryAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slot);
+					if($inventoryAndSlot !== null){ //trigger the normal slot sync logic
+						$this->inventoryManager->requestSyncSlot($inventoryAndSlot[0], $inventoryAndSlot[1]);
+					}
 				}
 			}
 		}
@@ -492,7 +495,8 @@ class InGamePacketHandler extends PacketHandler{
 		$droppedItem = $sourceSlotItem->pop($droppedCount);
 
 		$builder = new TransactionBuilder();
-		$builder->getInventory($inventory)->setItem($sourceSlot, $sourceSlotItem);
+		$window = $this->inventoryManager->getInventoryWindow($inventory) ?? throw new AssumptionFailedError("This should never happen");
+		$builder->getActionBuilder($window)->setItem($sourceSlot, $sourceSlotItem);
 		$builder->addAction(new DropItemAction($droppedItem));
 
 		$transaction = new InventoryTransaction($this->player, $builder->generateActions());
@@ -525,11 +529,11 @@ class InGamePacketHandler extends PacketHandler{
 				}
 				//TODO: end hack for client spam bug
 
-				self::validateFacing($data->getFace());
+				$face = self::deserializeFacing($data->getFace());
 
 				$blockPos = $data->getBlockPosition();
 				$vBlockPos = new Vector3($blockPos->getX(), $blockPos->getY(), $blockPos->getZ());
-				$this->player->interactBlock($vBlockPos, $data->getFace(), $clickPos);
+				$this->player->interactBlock($vBlockPos, $face, $clickPos);
 				if($data->getClientInteractPrediction() === PredictedResult::SUCCESS){
 					//If the item has an associated blockstate ID, this means it will only place one block.
 					//We can avoid syncing the adjacent blocks of the place position in this case, since that's only
@@ -541,7 +545,7 @@ class InGamePacketHandler extends PacketHandler{
 					$syncAdjacentFace = null;
 					if($data->getItemInHand()->getItemStack()->getBlockRuntimeId() === ItemTranslator::NO_BLOCK_RUNTIME_ID){
 						$this->session->getLogger()->debug("Placing held item might place multiple blocks client-side; doing full adjacent sync");
-						$syncAdjacentFace = $data->getFace();
+						$syncAdjacentFace = $face;
 					}
 					$this->syncBlocksNearby($vBlockPos, $syncAdjacentFace);
 				}
@@ -602,16 +606,19 @@ class InGamePacketHandler extends PacketHandler{
 	/**
 	 * @throws PacketHandlingException
 	 */
-	private static function validateFacing(int $facing) : void{
-		if(!in_array($facing, Facing::ALL, true)){
+	private static function deserializeFacing(int $facing) : Facing{
+		//TODO: dodgy use of network facing values as internal values here - they may not be the same in the future
+		$case = Facing::tryFrom($facing);
+		if($case === null){
 			throw new PacketHandlingException("Invalid facing value $facing");
 		}
+		return $case;
 	}
 
 	/**
 	 * Syncs blocks nearby to ensure that the client and server agree on the world's blocks after a block interaction.
 	 */
-	private function syncBlocksNearby(Vector3 $blockPos, ?int $face) : void{
+	private function syncBlocksNearby(Vector3 $blockPos, ?Facing $face) : void{
 		if($blockPos->distanceSquared($this->player->getLocation()) < 10000){
 			$blocks = $blockPos->sidesArray();
 			if($face !== null){
@@ -873,13 +880,13 @@ class InGamePacketHandler extends PacketHandler{
 		return $this->handlePlayerActionFromData($packet->action, $packet->blockPosition, $packet->face);
 	}
 
-	private function handlePlayerActionFromData(int $action, BlockPosition $blockPosition, int $face) : bool{
+	private function handlePlayerActionFromData(int $action, BlockPosition $blockPosition, int $extraData) : bool{
 		$pos = new Vector3($blockPosition->getX(), $blockPosition->getY(), $blockPosition->getZ());
 
 		switch($action){
 			case PlayerAction::START_BREAK:
 			case PlayerAction::CONTINUE_DESTROY_BLOCK: //destroy the next block while holding down left click
-				self::validateFacing($face);
+				$face = self::deserializeFacing($extraData);
 				if($this->lastBlockAttacked !== null && $blockPosition->equals($this->lastBlockAttacked)){
 					//the client will send CONTINUE_DESTROY_BLOCK for the currently targeted block directly before it
 					//sends PREDICT_DESTROY_BLOCK, but also when it starts to break the block
@@ -908,7 +915,7 @@ class InGamePacketHandler extends PacketHandler{
 				$this->player->stopSleep();
 				break;
 			case PlayerAction::CRACK_BREAK:
-				self::validateFacing($face);
+				$face = self::deserializeFacing($extraData);
 				$this->player->continueBreakBlock($pos, $face);
 				$this->lastBlockAttacked = $blockPosition;
 				$this->player->setUsingItem(false);
@@ -919,8 +926,8 @@ class InGamePacketHandler extends PacketHandler{
 				//in server auth block breaking, we get PREDICT_DESTROY_BLOCK anyway, so this action is redundant
 				break;
 			case PlayerAction::PREDICT_DESTROY_BLOCK:
-				self::validateFacing($face);
 				if(!$this->player->breakBlock($pos)){
+					$face = self::deserializeFacing($extraData);
 					$this->syncBlocksNearby($pos, $face);
 				}
 				$this->lastBlockAttacked = null;

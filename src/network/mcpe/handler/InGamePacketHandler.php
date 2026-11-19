@@ -158,6 +158,7 @@ class InGamePacketHandler extends PacketHandler{
 	//allowing input beyond 256 chars. Use a slightly higher bounded soft limit to
 	//prevent rejected edits while still mitigating book-bomb attacks
 	private const PAGE_LENGTH_SOFT_LIMIT_CHARS = 512;
+	private const MAX_BOOK_PAGES = 50;
 
 	private const RIGHT_CLICK_ITEM_USE_DEDUP_TICKS = 2;
 
@@ -1124,6 +1125,18 @@ class InGamePacketHandler extends PacketHandler{
 		return $result;
 	}
 
+	/**
+	 * Missing pages get filled in all the way up to the requested one, so this has to be checked before touching the
+	 * book, not after.
+	 */
+	private function canCreateBookPage(WritableBook $book, int $pageNumber) : bool{
+		if($pageNumber < self::MAX_BOOK_PAGES || $book->pageExists($pageNumber)){
+			return true;
+		}
+		$this->session->getLogger()->debug("Ignored book edit for page $pageNumber, which is past the page limit");
+		return false;
+	}
+
 	public function handleBookEdit(BookEditPacket $packet) : bool{
 		$inventory = $this->player->getInventory();
 		if(!$inventory->slotExists($packet->inventorySlot)){
@@ -1143,6 +1156,9 @@ class InGamePacketHandler extends PacketHandler{
 				$text = self::checkBookText($packet->text, "page text", self::PAGE_LENGTH_SOFT_LIMIT_CHARS, WritableBookPage::PAGE_LENGTH_HARD_LIMIT_BYTES, $cancel);
 				if($packet->pageNumber < 0){
 					throw new PacketHandlingException("Page number cannot be negative");
+				}
+				if(!$this->canCreateBookPage($newBook, $packet->pageNumber)){
+					return false;
 				}
 				$newBook->setPageText($packet->pageNumber, $text);
 				$modifiedPages[] = $packet->pageNumber;
@@ -1167,6 +1183,9 @@ class InGamePacketHandler extends PacketHandler{
 			case BookEditPacket::TYPE_SWAP_PAGES:
 				if($packet->pageNumber < 0 || $packet->secondaryPageNumber < 0){
 					throw new PacketHandlingException("Page numbers cannot be negative");
+				}
+				if(!$this->canCreateBookPage($newBook, max($packet->pageNumber, $packet->secondaryPageNumber))){
+					return false;
 				}
 				if(!$newBook->pageExists($packet->pageNumber) || !$newBook->pageExists($packet->secondaryPageNumber)){
 					//the client will create pages on its own without telling us until it tries to switch them
@@ -1206,7 +1225,7 @@ class InGamePacketHandler extends PacketHandler{
 		 */
 		$oldPageCount = count($oldBook->getPages());
 		$newPageCount = count($newBook->getPages());
-		if(($newPageCount > $oldPageCount && $newPageCount > 50)){
+		if(($newPageCount > $oldPageCount && $newPageCount > self::MAX_BOOK_PAGES)){
 			$this->session->getLogger()->debug("Cancelled book edit due to adding too many pages (new page count would be $newPageCount)");
 			$cancel = true;
 		}

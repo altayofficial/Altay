@@ -27,7 +27,7 @@ namespace pocketmine\item;
 
 /**
  * Lock options for items in a player's inventory. These options are only respected when the items are in a player's
- * inventory. They are ignored when the item is a chest or other container.
+ * inventory. They are ignored when the item is in a chest or other container.
  */
 enum ItemLockMode{
 	/**
@@ -40,7 +40,7 @@ enum ItemLockMode{
 	 */
 	case PLAYER_INVENTORY;
 	/**
-	 * Same as INVENTORY, but additionally prevents the item from being removed from its slot.
+	 * Same as PLAYER_INVENTORY, but additionally prevents the item from being removed from its slot.
 	 */
 	case PLAYER_INVENTORY_SLOT;
 }

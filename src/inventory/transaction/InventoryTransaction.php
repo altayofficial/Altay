@@ -136,7 +136,7 @@ class InventoryTransaction{
 	 *
 	 * @throws TransactionValidationException
 	 */
-	public function computeDiff(array &$needItems, array &$haveItems) : void{
+	private function computeDiff(array &$needItems, array &$haveItems) : void{
 		//hmm, unsetting straight from the by-ref lists makes phpstan lose the list type, so work on copies
 		$need = $needItems;
 		$have = $haveItems;

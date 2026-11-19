@@ -37,11 +37,10 @@ class SplashPotion extends ProjectileItem{
 
 	public function __construct(
 		ItemIdentifier $identifier,
-		string $name = "Splash Potion",
+		string $name,
 		array $enchantmentTags = [],
 		private bool $linger = false
 	){
-		//TODO: remove unnecessary default parameters in PM6, they remain because backward compatibility
 		parent::__construct($identifier, $name, $enchantmentTags);
 	}
 

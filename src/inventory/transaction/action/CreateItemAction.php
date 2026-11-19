@@ -41,8 +41,9 @@ class CreateItemAction extends InventoryAction{
 	}
 
 	public function validate(Player $source) : void{
-		if($source->hasFiniteResources()){
-			throw new TransactionValidationException("Player has finite resources, cannot create items");
+		//INFINITE_RESOURCES can be handed out to survival players, so it isn't enough to let them pull stuff out of the creative menu
+		if(!$source->isCreative(true)){
+			throw new TransactionValidationException("Player is not in creative mode, cannot create items");
 		}
 		if(!$source->getCreativeInventory()->contains($this->sourceItem)){
 			throw new TransactionValidationException("Creative inventory does not contain requested item");

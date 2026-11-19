@@ -120,6 +120,7 @@ use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\permission\DefaultPermissions;
 use pocketmine\player\GameMode;
 use pocketmine\player\Player;
+use pocketmine\player\PlayerAbility;
 use pocketmine\player\PlayerInfo;
 use pocketmine\player\UsedChunkStatus;
 use pocketmine\player\XboxLivePlayerInfo;
@@ -1150,17 +1151,17 @@ class NetworkSession{
 			AbilitiesLayer::ABILITY_NO_CLIP => !$for->hasBlockCollision(),
 			AbilitiesLayer::ABILITY_OPERATOR => $isOp,
 			AbilitiesLayer::ABILITY_TELEPORT => $for->hasPermission(DefaultPermissionNames::COMMAND_TELEPORT_SELF),
-			AbilitiesLayer::ABILITY_INVULNERABLE => $for->isCreative(),
+			AbilitiesLayer::ABILITY_INVULNERABLE => $for->hasAbility(PlayerAbility::INVULNERABLE),
 			AbilitiesLayer::ABILITY_MUTED => false,
 			AbilitiesLayer::ABILITY_WORLD_BUILDER => false,
 			AbilitiesLayer::ABILITY_INFINITE_RESOURCES => !$for->hasFiniteResources(),
 			AbilitiesLayer::ABILITY_LIGHTNING => false,
-			AbilitiesLayer::ABILITY_BUILD => !$for->isSpectator(),
-			AbilitiesLayer::ABILITY_MINE => !$for->isSpectator(),
+			AbilitiesLayer::ABILITY_BUILD => $for->hasAbility(PlayerAbility::BUILD),
+			AbilitiesLayer::ABILITY_MINE => $for->hasAbility(PlayerAbility::MINE),
 			AbilitiesLayer::ABILITY_DOORS_AND_SWITCHES => !$for->isSpectator(),
 			AbilitiesLayer::ABILITY_OPEN_CONTAINERS => !$for->isSpectator(),
-			AbilitiesLayer::ABILITY_ATTACK_PLAYERS => !$for->isSpectator(),
-			AbilitiesLayer::ABILITY_ATTACK_MOBS => !$for->isSpectator(),
+			AbilitiesLayer::ABILITY_ATTACK_PLAYERS => $for->hasAbility(PlayerAbility::ATTACK_PLAYERS),
+			AbilitiesLayer::ABILITY_ATTACK_MOBS => $for->hasAbility(PlayerAbility::ATTACK_MOBS),
 			AbilitiesLayer::ABILITY_PRIVILEGED_BUILDER => false,
 		];
 
@@ -1277,12 +1278,26 @@ class NetworkSession{
 		$this->sendDataPacket(TextPacket::jukeboxPopup($message, $parameters));
 	}
 
-	public function onPopup(string $message) : void{
-		$this->sendDataPacket(TextPacket::popup($message));
+	public function onPopup(Translatable|string $message) : void{
+		if($message instanceof Translatable && !$this->server->isLanguageForced()){
+			$this->sendDataPacket(TextPacket::translatedPopup(...$this->prepareClientTranslatableMessage($message)));
+		}else{
+			$this->sendDataPacket(TextPacket::popup($this->translateForClient($message)));
+		}
 	}
 
-	public function onTip(string $message) : void{
-		$this->sendDataPacket(TextPacket::tip($message));
+	public function onTip(Translatable|string $message) : void{
+		$this->sendDataPacket(TextPacket::tip($this->translateForClient($message)));
+	}
+
+	/**
+	 * Translates the message on the server side, for places where the client won't do it for us.
+	 */
+	private function translateForClient(Translatable|string $message) : string{
+		if(!$message instanceof Translatable){
+			return $message;
+		}
+		return ($this->player?->getLanguage() ?? $this->server->getLanguage())->translate($message);
 	}
 
 	public function onFormSent(int $id, Form $form) : bool{
@@ -1473,16 +1488,16 @@ class NetworkSession{
 		}
 	}
 
-	public function onTitle(string $title) : void{
-		$this->sendDataPacket(SetTitlePacket::title($title));
+	public function onTitle(Translatable|string $title) : void{
+		$this->sendDataPacket(SetTitlePacket::title($this->translateForClient($title)));
 	}
 
-	public function onSubTitle(string $subtitle) : void{
-		$this->sendDataPacket(SetTitlePacket::subtitle($subtitle));
+	public function onSubTitle(Translatable|string $subtitle) : void{
+		$this->sendDataPacket(SetTitlePacket::subtitle($this->translateForClient($subtitle)));
 	}
 
-	public function onActionBar(string $actionBar) : void{
-		$this->sendDataPacket(SetTitlePacket::actionBarMessage($actionBar));
+	public function onActionBar(Translatable|string $actionBar) : void{
+		$this->sendDataPacket(SetTitlePacket::actionBarMessage($this->translateForClient($actionBar)));
 	}
 
 	public function onClearTitle() : void{
@@ -1497,8 +1512,8 @@ class NetworkSession{
 		$this->sendDataPacket(SetTitlePacket::setAnimationTimes($fadeIn, $stay, $fadeOut));
 	}
 
-	public function onToastNotification(string $title, string $body) : void{
-		$this->sendDataPacket(ToastRequestPacket::create($title, $body));
+	public function onToastNotification(Translatable|string $title, Translatable|string $body) : void{
+		$this->sendDataPacket(ToastRequestPacket::create($this->translateForClient($title), $this->translateForClient($body)));
 	}
 
 	public function onOpenSignEditor(Vector3 $signPosition, bool $frontSide) : void{

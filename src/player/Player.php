@@ -327,7 +327,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	private ?Position $deathPosition = null;
 
-	//TODO: Abilities
+	/**
+	 * @var bool[]
+	 * @phpstan-var array<int, bool>
+	 */
+	private array $abilityOverrides = [];
 	protected bool $autoJump = true;
 	protected bool $allowFlight = false;
 	protected bool $blockCollision = true;
@@ -510,22 +514,42 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		return parent::getUniqueId();
 	}
 
-	/**
-	 * TODO: not sure this should be nullable
-	 */
-	public function getFirstPlayed() : ?DateTimeImmutable{
+	public function getFirstPlayed() : DateTimeImmutable{
 		return $this->firstPlayed;
 	}
 
-	/**
-	 * TODO: not sure this should be nullable
-	 */
-	public function getLastPlayed() : ?DateTimeImmutable{
+	public function getLastPlayed() : DateTimeImmutable{
 		return $this->lastPlayed;
 	}
 
 	public function hasPlayedBefore() : bool{
 		return ((int) $this->firstPlayed->diff($this->lastPlayed)->format('%s')) > 1;
+	}
+
+	/**
+	 * Returns whether the player currently has the given ability, taking any override from
+	 * {@link Player::setAbility()} into account.
+	 */
+	public function hasAbility(PlayerAbility $ability) : bool{
+		return $this->abilityOverrides[spl_object_id($ability)] ?? $this->gamemode->hasAbility($ability);
+	}
+
+	/**
+	 * Overrides the given ability for this player. Pass null to go back to the game mode's default.
+	 *
+	 * Overrides are cleared when the player's game mode changes, same as {@link Player::setAllowFlight()}. If you want
+	 * one to stick, set it again from PlayerGameModeChangeEvent.
+	 */
+	public function setAbility(PlayerAbility $ability, ?bool $value) : void{
+		$old = $this->hasAbility($ability);
+		if($value === null){
+			unset($this->abilityOverrides[spl_object_id($ability)]);
+		}else{
+			$this->abilityOverrides[spl_object_id($ability)] = $value;
+		}
+		if($old !== $this->hasAbility($ability)){
+			$this->getNetworkSession()->syncAbilities($this);
+		}
 	}
 
 	/**
@@ -1482,6 +1506,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	protected function internalSetGameMode(GameMode $gameMode) : void{
 		$this->gamemode = $gameMode;
+		$this->abilityOverrides = [];
 
 		$this->allowFlight = $this->gamemode === GameMode::CREATIVE;
 		$this->hungerManager->setEnabled($this->isSurvival());
@@ -1578,10 +1603,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	/**
-	 * TODO: make this a dynamic ability instead of being hardcoded
+	 * Shorthand for checking {@link PlayerAbility::INFINITE_RESOURCES}.
 	 */
 	public function hasFiniteResources() : bool{
-		return $this->gamemode !== GameMode::CREATIVE;
+		return !$this->hasAbility(PlayerAbility::INFINITE_RESOURCES);
 	}
 
 	public function getDrops() : array{
@@ -2333,7 +2358,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if(!$this->canInteract($entity->getLocation(), self::MAX_REACH_DISTANCE_ENTITY_INTERACTION)){
 			$this->logger->debug("Cancelled attack of entity " . $entity->getId() . " due to not currently being interactable");
 			$ev->cancel();
-		}elseif($this->isSpectator() || ($entity instanceof Player && !$this->server->getConfigGroup()->getConfigBool(ServerProperties::PVP))){
+		}elseif(
+			!$this->hasAbility($entity instanceof Player ? PlayerAbility::ATTACK_PLAYERS : PlayerAbility::ATTACK_MOBS) ||
+			($entity instanceof Player && !$this->server->getConfigGroup()->getConfigBool(ServerProperties::PVP))
+		){
 			$ev->cancel();
 		}
 
@@ -2609,7 +2637,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * @param int $stay    Duration in ticks to stay on screen for
 	 * @param int $fadeOut Duration in ticks for fade-out.
 	 */
-	public function sendTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1) : void{
+	public function sendTitle(Translatable|string $title, Translatable|string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1) : void{
 		$this->setTitleDuration($fadeIn, $stay, $fadeOut);
 		if($subtitle !== ""){
 			$this->sendSubTitle($subtitle);
@@ -2620,14 +2648,14 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	/**
 	 * Sets the subtitle message, without sending a title.
 	 */
-	public function sendSubTitle(string $subtitle) : void{
+	public function sendSubTitle(Translatable|string $subtitle) : void{
 		$this->getNetworkSession()->onSubTitle($subtitle);
 	}
 
 	/**
 	 * Adds small text to the user's screen.
 	 */
-	public function sendActionBarMessage(string $message) : void{
+	public function sendActionBarMessage(Translatable|string $message) : void{
 		$this->getNetworkSession()->onActionBar($message);
 	}
 
@@ -2671,21 +2699,19 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	/**
 	 * Sends a popup message to the player
-	 *
-	 * TODO: add translation type popups
 	 */
-	public function sendPopup(string $message) : void{
+	public function sendPopup(Translatable|string $message) : void{
 		$this->getNetworkSession()->onPopup($message);
 	}
 
-	public function sendTip(string $message) : void{
+	public function sendTip(Translatable|string $message) : void{
 		$this->getNetworkSession()->onTip($message);
 	}
 
 	/**
 	 * Sends a toast message to the player, or queue to send it if a toast message is already shown.
 	 */
-	public function sendToastNotification(string $title, string $body) : void{
+	public function sendToastNotification(Translatable|string $title, Translatable|string $body) : void{
 		$this->getNetworkSession()->onToastNotification($title, $body);
 	}
 
@@ -3140,7 +3166,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			return;
 		}
 
-		if($this->isCreative()
+		if($this->hasAbility(PlayerAbility::INVULNERABLE)
 			&& $source->getCause() !== EntityDamageEvent::CAUSE_SUICIDE
 		){
 			$source->cancel();

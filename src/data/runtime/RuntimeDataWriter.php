@@ -95,8 +95,8 @@ final class RuntimeDataWriter implements RuntimeDataDescriber{
 		$packed = 0;
 		$offset = 0;
 		foreach(Facing::HORIZONTAL as $facing){
-			$packed += match($connections[$facing->value] ?? null){
-				null => 0,
+			$packed += match($connections[$facing->value] ?? WallConnectionType::NONE){
+				WallConnectionType::NONE => 0,
 				WallConnectionType::SHORT => 1,
 				WallConnectionType::TALL => 2,
 			} * (3 ** $offset);

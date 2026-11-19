@@ -41,6 +41,12 @@ interface CommandSender extends Permissible{
 	public function getName() : string;
 
 	/**
+	 * Returns whether this sender can still receive messages. Check this before replying from an async callback, since
+	 * a player may have quit by the time it runs.
+	 */
+	public function isOnline() : bool;
+
+	/**
 	 * Returns the line height of the command-sender's screen. Used for determining sizes for command output pagination
 	 * such as in the /help command.
 	 * @phpstan-return positive-int

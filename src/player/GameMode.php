@@ -73,6 +73,21 @@ enum GameMode{
 		};
 	}
 
+	/**
+	 * Returns whether players in this game mode get the given ability by default. Plugins can override this per
+	 * player, see {@link Player::setAbility()}.
+	 */
+	public function hasAbility(PlayerAbility $ability) : bool{
+		return match($ability){
+			PlayerAbility::BUILD,
+			PlayerAbility::MINE,
+			PlayerAbility::ATTACK_PLAYERS,
+			PlayerAbility::ATTACK_MOBS => $this !== self::SPECTATOR,
+			PlayerAbility::INFINITE_RESOURCES,
+			PlayerAbility::INVULNERABLE => $this === self::CREATIVE,
+		};
+	}
+
 	public function getEnglishName() : string{
 		return $this->getMetadata()[0];
 	}

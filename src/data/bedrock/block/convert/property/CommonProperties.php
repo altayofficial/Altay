@@ -57,6 +57,7 @@ use pocketmine\block\utils\SignLikeRotation;
 use pocketmine\block\utils\SlabType;
 use pocketmine\block\utils\StairShape;
 use pocketmine\block\utils\StraightOnlyRailShape;
+use pocketmine\block\utils\WallConnectionType;
 use pocketmine\block\Wall;
 use pocketmine\block\Wood;
 use pocketmine\data\bedrock\block\BlockLegacyMetadata;
@@ -445,9 +446,14 @@ final class CommonProperties{
 		] as [$facing, $stateName]){
 			$wallProperties[] = new ValueFromStringProperty(
 				$stateName,
-				EnumFromRawStateMap::string(WallConnectionTypeShim::class, fn(WallConnectionTypeShim $case) => $case->getValue()),
-				fn(Wall $b) => WallConnectionTypeShim::serialize($b->getConnection($facing)),
-				fn(Wall $b, WallConnectionTypeShim $v) => $b->setConnection($facing, $v->deserialize())
+				//the values are the same for every side, EAST is just the one the constants got generated for
+				EnumFromRawStateMap::string(WallConnectionType::class, fn(WallConnectionType $case) => match($case){
+					WallConnectionType::NONE => BlockStateStringValues::WALL_CONNECTION_TYPE_EAST_NONE,
+					WallConnectionType::SHORT => BlockStateStringValues::WALL_CONNECTION_TYPE_EAST_SHORT,
+					WallConnectionType::TALL => BlockStateStringValues::WALL_CONNECTION_TYPE_EAST_TALL,
+				}),
+				fn(Wall $b) => $b->getConnection($facing),
+				fn(Wall $b, WallConnectionType $v) => $b->setConnection($facing, $v)
 			);
 		}
 		$this->wallProperties = $wallProperties;

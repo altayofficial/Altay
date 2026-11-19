@@ -298,8 +298,16 @@ class Server {
 
 	private ServerConfigGroup $configGroup;
 
-	/** @var Player[] */
+	/**
+	 * @var Player[]
+	 * @phpstan-var array<string, Player>
+	 */
 	private array $playerList = [];
+	/**
+	 * @var Player[]
+	 * @phpstan-var array<string, Player>
+	 */
+	private array $playersByXuid = [];
 
 	private SignalHandler $signalHandler;
 
@@ -504,7 +512,10 @@ class Server {
 	}
 
 	/**
+	 * Returns all online players, keyed by their raw UUID bytes (see {@link Server::getPlayerByRawUUID()}).
+	 *
 	 * @return Player[]
+	 * @phpstan-return array<string, Player>
 	 */
 	public function getOnlinePlayers() : array{
 		return $this->playerList;
@@ -672,6 +683,16 @@ class Server {
 	 */
 	public function getPlayerByUUID(UuidInterface $uuid) : ?Player{
 		return $this->getPlayerByRawUUID($uuid->getBytes());
+	}
+
+	/**
+	 * Returns the online player with the given XUID, or null if not found. Unlike names, XUIDs never change, so this
+	 * is the one to use if you're keying stored data by Xbox account.
+	 *
+	 * Players who aren't signed into Xbox Live (e.g. with xbox-auth disabled) have no XUID and can't be found this way.
+	 */
+	public function getPlayerByXuid(string $xuid) : ?Player{
+		return $xuid !== "" ? $this->playersByXuid[$xuid] ?? null : null;
 	}
 
 	public function getConfigGroup() : ServerConfigGroup{
@@ -1619,7 +1640,7 @@ class Server {
 	/**
 	 * @param Player[]|null $recipients
 	 */
-	public function broadcastTip(string $tip, ?array $recipients = null) : int{
+	public function broadcastTip(Translatable|string $tip, ?array $recipients = null) : int{
 		$recipients = $recipients ?? $this->getPlayerBroadcastSubscribers(self::BROADCAST_CHANNEL_USERS);
 
 		foreach($recipients as $recipient){
@@ -1632,7 +1653,7 @@ class Server {
 	/**
 	 * @param Player[]|null $recipients
 	 */
-	public function broadcastPopup(string $popup, ?array $recipients = null) : int{
+	public function broadcastPopup(Translatable|string $popup, ?array $recipients = null) : int{
 		$recipients = $recipients ?? $this->getPlayerBroadcastSubscribers(self::BROADCAST_CHANNEL_USERS);
 
 		foreach($recipients as $recipient){
@@ -1648,7 +1669,7 @@ class Server {
 	 * @param int           $fadeOut    Duration in ticks for fade-out.
 	 * @param Player[]|null $recipients
 	 */
-	public function broadcastTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1, ?array $recipients = null) : int{
+	public function broadcastTitle(Translatable|string $title, Translatable|string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1, ?array $recipients = null) : int{
 		$recipients = $recipients ?? $this->getPlayerBroadcastSubscribers(self::BROADCAST_CHANNEL_USERS);
 
 		foreach($recipients as $recipient){
@@ -2032,6 +2053,9 @@ class Server {
 			$p->getNetworkSession()->onPlayerAdded($player);
 		}
 		$this->playerList[$player->getUniqueId()->getBytes()] = $player;
+		if(($xuid = $player->getXuid()) !== ""){
+			$this->playersByXuid[$xuid] = $player;
+		}
 
 		return true;
 	}
@@ -2039,6 +2063,9 @@ class Server {
 	public function removeOnlinePlayer(Player $player) : void{
 		if(isset($this->playerList[$rawUUID = $player->getUniqueId()->getBytes()])){
 			unset($this->playerList[$rawUUID]);
+			if(($xuid = $player->getXuid()) !== "" && ($this->playersByXuid[$xuid] ?? null) === $player){
+				unset($this->playersByXuid[$xuid]);
+			}
 			foreach($this->playerList as $p){
 				$p->getNetworkSession()->onPlayerRemoved($player);
 			}

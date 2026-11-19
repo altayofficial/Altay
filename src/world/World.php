@@ -79,6 +79,7 @@ use pocketmine\network\mcpe\protocol\ClientboundPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\network\mcpe\protocol\UpdateBlockPacket;
 use pocketmine\player\Player;
+use pocketmine\player\PlayerAbility;
 use pocketmine\promise\Promise;
 use pocketmine\promise\PromiseResolver;
 use pocketmine\scheduler\AsyncPool;
@@ -2214,7 +2215,7 @@ class World implements ChunkManager{
 		if($player !== null){
 			$ev = new BlockBreakEvent($player, $target, $item, $player->isCreative(), $drops, $xpDrop);
 
-			if($target instanceof Air || ($player->isSurvival() && !$target->getBreakInfo()->isBreakable()) || $player->isSpectator()){
+			if($target instanceof Air || ($player->isSurvival() && !$target->getBreakInfo()->isBreakable()) || !$player->hasAbility(PlayerAbility::MINE)){
 				$ev->cancel();
 			}
 
@@ -2374,7 +2375,7 @@ class World implements ChunkManager{
 
 		if($player !== null){
 			$ev = new BlockPlaceEvent($player, $tx, $blockClicked, $item);
-			if($player->isSpectator()){
+			if(!$player->hasAbility(PlayerAbility::BUILD)){
 				$ev->cancel();
 			}
 

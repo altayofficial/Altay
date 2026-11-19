@@ -30,7 +30,6 @@ use pocketmine\command\CommandSender;
 use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\permission\DefaultPermissionNames;
-use pocketmine\player\Player;
 use pocketmine\scheduler\BulkCurlTask;
 use pocketmine\scheduler\BulkCurlTaskOperation;
 use pocketmine\timings\TimingsHandler;
@@ -152,7 +151,7 @@ class TimingsCommand extends VanillaCommand{
 			)],
 			function(array $results) use ($sender, $host) : void{
 				/** @phpstan-var array<InternetRequestResult|InternetException> $results */
-				if($sender instanceof Player && !$sender->isOnline()){ // TODO replace with a more generic API method for checking availability of CommandSender
+				if(!$sender->isOnline()){
 					return;
 				}
 				$result = $results[0];

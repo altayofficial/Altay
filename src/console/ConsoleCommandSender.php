@@ -77,6 +77,10 @@ class ConsoleCommandSender implements CommandSender{
 		return "CONSOLE";
 	}
 
+	public function isOnline() : bool{
+		return true;
+	}
+
 	public function getScreenLineHeight() : int{
 		return $this->lineHeight ?? PHP_INT_MAX;
 	}

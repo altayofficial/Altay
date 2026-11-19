@@ -36,7 +36,10 @@ enum PlayerAbility{
 	case MINE;
 	case ATTACK_PLAYERS;
 	case ATTACK_MOBS;
-	/** Items aren't used up, picked blocks are given for free, and blocks don't drop items when broken. */
+	/**
+	 * Items aren't used up, picked blocks are given for free, and blocks don't drop items when broken.
+	 * This does not give access to the creative inventory, that still needs creative mode.
+	 */
 	case INFINITE_RESOURCES;
 	/** Immune to all damage except suicide (e.g. /kill). */
 	case INVULNERABLE;

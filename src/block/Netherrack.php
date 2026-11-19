@@ -27,6 +27,7 @@ namespace pocketmine\block;
 
 use pocketmine\item\Fertilizer;
 use pocketmine\item\Item;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use function mt_rand;
@@ -37,7 +38,7 @@ class Netherrack extends Opaque{
 		return true;
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($item instanceof Fertilizer){
 			if($this->tryTransform()){
 				$item->pop();

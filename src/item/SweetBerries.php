@@ -27,6 +27,7 @@ namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\block\VanillaBlocks;
+use pocketmine\math\Facing;
 
 class SweetBerries extends Food{
 
@@ -38,7 +39,7 @@ class SweetBerries extends Food{
 		return 1.2;
 	}
 
-	public function getBlock(?int $clickedFace = null) : Block{
+	public function getBlock(?Facing $clickedFace = null) : Block{
 		return VanillaBlocks::SWEET_BERRY_BUSH();
 	}
 }

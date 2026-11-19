@@ -42,7 +42,7 @@ abstract class Button extends Flowable implements AnyFacing{
 	protected bool $pressed = false;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->facing($this->facing);
+		$w->enum($this->facing);
 		$w->bool($this->pressed);
 	}
 
@@ -54,7 +54,7 @@ abstract class Button extends Flowable implements AnyFacing{
 		return $this;
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($this->canBeSupportedAt($blockReplace, $face)){
 			$this->facing = $face;
 			return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
@@ -64,7 +64,7 @@ abstract class Button extends Flowable implements AnyFacing{
 
 	abstract protected function getActivationTime() : int;
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if(!$this->pressed){
 			$this->pressed = true;
 			$world = $this->position->getWorld();
@@ -91,7 +91,7 @@ abstract class Button extends Flowable implements AnyFacing{
 		}
 	}
 
-	private function canBeSupportedAt(Block $block, int $face) : bool{
+	private function canBeSupportedAt(Block $block, Facing $face) : bool{
 		return $block->getAdjacentSupportType(Facing::opposite($face))->hasCenterSupport();
 	}
 }

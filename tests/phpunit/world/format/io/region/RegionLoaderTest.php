@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\world\format\io\region;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use pocketmine\world\format\ChunkException;
 use Symfony\Component\Filesystem\Path;
@@ -84,11 +85,10 @@ class RegionLoaderTest extends TestCase{
 	}
 
 	/**
-	 * @dataProvider outOfBoundsCoordsProvider
-	 *
 	 * @throws ChunkException
 	 * @throws \InvalidArgumentException
 	 */
+	#[DataProvider("outOfBoundsCoordsProvider")]
 	public function testWriteChunkOutOfBounds(int $x, int $z) : void{
 		$this->expectException(\InvalidArgumentException::class);
 		$this->region->writeChunk($x, $z, str_repeat("\x00", 1000));
@@ -109,11 +109,10 @@ class RegionLoaderTest extends TestCase{
 	}
 
 	/**
-	 * @dataProvider outOfBoundsCoordsProvider
-	 *
 	 * @throws \InvalidArgumentException
 	 * @throws \pocketmine\world\format\io\exception\CorruptedChunkException
 	 */
+	#[DataProvider("outOfBoundsCoordsProvider")]
 	public function testReadChunkOutOfBounds(int $x, int $z) : void{
 		$this->expectException(\InvalidArgumentException::class);
 		$this->region->readChunk($x, $z);

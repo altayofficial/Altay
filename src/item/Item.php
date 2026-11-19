@@ -40,6 +40,7 @@ use pocketmine\data\SavedDataLoadingException;
 use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
 use pocketmine\item\enchantment\EnchantmentInstance;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\LittleEndianNbtSerializer;
 use pocketmine\nbt\NBT;
@@ -70,6 +71,7 @@ class Item implements \JsonSerializable{
 
 	public const TAG_DISPLAY = "display";
 	public const TAG_BLOCK_ENTITY_TAG = "BlockEntityTag";
+	public const TAG_ITEM_LOCK = "minecraft:item_lock";
 
 	public const TAG_DISPLAY_NAME = "Name";
 	public const TAG_DISPLAY_LORE = "Lore";
@@ -77,6 +79,9 @@ class Item implements \JsonSerializable{
 	public const TAG_KEEP_ON_DEATH = "minecraft:keep_on_death";
 
 	public const TAG_REPAIR_COST = "RepairCost";
+
+	private const VALUE_ITEM_LOCK_IN_SLOT = 1;
+	private const VALUE_ITEM_LOCK_IN_INVENTORY = 2;
 
 	private const TAG_CAN_PLACE_ON = "CanPlaceOn"; //TAG_List<TAG_String>
 	private const TAG_CAN_DESTROY = "CanDestroy"; //TAG_List<TAG_String>
@@ -108,6 +113,8 @@ class Item implements \JsonSerializable{
 
 	protected int $repairCost = 0;
 
+	protected ItemLockMode $lockMode = ItemLockMode::NONE;
+
 	/**
 	 * Constructs a new Item type. This constructor should ONLY be used when constructing a new item TYPE to register
 	 * into the index.
@@ -133,7 +140,7 @@ class Item implements \JsonSerializable{
 	/**
 	 * @return $this
 	 */
-	public function clearCustomBlockData(){
+	public function clearCustomBlockData() : Item{
 		$this->blockEntityTag = null;
 		return $this;
 	}
@@ -210,11 +217,12 @@ class Item implements \JsonSerializable{
 	/**
 	 * @param string[] $canPlaceOn
 	 */
-	public function setCanPlaceOn(array $canPlaceOn) : void{
+	public function setCanPlaceOn(array $canPlaceOn) : Item{
 		$this->canPlaceOn = [];
 		foreach($canPlaceOn as $value){
 			$this->canPlaceOn[$value] = $value;
 		}
+		return $this;
 	}
 
 	/**
@@ -228,11 +236,27 @@ class Item implements \JsonSerializable{
 	/**
 	 * @param string[] $canDestroy
 	 */
-	public function setCanDestroy(array $canDestroy) : void{
+	public function setCanDestroy(array $canDestroy) : Item{
 		$this->canDestroy = [];
 		foreach($canDestroy as $value){
 			$this->canDestroy[$value] = $value;
 		}
+		return $this;
+	}
+
+	/**
+	 * Returns how the movement of this item will be restricted when in a player's inventory.
+	 */
+	public function getLockMode() : ItemLockMode{
+		return $this->lockMode;
+	}
+
+	/**
+	 * Sets how the movement of this item will be restricted when in a player's inventory.
+	 */
+	public function setLockMode(ItemLockMode $lockMode) : self{
+		$this->lockMode = $lockMode;
+		return $this;
 	}
 
 	/**
@@ -242,8 +266,9 @@ class Item implements \JsonSerializable{
 		return $this->keepOnDeath;
 	}
 
-	public function setKeepOnDeath(bool $keepOnDeath) : void{
+	public function setKeepOnDeath(bool $keepOnDeath) : Item{
 		$this->keepOnDeath = $keepOnDeath;
+		return $this;
 	}
 
 	/**
@@ -358,6 +383,12 @@ class Item implements \JsonSerializable{
 
 		$this->keepOnDeath = $tag->getByte(self::TAG_KEEP_ON_DEATH, 0) !== 0;
 		$this->repairCost = max(0, $tag->getInt(self::TAG_REPAIR_COST, 0));
+
+		$this->lockMode = match($tag->getByte(self::TAG_ITEM_LOCK, 0)){
+			self::VALUE_ITEM_LOCK_IN_SLOT => ItemLockMode::PLAYER_INVENTORY_SLOT,
+			self::VALUE_ITEM_LOCK_IN_INVENTORY => ItemLockMode::PLAYER_INVENTORY,
+			default => ItemLockMode::NONE
+		};
 	}
 
 	protected function serializeCompoundTag(CompoundTag $tag) : void{
@@ -431,6 +462,15 @@ class Item implements \JsonSerializable{
 			$tag->setInt(self::TAG_REPAIR_COST, $this->repairCost);
 		}else{
 			$tag->removeTag(self::TAG_REPAIR_COST);
+		}
+
+		if($this->lockMode !== ItemLockMode::NONE){
+			$tag->setByte(self::TAG_ITEM_LOCK, match($this->lockMode){
+				ItemLockMode::PLAYER_INVENTORY_SLOT => self::VALUE_ITEM_LOCK_IN_SLOT,
+				ItemLockMode::PLAYER_INVENTORY => self::VALUE_ITEM_LOCK_IN_INVENTORY,
+			});
+		}else{
+			$tag->removeTag(self::TAG_ITEM_LOCK);
 		}
 	}
 
@@ -511,7 +551,7 @@ class Item implements \JsonSerializable{
 		return $this->getBlock()->canBePlaced();
 	}
 
-	protected final function tryPlacementTransaction(Block $blockPlace, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player) : ?BlockTransaction{
+	protected final function tryPlacementTransaction(Block $blockPlace, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player) : ?BlockTransaction{
 		$position = $blockReplace->getPosition();
 		$blockPlace->position($position->getWorld(), $position->getFloorX(), $position->getFloorY(), $position->getFloorZ());
 		if(!$blockPlace->canBePlacedAt($blockReplace, $clickVector, $face, $blockReplace->getPosition()->equals($blockClicked->getPosition()))){
@@ -521,14 +561,14 @@ class Item implements \JsonSerializable{
 		return $blockPlace->place($transaction, $this, $blockReplace, $blockClicked, $face, $clickVector, $player) ? $transaction : null;
 	}
 
-	public function getPlacementTransaction(Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : ?BlockTransaction{
+	public function getPlacementTransaction(Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : ?BlockTransaction{
 		return $this->tryPlacementTransaction($this->getBlock($face), $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
 	/**
 	 * Returns the block corresponding to this Item.
 	 */
-	public function getBlock(?int $clickedFace = null) : Block{
+	public function getBlock(?Facing $clickedFace = null) : Block{
 		return VanillaBlocks::AIR();
 	}
 
@@ -627,7 +667,7 @@ class Item implements \JsonSerializable{
 	 *
 	 * @param Item[] &$returnedItems Items to be added to the target's inventory (or dropped, if the inventory is full)
 	 */
-	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
+	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
 		return ItemUseResult::NONE;
 	}
 

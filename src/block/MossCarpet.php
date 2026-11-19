@@ -37,7 +37,7 @@ class MossCarpet extends Flowable{
 	}
 
 	protected function recalculateCollisionBoxes() : array{
-		return [AxisAlignedBB::one()->trim(Facing::UP, 15 / 16)];
+		return [AxisAlignedBB::one()->trimmedCopy(Facing::UP, 15 / 16)];
 	}
 
 	private function canBeSupportedAt(Block $block) : bool{

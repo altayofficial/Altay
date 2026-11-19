@@ -27,6 +27,7 @@ namespace pocketmine\item;
 
 use pocketmine\block\Block;
 use pocketmine\block\VanillaBlocks;
+use pocketmine\math\Facing;
 
 class GlowBerries extends Food{
 
@@ -38,7 +39,7 @@ class GlowBerries extends Food{
 		return 0.4;
 	}
 
-	public function getBlock(?int $clickedFace = null) : Block{
+	public function getBlock(?Facing $clickedFace = null) : Block{
 		return VanillaBlocks::CAVE_VINES();
 	}
 }

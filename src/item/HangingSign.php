@@ -43,7 +43,7 @@ final class HangingSign extends Item{
 		parent::__construct($identifier, $name);
 	}
 
-	public function getPlacementTransaction(Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : ?BlockTransaction{
+	public function getPlacementTransaction(Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : ?BlockTransaction{
 		if($face !== Facing::DOWN){
 			return $this->tryPlacementTransaction(clone $this->wallVariant, $blockReplace, $blockClicked, $face, $clickVector, $player);
 		}
@@ -54,7 +54,7 @@ final class HangingSign extends Item{
 		return $ceilingEdgeTx ?? $this->tryPlacementTransaction(clone $this->centerPointCeilingVariant, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
-	public function getBlock(?int $clickedFace = null) : Block{
+	public function getBlock(?Facing $clickedFace = null) : Block{
 		//we don't have enough information here to decide which ceiling type to use
 		return $clickedFace === Facing::DOWN ? clone $this->centerPointCeilingVariant : clone $this->wallVariant;
 	}

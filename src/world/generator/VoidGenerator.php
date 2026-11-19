@@ -43,7 +43,7 @@ class VoidGenerator extends Generator{
 
 		$biomeArray = new PalettedBlockArray(BiomeIds::PLAINS);
 		foreach($chunk->getSubChunks() as $y => $subChunk){
-			$chunk->setSubChunk($y, new SubChunk(Block::EMPTY_STATE_ID, [], clone $biomeArray));
+			$chunk->setSubChunk($y, new SubChunk(Block::EMPTY_STATE_ID, null, null, clone $biomeArray));
 		}
 
 		$stoneState = VanillaBlocks::STONE()->getStateId();

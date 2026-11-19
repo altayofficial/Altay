@@ -30,8 +30,12 @@ use pocketmine\inventory\Inventory;
 use pocketmine\inventory\transaction\action\InventoryAction;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\item\Item;
+use pocketmine\item\ItemLockMode;
+use pocketmine\player\InventoryWindow;
 use pocketmine\player\Player;
+use pocketmine\player\PlayerInventoryWindow;
 use pocketmine\utils\Utils;
+use function array_push;
 use function array_values;
 use function assert;
 use function count;
@@ -59,10 +63,10 @@ class InventoryTransaction{
 	protected bool $hasExecuted = false;
 
 	/**
-	 * @var Inventory[]
-	 * @phpstan-var array<int, Inventory>
+	 * @var InventoryWindow[]
+	 * @phpstan-var array<int, InventoryWindow>
 	 */
-	protected array $inventories = [];
+	protected array $inventoryWindows = [];
 
 	/**
 	 * @var InventoryAction[]
@@ -87,11 +91,11 @@ class InventoryTransaction{
 	}
 
 	/**
-	 * @return Inventory[]
-	 * @phpstan-return array<int, Inventory>
+	 * @return InventoryWindow[]
+	 * @phpstan-return array<int, InventoryWindow>
 	 */
-	public function getInventories() : array{
-		return $this->inventories;
+	public function getInventoryWindows() : array{
+		return $this->inventoryWindows;
 	}
 
 	/**
@@ -113,13 +117,46 @@ class InventoryTransaction{
 	public function addAction(InventoryAction $action) : void{
 		if(!isset($this->actions[$hash = spl_object_id($action)])){
 			$this->actions[$hash] = $action;
-			$action->onAddToTransaction($this);
-			if($action instanceof SlotChangeAction && !isset($this->inventories[$inventoryId = spl_object_id($action->getInventory())])){
-				$this->inventories[$inventoryId] = $action->getInventory();
+			if($action instanceof SlotChangeAction && !isset($this->inventoryWindows[$inventoryId = spl_object_id($action->getInventoryWindow())])){
+				$this->inventoryWindows[$inventoryId] = $action->getInventoryWindow();
 			}
 		}else{
 			throw new \InvalidArgumentException("Tried to add the same action to a transaction twice");
 		}
+	}
+
+	/**
+	 * @param Item[] $needItems
+	 * @param Item[] $haveItems
+	 * @phpstan-param list<Item> $needItems
+	 * @phpstan-param list<Item> $haveItems
+	 * @phpstan-param-out list<Item> $needItems
+	 * @phpstan-param-out list<Item> $haveItems
+	 *
+	 * @throws TransactionValidationException
+	 */
+	private function computeDiff(array &$needItems, array &$haveItems) : void{
+		//hmm, unsetting straight from the by-ref lists makes phpstan lose the list type, so work on copies
+		$need = $needItems;
+		$have = $haveItems;
+		foreach($need as $i => $needItem){
+			foreach($have as $j => $haveItem){
+				if($needItem->canStackWith($haveItem)){
+					$amount = min($needItem->getCount(), $haveItem->getCount());
+					$needItem->setCount($needItem->getCount() - $amount);
+					$haveItem->setCount($haveItem->getCount() - $amount);
+					if($haveItem->getCount() === 0){
+						unset($have[$j]);
+					}
+					if($needItem->getCount() === 0){
+						unset($need[$i]);
+						break;
+					}
+				}
+			}
+		}
+		$needItems = array_values($need);
+		$haveItems = array_values($have);
 	}
 
 	/**
@@ -133,10 +170,20 @@ class InventoryTransaction{
 	protected function matchItems(array &$needItems, array &$haveItems) : void{
 		$needItems = [];
 		$haveItems = [];
+
+		$boundLockedNeedItems = [];
+		$boundLockedHaveItems = [];
 		foreach($this->actions as $key => $action){
+			$checkBoundLockedItem = $action instanceof SlotChangeAction &&
+				($window = $action->getInventoryWindow()) instanceof PlayerInventoryWindow &&
+				($window->getType() === PlayerInventoryWindow::TYPE_INVENTORY || $window->getType() === PlayerInventoryWindow::TYPE_CURSOR);
 			$targetItem = $action->getTargetItem();
 			if(!$targetItem->isNull()){
-				$needItems[] = $targetItem;
+				if($checkBoundLockedItem && $targetItem->getLockMode() !== ItemLockMode::NONE){
+					$boundLockedNeedItems[] = $targetItem;
+				}else{
+					$needItems[] = $targetItem;
+				}
 			}
 
 			try{
@@ -147,28 +194,28 @@ class InventoryTransaction{
 
 			$sourceItem = $action->getSourceItem();
 			if(!$sourceItem->isNull()){
-				$haveItems[] = $sourceItem;
-			}
-		}
-
-		foreach($needItems as $i => $needItem){
-			foreach($haveItems as $j => $haveItem){
-				if($needItem->canStackWith($haveItem)){
-					$amount = min($needItem->getCount(), $haveItem->getCount());
-					$needItem->setCount($needItem->getCount() - $amount);
-					$haveItem->setCount($haveItem->getCount() - $amount);
-					if($haveItem->getCount() === 0){
-						unset($haveItems[$j]);
-					}
-					if($needItem->getCount() === 0){
-						unset($needItems[$i]);
-						break;
-					}
+				if($checkBoundLockedItem && $sourceItem->getLockMode() !== ItemLockMode::NONE){
+					$boundLockedHaveItems[] = $sourceItem;
+				}else{
+					$haveItems[] = $sourceItem;
 				}
 			}
 		}
-		$needItems = array_values($needItems);
-		$haveItems = array_values($haveItems);
+
+		$this->computeDiff($needItems, $haveItems);
+
+		if(count($boundLockedNeedItems) > 0 || count($boundLockedHaveItems) > 0){
+			//try to balance bound locked items with items already bound to the player's inventory
+			$this->computeDiff($boundLockedNeedItems, $boundLockedHaveItems);
+			if(count($boundLockedHaveItems) > 0){
+				throw new TransactionValidationException("Player tried to remove locked items from their inventory");
+			}
+
+			//check if there are unbound locked items the player moved into its inventory
+			//this allows moving locked items from e.g. a chest -> player's inventory, but not the other way round
+			$this->computeDiff($boundLockedNeedItems, $haveItems);
+			array_push($needItems, ...$boundLockedNeedItems);
+		}
 	}
 
 	/**
@@ -188,8 +235,8 @@ class InventoryTransaction{
 
 		foreach($this->actions as $key => $action){
 			if($action instanceof SlotChangeAction){
-				$slotChanges[$h = (spl_object_hash($action->getInventory()) . "@" . $action->getSlot())][] = $action;
-				$inventories[$h] = $action->getInventory();
+				$slotChanges[$h = (spl_object_hash($action->getInventoryWindow()) . "@" . $action->getSlot())][] = $action;
+				$inventories[$h] = $action->getInventoryWindow();
 				$slots[$h] = $action->getSlot();
 			}
 		}
@@ -199,10 +246,11 @@ class InventoryTransaction{
 				continue;
 			}
 
-			$inventory = $inventories[$hash];
+			$window = $inventories[$hash];
+			$inventory = $window->getInventory();
 			$slot = $slots[$hash];
 			if(!$inventory->slotExists($slot)){ //this can get hit for crafting tables because the validation happens after this compaction
-				throw new TransactionValidationException("Slot $slot does not exist in inventory " . get_class($inventory));
+				throw new TransactionValidationException("Slot $slot does not exist in inventory window " . get_class($window));
 			}
 			$sourceItem = $inventory->getItem($slot);
 
@@ -217,7 +265,7 @@ class InventoryTransaction{
 
 			if(!$targetItem->equalsExact($sourceItem)){
 				//sometimes we get actions on the crafting grid whose source and target items are the same, so dump them
-				$this->addAction(new SlotChangeAction($inventory, $slot, $sourceItem, $targetItem));
+				$this->addAction(new SlotChangeAction($window, $slot, $sourceItem, $targetItem));
 			}
 		}
 	}

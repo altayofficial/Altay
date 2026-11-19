@@ -4,7 +4,7 @@
    "type": "project",
    "license": "LGPL-3.0",
    "require": {
-      "php": "^8.1",
+      "php": "^8.3",
       "php-64bit": "*",
       "ext-chunkutils2": "^0.3.1",
       "ext-ctype": "*",
@@ -39,21 +39,21 @@
       "altayofficial/worldupgraderschemas": "~1.19.0+bedrock-1.26.60",
       "netresearch/jsonmapper": "~v5.0.0",
       "pocketmine/binaryutils": "^0.2.1",
-      "pocketmine/callback-validator": "~1.0.4",
+      "pocketmine/callback-validator": "dev-rewrite",
       "pocketmine/color": "^0.3.0",
       "pocketmine/errorhandler": "^0.7.0",
       "pocketmine/log": "^0.4.0",
-      "pocketmine/math": "~1.0.0",
+      "pocketmine/math": "dev-major-next as 1.0.0",
       "pocketmine/snooze": "^0.5.0",
       "ramsey/uuid": "~4.9.0",
       "react/http": "^1.11",
-      "symfony/filesystem": "~6.4.0"
+      "symfony/filesystem": "~7.4.0"
    },
    "require-dev": {
       "phpstan/phpstan": "2.1.46",
       "phpstan/phpstan-phpunit": "^2.0.0",
       "phpstan/phpstan-strict-rules": "^2.0.0",
-      "phpunit/phpunit": "^10.5.24"
+      "phpunit/phpunit": "^12.2.1"
    },
    "replace": {
       "symfony/polyfill-ctype": "*",
@@ -78,13 +78,12 @@
    },
    "config": {
       "platform": {
-         "php": "8.1.0"
+         "php": "8.3.0"
       },
       "sort-packages": true,
       "platform-check": true
    },
    "scripts": {
-      "make-devtools": "@php -dphar.readonly=0 tests/plugins/DevTools/src/ConsoleScript.php --make ./ --relative tests/plugins/DevTools --out plugins/DevTools.phar",
       "make-server": [
          "@composer install --no-dev --classmap-authoritative --ignore-platform-reqs",
          "@php -dphar.readonly=0 build/server-phar.php"

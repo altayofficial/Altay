@@ -180,11 +180,11 @@ final class HorizontalConnectionPaletteFixer{
 		int $x,
 		int $y,
 		int $z,
-		int $facing,
+		Facing $facing,
 		RuntimeBlockStateRegistry $registry,
 		?\Closure $neighbourChunks
 	) : Block{
-		[$dx, $dy, $dz] = Facing::OFFSET[$facing];
+		[$dx, $dy, $dz] = Facing::OFFSET[$facing->value];
 		$nx = $x + $dx;
 		$nz = $z + $dz;
 
@@ -215,7 +215,7 @@ final class HorizontalConnectionPaletteFixer{
 	 * @phpstan-param (\Closure(int, int) : ?array<int, SubChunk>)|null $neighbourChunks
 	 */
 	private static function stairShape(Stair $stair, array $subChunks, int $x, int $y, int $z, RuntimeBlockStateRegistry $registry, ?\Closure $neighbourChunks) : StairShape{
-		$clockwise = Facing::rotateY($stair->getFacing(), true);
+		$clockwise = Facing::rotateY($stair->getFacing()->toFacing(), true);
 		$backFacing = self::possibleCornerFacing($stair, $subChunks, $x, $y, $z, $registry, false, $neighbourChunks);
 		if(
 			$backFacing !== null &&
@@ -238,21 +238,21 @@ final class HorizontalConnectionPaletteFixer{
 	 * @phpstan-param array<int, SubChunk> $subChunks
 	 * @phpstan-param (\Closure(int, int) : ?array<int, SubChunk>)|null $neighbourChunks
 	 */
-	private static function possibleCornerFacing(Stair $stair, array $subChunks, int $x, int $y, int $z, RuntimeBlockStateRegistry $registry, bool $oppositeFacing, ?\Closure $neighbourChunks) : ?int{
+	private static function possibleCornerFacing(Stair $stair, array $subChunks, int $x, int $y, int $z, RuntimeBlockStateRegistry $registry, bool $oppositeFacing, ?\Closure $neighbourChunks) : ?Facing{
 		$side = self::neighbor(
 			$subChunks,
 			$x,
 			$y,
 			$z,
-			$oppositeFacing ? Facing::opposite($stair->getFacing()) : $stair->getFacing(),
+			$oppositeFacing ? Facing::opposite($stair->getFacing()->toFacing()) : $stair->getFacing()->toFacing(),
 			$registry,
 			$neighbourChunks
 		);
 		return (
 			$side instanceof Stair &&
 			$side->isUpsideDown() === $stair->isUpsideDown() &&
-			Facing::axis($side->getFacing()) !== Facing::axis($stair->getFacing())
-		) ? $side->getFacing() : null;
+			Facing::axis($side->getFacing()->toFacing()) !== Facing::axis($stair->getFacing()->toFacing())
+		) ? $side->getFacing()->toFacing() : null;
 	}
 
 	/**
@@ -260,12 +260,12 @@ final class HorizontalConnectionPaletteFixer{
 	 * @phpstan-param array<int, SubChunk> $subChunks
 	 * @phpstan-param (\Closure(int, int) : ?array<int, SubChunk>)|null $neighbourChunks
 	 */
-	private static function canTakeStairShape(Stair $stair, array $subChunks, int $x, int $y, int $z, RuntimeBlockStateRegistry $registry, int $facing, ?\Closure $neighbourChunks) : bool{
+	private static function canTakeStairShape(Stair $stair, array $subChunks, int $x, int $y, int $z, RuntimeBlockStateRegistry $registry, Facing $facing, ?\Closure $neighbourChunks) : bool{
 		$side = self::neighbor($subChunks, $x, $y, $z, $facing, $registry, $neighbourChunks);
 		return !($side instanceof Stair) || $side->getFacing() !== $stair->getFacing() || $side->isUpsideDown() !== $stair->isUpsideDown();
 	}
 
-	private static function canConnect(Block $block, int $facing, Block $side) : bool{
+	private static function canConnect(Block $block, Facing $facing, Block $side) : bool{
 		if($block instanceof Fence){
 			$class = $block::class;
 			return $side instanceof $class || $side instanceof FenceGate || $side->getSupportType(Facing::opposite($facing)) === SupportType::FULL;

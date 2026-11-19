@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\world\format\io\region;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use function sprintf;
 
@@ -42,9 +43,7 @@ class RegionLocationTableEntryTest extends TestCase{
 		yield [new RegionLocationTableEntry(2, 4, 0), new RegionLocationTableEntry(3, 1, 0), true];
 	}
 
-	/**
-	 * @dataProvider overlapDataProvider
-	 */
+	#[DataProvider("overlapDataProvider")]
 	public function testOverlap(RegionLocationTableEntry $entry1, RegionLocationTableEntry $entry2, bool $overlaps) : void{
 		$stringify = function(RegionLocationTableEntry $entry) : string{
 			return sprintf("entry first=%d last=%d size=%d", $entry->getFirstSector(), $entry->getLastSector(), $entry->getSectorCount());

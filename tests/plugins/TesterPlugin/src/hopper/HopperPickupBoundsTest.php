@@ -66,7 +66,7 @@ final class HopperPickupBoundsTest extends HopperTestBase{
 		// a floor around the hopper for the surrounding items to lie on, at the same height as the hopper itself.
 		$stone = VanillaBlocks::STONE();
 		foreach(Facing::HORIZONTAL as $facing){
-			$offset = Facing::OFFSET[$facing];
+			$offset = Facing::OFFSET[$facing->value];
 			foreach(self::DISTANCES as $distance){
 				$this->world->setBlock($this->areaPos(8 + $offset[0] * $distance, 1, 8 + $offset[2] * $distance), $stone, false);
 			}
@@ -75,7 +75,7 @@ final class HopperPickupBoundsTest extends HopperTestBase{
 		// the items rest on top of that floor, which reaches into the height range the hopper collects from - only
 		// their distance keeps them out of its reach.
 		foreach(Facing::HORIZONTAL as $facing){
-			$offset = Facing::OFFSET[$facing];
+			$offset = Facing::OFFSET[$facing->value];
 			foreach(self::DISTANCES as $distance){
 				$position = $this->areaPos(8 + $offset[0] * $distance, 2, 8 + $offset[2] * $distance);
 				$this->dropStack($position);

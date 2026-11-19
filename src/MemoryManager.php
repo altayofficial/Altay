@@ -126,13 +126,6 @@ class MemoryManager{
 	}
 
 	/**
-	 * @deprecated
-	 */
-	public function canUseChunkCache() : bool{
-		return !$this->lowMemory;
-	}
-
-	/**
 	 * Returns the allowed chunk radius based on the current memory usage.
 	 */
 	public function getViewDistance(int $distance) : int{
@@ -237,14 +230,5 @@ class MemoryManager{
 				$pool->submitTaskToWorker(new DumpWorkerMemoryTask($outputFolder, $maxNesting, $maxStringSize), $i);
 			}
 		}
-	}
-
-	/**
-	 * Static memory dumper accessible from any thread.
-	 * @deprecated
-	 * @see MemoryDump
-	 */
-	public static function dumpMemory(mixed $startingObject, string $outputFolder, int $maxNesting, int $maxStringSize, \Logger $logger) : void{
-		MemoryDump::dumpMemory($startingObject, $outputFolder, $maxNesting, $maxStringSize, $logger);
 	}
 }

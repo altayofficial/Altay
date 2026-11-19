@@ -27,7 +27,7 @@ namespace pocketmine\network\mcpe\convert;
 
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
-use pocketmine\block\tile\Container;
+use pocketmine\block\tile\ContainerTile;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\crafting\ComplexAliasRecipeIngredient;
 use pocketmine\crafting\ExactRecipeIngredient;
@@ -226,7 +226,7 @@ class TypeConverter{
 	 */
 	protected function stripContainedItemNonVisualNBT(CompoundTag $tag) : bool{
 		try{
-			$blockEntityInventoryTag = $tag->getListTag(Container::TAG_ITEMS, CompoundTag::class);
+			$blockEntityInventoryTag = $tag->getListTag(ContainerTile::TAG_ITEMS, CompoundTag::class);
 		}catch(UnexpectedTagTypeException){
 			return false;
 		}
@@ -244,7 +244,7 @@ class TypeConverter{
 					continue;
 				}
 			}
-			$tag->setTag(Container::TAG_ITEMS, $stripped);
+			$tag->setTag(ContainerTile::TAG_ITEMS, $stripped);
 			return true;
 		}
 		return false;

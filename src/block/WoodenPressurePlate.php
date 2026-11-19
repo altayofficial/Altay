@@ -37,7 +37,7 @@ class WoodenPressurePlate extends SimplePressurePlate implements WoodMaterial{
 		string $name,
 		BlockTypeInfo $typeInfo,
 		WoodType $woodType,
-		int $deactivationDelayTicks = 20 //TODO: make this mandatory in PM6
+		int $deactivationDelayTicks
 	){
 		$this->woodType = $woodType;
 		parent::__construct($idInfo, $name, $typeInfo, $deactivationDelayTicks);

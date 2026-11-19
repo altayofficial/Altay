@@ -231,12 +231,7 @@ abstract class BaseSign extends Transparent implements WoodMaterial{
 		return $this->position->add(0.5, 0.5, 0.5);
 	}
 
-	/**
-	 * TODO: make this abstract (BC break)
-	 */
-	protected function getFacingDegrees() : float{
-		return 0;
-	}
+	abstract protected function getFacingDegrees() : float;
 
 	/**
 	 * Returns an object containing information about the sign text.

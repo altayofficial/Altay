@@ -106,6 +106,7 @@ use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\permission\DefaultPermissions;
 use pocketmine\player\GameMode;
 use pocketmine\player\Player;
+use pocketmine\player\PlayerAbility;
 use pocketmine\player\PlayerInfo;
 use pocketmine\player\UsedChunkStatus;
 use pocketmine\player\XboxLivePlayerInfo;
@@ -1127,17 +1128,17 @@ class NetworkSession{
 			AbilitiesLayer::ABILITY_NO_CLIP => !$for->hasBlockCollision(),
 			AbilitiesLayer::ABILITY_OPERATOR => $isOp,
 			AbilitiesLayer::ABILITY_TELEPORT => $for->hasPermission(DefaultPermissionNames::COMMAND_TELEPORT_SELF),
-			AbilitiesLayer::ABILITY_INVULNERABLE => $for->isCreative(),
+			AbilitiesLayer::ABILITY_INVULNERABLE => $for->hasAbility(PlayerAbility::INVULNERABLE),
 			AbilitiesLayer::ABILITY_MUTED => false,
 			AbilitiesLayer::ABILITY_WORLD_BUILDER => false,
 			AbilitiesLayer::ABILITY_INFINITE_RESOURCES => !$for->hasFiniteResources(),
 			AbilitiesLayer::ABILITY_LIGHTNING => false,
-			AbilitiesLayer::ABILITY_BUILD => !$for->isSpectator(),
-			AbilitiesLayer::ABILITY_MINE => !$for->isSpectator(),
+			AbilitiesLayer::ABILITY_BUILD => $for->hasAbility(PlayerAbility::BUILD),
+			AbilitiesLayer::ABILITY_MINE => $for->hasAbility(PlayerAbility::MINE),
 			AbilitiesLayer::ABILITY_DOORS_AND_SWITCHES => !$for->isSpectator(),
 			AbilitiesLayer::ABILITY_OPEN_CONTAINERS => !$for->isSpectator(),
-			AbilitiesLayer::ABILITY_ATTACK_PLAYERS => !$for->isSpectator(),
-			AbilitiesLayer::ABILITY_ATTACK_MOBS => !$for->isSpectator(),
+			AbilitiesLayer::ABILITY_ATTACK_PLAYERS => $for->hasAbility(PlayerAbility::ATTACK_PLAYERS),
+			AbilitiesLayer::ABILITY_ATTACK_MOBS => $for->hasAbility(PlayerAbility::ATTACK_MOBS),
 			AbilitiesLayer::ABILITY_PRIVILEGED_BUILDER => false,
 		];
 

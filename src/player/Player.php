@@ -322,7 +322,11 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	private ?Position $deathPosition = null;
 
-	//TODO: Abilities
+	/**
+	 * @var bool[]
+	 * @phpstan-var array<int, bool>
+	 */
+	private array $abilityOverrides = [];
 	protected bool $autoJump = true;
 	protected bool $allowFlight = false;
 	protected bool $blockCollision = true;
@@ -503,6 +507,32 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	public function hasPlayedBefore() : bool{
 		return $this->lastPlayed - $this->firstPlayed > 1; // microtime(true) - microtime(true) may have less than one millisecond difference
+	}
+
+	/**
+	 * Returns whether the player currently has the given ability, taking any override from
+	 * {@link Player::setAbility()} into account.
+	 */
+	public function hasAbility(PlayerAbility $ability) : bool{
+		return $this->abilityOverrides[spl_object_id($ability)] ?? $this->gamemode->hasAbility($ability);
+	}
+
+	/**
+	 * Overrides the given ability for this player. Pass null to go back to the game mode's default.
+	 *
+	 * Overrides are cleared when the player's game mode changes, same as {@link Player::setAllowFlight()}. If you want
+	 * one to stick, set it again from PlayerGameModeChangeEvent.
+	 */
+	public function setAbility(PlayerAbility $ability, ?bool $value) : void{
+		$old = $this->hasAbility($ability);
+		if($value === null){
+			unset($this->abilityOverrides[spl_object_id($ability)]);
+		}else{
+			$this->abilityOverrides[spl_object_id($ability)] = $value;
+		}
+		if($old !== $this->hasAbility($ability)){
+			$this->getNetworkSession()->syncAbilities($this);
+		}
 	}
 
 	/**
@@ -1447,6 +1477,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	protected function internalSetGameMode(GameMode $gameMode) : void{
 		$this->gamemode = $gameMode;
+		$this->abilityOverrides = [];
 
 		$this->allowFlight = $this->gamemode === GameMode::CREATIVE;
 		$this->hungerManager->setEnabled($this->isSurvival());
@@ -1543,10 +1574,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	/**
-	 * TODO: make this a dynamic ability instead of being hardcoded
+	 * Shorthand for checking {@link PlayerAbility::INFINITE_RESOURCES}.
 	 */
 	public function hasFiniteResources() : bool{
-		return $this->gamemode !== GameMode::CREATIVE;
+		return !$this->hasAbility(PlayerAbility::INFINITE_RESOURCES);
 	}
 
 	public function getDrops() : array{
@@ -2292,7 +2323,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if(!$this->canInteract($entity->getLocation(), self::MAX_REACH_DISTANCE_ENTITY_INTERACTION)){
 			$this->logger->debug("Cancelled attack of entity " . $entity->getId() . " due to not currently being interactable");
 			$ev->cancel();
-		}elseif($this->isSpectator() || ($entity instanceof Player && !$this->server->getConfigGroup()->getConfigBool(ServerProperties::PVP))){
+		}elseif(
+			!$this->hasAbility($entity instanceof Player ? PlayerAbility::ATTACK_PLAYERS : PlayerAbility::ATTACK_MOBS) ||
+			($entity instanceof Player && !$this->server->getConfigGroup()->getConfigBool(ServerProperties::PVP))
+		){
 			$ev->cancel();
 		}
 
@@ -3024,7 +3058,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			return;
 		}
 
-		if($this->isCreative()
+		if($this->hasAbility(PlayerAbility::INVULNERABLE)
 			&& $source->getCause() !== EntityDamageEvent::CAUSE_SUICIDE
 		){
 			$source->cancel();

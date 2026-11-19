@@ -504,11 +504,11 @@ class World implements ChunkManager{
 	 */
 	public function __construct(
 		private Server $server,
-		string $name, //TODO: this should be folderName (named arguments BC break)
+		string $folderName,
 		private WritableWorldProvider $provider,
 		private AsyncPool $workerPool
 	){
-		$this->folderName = $name;
+		$this->folderName = $folderName;
 		$this->worldId = self::$worldIdCounter++;
 
 		$this->displayName = $this->provider->getWorldData()->getName();

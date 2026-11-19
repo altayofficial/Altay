@@ -89,6 +89,12 @@ class RuntimeBlockStateRegistry{
 	 */
 	public array $collisionInfo = [];
 
+	/**
+	 * @var bool[]
+	 * @phpstan-var array<class-string<Block>, bool>
+	 */
+	private static array $collisionMayOverflowByClass = [];
+
 	public function __construct(){
 		foreach(VanillaBlocks::getAll() as $block){
 			$this->register($block);
@@ -136,10 +142,11 @@ class RuntimeBlockStateRegistry{
 	 * major version. For now, this hack nets major performance wins.
 	 */
 	private static function calculateCollisionInfo(Block $block) : int{
-		if(
+		//this only depends on the class, no point asking again for every state
+		if(self::$collisionMayOverflowByClass[$block::class] ??= (
 			self::overridesBlockMethod($block->getModelPositionOffset(...)) ||
 			self::overridesBlockMethod($block->readStateFromWorld(...))
-		){
+		)){
 			//getModelPositionOffset() might cause AABBs to shift outside the cell
 			//readStateFromWorld() might cause overflow in ways we can't predict just by looking at known states
 			//TODO: excluding overriders of readStateFromWorld() also excludes blocks with tiles that don't do anything

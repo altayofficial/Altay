@@ -1616,7 +1616,7 @@ class Server {
 	/**
 	 * @param Player[]|null $recipients
 	 */
-	public function broadcastTip(string $tip, ?array $recipients = null) : int{
+	public function broadcastTip(Translatable|string $tip, ?array $recipients = null) : int{
 		$recipients = $recipients ?? $this->getPlayerBroadcastSubscribers(self::BROADCAST_CHANNEL_USERS);
 
 		foreach($recipients as $recipient){
@@ -1629,7 +1629,7 @@ class Server {
 	/**
 	 * @param Player[]|null $recipients
 	 */
-	public function broadcastPopup(string $popup, ?array $recipients = null) : int{
+	public function broadcastPopup(Translatable|string $popup, ?array $recipients = null) : int{
 		$recipients = $recipients ?? $this->getPlayerBroadcastSubscribers(self::BROADCAST_CHANNEL_USERS);
 
 		foreach($recipients as $recipient){
@@ -1645,7 +1645,7 @@ class Server {
 	 * @param int           $fadeOut    Duration in ticks for fade-out.
 	 * @param Player[]|null $recipients
 	 */
-	public function broadcastTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1, ?array $recipients = null) : int{
+	public function broadcastTitle(Translatable|string $title, Translatable|string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1, ?array $recipients = null) : int{
 		$recipients = $recipients ?? $this->getPlayerBroadcastSubscribers(self::BROADCAST_CHANNEL_USERS);
 
 		foreach($recipients as $recipient){

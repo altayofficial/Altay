@@ -2574,7 +2574,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * @param int $stay    Duration in ticks to stay on screen for
 	 * @param int $fadeOut Duration in ticks for fade-out.
 	 */
-	public function sendTitle(string $title, string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1) : void{
+	public function sendTitle(Translatable|string $title, Translatable|string $subtitle = "", int $fadeIn = -1, int $stay = -1, int $fadeOut = -1) : void{
 		$this->setTitleDuration($fadeIn, $stay, $fadeOut);
 		if($subtitle !== ""){
 			$this->sendSubTitle($subtitle);
@@ -2585,14 +2585,14 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	/**
 	 * Sets the subtitle message, without sending a title.
 	 */
-	public function sendSubTitle(string $subtitle) : void{
+	public function sendSubTitle(Translatable|string $subtitle) : void{
 		$this->getNetworkSession()->onSubTitle($subtitle);
 	}
 
 	/**
 	 * Adds small text to the user's screen.
 	 */
-	public function sendActionBarMessage(string $message) : void{
+	public function sendActionBarMessage(Translatable|string $message) : void{
 		$this->getNetworkSession()->onActionBar($message);
 	}
 
@@ -2636,21 +2636,19 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	/**
 	 * Sends a popup message to the player
-	 *
-	 * TODO: add translation type popups
 	 */
-	public function sendPopup(string $message) : void{
+	public function sendPopup(Translatable|string $message) : void{
 		$this->getNetworkSession()->onPopup($message);
 	}
 
-	public function sendTip(string $message) : void{
+	public function sendTip(Translatable|string $message) : void{
 		$this->getNetworkSession()->onTip($message);
 	}
 
 	/**
 	 * Sends a toast message to the player, or queue to send it if a toast message is already shown.
 	 */
-	public function sendToastNotification(string $title, string $body) : void{
+	public function sendToastNotification(Translatable|string $title, Translatable|string $body) : void{
 		$this->getNetworkSession()->onToastNotification($title, $body);
 	}
 

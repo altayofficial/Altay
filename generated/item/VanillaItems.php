@@ -142,6 +142,7 @@ final class VanillaItems{
 	private static Armor $_mCOPPER_CHESTPLATE;
 	private static Armor $_mCOPPER_HELMET;
 	private static Hoe $_mCOPPER_HOE;
+	private static HorseArmor $_mCOPPER_HORSE_ARMOR;
 	private static Item $_mCOPPER_INGOT;
 	private static Armor $_mCOPPER_LEGGINGS;
 	private static Item $_mCOPPER_NUGGET;
@@ -164,6 +165,7 @@ final class VanillaItems{
 	private static Armor $_mDIAMOND_CHESTPLATE;
 	private static Armor $_mDIAMOND_HELMET;
 	private static Hoe $_mDIAMOND_HOE;
+	private static HorseArmor $_mDIAMOND_HORSE_ARMOR;
 	private static Armor $_mDIAMOND_LEGGINGS;
 	private static Pickaxe $_mDIAMOND_PICKAXE;
 	private static Shovel $_mDIAMOND_SHOVEL;
@@ -211,6 +213,7 @@ final class VanillaItems{
 	private static Armor $_mGOLDEN_CHESTPLATE;
 	private static Armor $_mGOLDEN_HELMET;
 	private static Hoe $_mGOLDEN_HOE;
+	private static HorseArmor $_mGOLDEN_HORSE_ARMOR;
 	private static Armor $_mGOLDEN_LEGGINGS;
 	private static Pickaxe $_mGOLDEN_PICKAXE;
 	private static Shovel $_mGOLDEN_SHOVEL;
@@ -232,6 +235,7 @@ final class VanillaItems{
 	private static Armor $_mIRON_CHESTPLATE;
 	private static Armor $_mIRON_HELMET;
 	private static Hoe $_mIRON_HOE;
+	private static HorseArmor $_mIRON_HORSE_ARMOR;
 	private static Item $_mIRON_INGOT;
 	private static Armor $_mIRON_LEGGINGS;
 	private static Item $_mIRON_NUGGET;
@@ -247,6 +251,7 @@ final class VanillaItems{
 	private static Item $_mLEATHER;
 	private static Armor $_mLEATHER_BOOTS;
 	private static Armor $_mLEATHER_CAP;
+	private static LeatherHorseArmor $_mLEATHER_HORSE_ARMOR;
 	private static Armor $_mLEATHER_PANTS;
 	private static Armor $_mLEATHER_TUNIC;
 	private static SplashPotion $_mLINGERING_POTION;
@@ -269,6 +274,7 @@ final class VanillaItems{
 	private static Armor $_mNETHERITE_CHESTPLATE;
 	private static Armor $_mNETHERITE_HELMET;
 	private static Hoe $_mNETHERITE_HOE;
+	private static HorseArmor $_mNETHERITE_HORSE_ARMOR;
 	private static Item $_mNETHERITE_INGOT;
 	private static Armor $_mNETHERITE_LEGGINGS;
 	private static Pickaxe $_mNETHERITE_PICKAXE;
@@ -540,6 +546,7 @@ final class VanillaItems{
 			"copper_chestplate" => fn(Armor $v) => self::$_mCOPPER_CHESTPLATE = $v,
 			"copper_helmet" => fn(Armor $v) => self::$_mCOPPER_HELMET = $v,
 			"copper_hoe" => fn(Hoe $v) => self::$_mCOPPER_HOE = $v,
+			"copper_horse_armor" => fn(HorseArmor $v) => self::$_mCOPPER_HORSE_ARMOR = $v,
 			"copper_ingot" => fn(Item $v) => self::$_mCOPPER_INGOT = $v,
 			"copper_leggings" => fn(Armor $v) => self::$_mCOPPER_LEGGINGS = $v,
 			"copper_nugget" => fn(Item $v) => self::$_mCOPPER_NUGGET = $v,
@@ -562,6 +569,7 @@ final class VanillaItems{
 			"diamond_chestplate" => fn(Armor $v) => self::$_mDIAMOND_CHESTPLATE = $v,
 			"diamond_helmet" => fn(Armor $v) => self::$_mDIAMOND_HELMET = $v,
 			"diamond_hoe" => fn(Hoe $v) => self::$_mDIAMOND_HOE = $v,
+			"diamond_horse_armor" => fn(HorseArmor $v) => self::$_mDIAMOND_HORSE_ARMOR = $v,
 			"diamond_leggings" => fn(Armor $v) => self::$_mDIAMOND_LEGGINGS = $v,
 			"diamond_pickaxe" => fn(Pickaxe $v) => self::$_mDIAMOND_PICKAXE = $v,
 			"diamond_shovel" => fn(Shovel $v) => self::$_mDIAMOND_SHOVEL = $v,
@@ -609,6 +617,7 @@ final class VanillaItems{
 			"golden_chestplate" => fn(Armor $v) => self::$_mGOLDEN_CHESTPLATE = $v,
 			"golden_helmet" => fn(Armor $v) => self::$_mGOLDEN_HELMET = $v,
 			"golden_hoe" => fn(Hoe $v) => self::$_mGOLDEN_HOE = $v,
+			"golden_horse_armor" => fn(HorseArmor $v) => self::$_mGOLDEN_HORSE_ARMOR = $v,
 			"golden_leggings" => fn(Armor $v) => self::$_mGOLDEN_LEGGINGS = $v,
 			"golden_pickaxe" => fn(Pickaxe $v) => self::$_mGOLDEN_PICKAXE = $v,
 			"golden_shovel" => fn(Shovel $v) => self::$_mGOLDEN_SHOVEL = $v,
@@ -630,6 +639,7 @@ final class VanillaItems{
 			"iron_chestplate" => fn(Armor $v) => self::$_mIRON_CHESTPLATE = $v,
 			"iron_helmet" => fn(Armor $v) => self::$_mIRON_HELMET = $v,
 			"iron_hoe" => fn(Hoe $v) => self::$_mIRON_HOE = $v,
+			"iron_horse_armor" => fn(HorseArmor $v) => self::$_mIRON_HORSE_ARMOR = $v,
 			"iron_ingot" => fn(Item $v) => self::$_mIRON_INGOT = $v,
 			"iron_leggings" => fn(Armor $v) => self::$_mIRON_LEGGINGS = $v,
 			"iron_nugget" => fn(Item $v) => self::$_mIRON_NUGGET = $v,
@@ -645,6 +655,7 @@ final class VanillaItems{
 			"leather" => fn(Item $v) => self::$_mLEATHER = $v,
 			"leather_boots" => fn(Armor $v) => self::$_mLEATHER_BOOTS = $v,
 			"leather_cap" => fn(Armor $v) => self::$_mLEATHER_CAP = $v,
+			"leather_horse_armor" => fn(LeatherHorseArmor $v) => self::$_mLEATHER_HORSE_ARMOR = $v,
 			"leather_pants" => fn(Armor $v) => self::$_mLEATHER_PANTS = $v,
 			"leather_tunic" => fn(Armor $v) => self::$_mLEATHER_TUNIC = $v,
 			"lingering_potion" => fn(SplashPotion $v) => self::$_mLINGERING_POTION = $v,
@@ -667,6 +678,7 @@ final class VanillaItems{
 			"netherite_chestplate" => fn(Armor $v) => self::$_mNETHERITE_CHESTPLATE = $v,
 			"netherite_helmet" => fn(Armor $v) => self::$_mNETHERITE_HELMET = $v,
 			"netherite_hoe" => fn(Hoe $v) => self::$_mNETHERITE_HOE = $v,
+			"netherite_horse_armor" => fn(HorseArmor $v) => self::$_mNETHERITE_HORSE_ARMOR = $v,
 			"netherite_ingot" => fn(Item $v) => self::$_mNETHERITE_INGOT = $v,
 			"netherite_leggings" => fn(Armor $v) => self::$_mNETHERITE_LEGGINGS = $v,
 			"netherite_pickaxe" => fn(Pickaxe $v) => self::$_mNETHERITE_PICKAXE = $v,
@@ -1350,6 +1362,11 @@ final class VanillaItems{
 		return clone self::$_mCOPPER_HOE;
 	}
 
+	public static function COPPER_HORSE_ARMOR() : HorseArmor{
+		if(!isset(self::$_mCOPPER_HORSE_ARMOR)){ self::init(); }
+		return clone self::$_mCOPPER_HORSE_ARMOR;
+	}
+
 	public static function COPPER_INGOT() : Item{
 		if(!isset(self::$_mCOPPER_INGOT)){ self::init(); }
 		return clone self::$_mCOPPER_INGOT;
@@ -1458,6 +1475,11 @@ final class VanillaItems{
 	public static function DIAMOND_HOE() : Hoe{
 		if(!isset(self::$_mDIAMOND_HOE)){ self::init(); }
 		return clone self::$_mDIAMOND_HOE;
+	}
+
+	public static function DIAMOND_HORSE_ARMOR() : HorseArmor{
+		if(!isset(self::$_mDIAMOND_HORSE_ARMOR)){ self::init(); }
+		return clone self::$_mDIAMOND_HORSE_ARMOR;
 	}
 
 	public static function DIAMOND_LEGGINGS() : Armor{
@@ -1695,6 +1717,11 @@ final class VanillaItems{
 		return clone self::$_mGOLDEN_HOE;
 	}
 
+	public static function GOLDEN_HORSE_ARMOR() : HorseArmor{
+		if(!isset(self::$_mGOLDEN_HORSE_ARMOR)){ self::init(); }
+		return clone self::$_mGOLDEN_HORSE_ARMOR;
+	}
+
 	public static function GOLDEN_LEGGINGS() : Armor{
 		if(!isset(self::$_mGOLDEN_LEGGINGS)){ self::init(); }
 		return clone self::$_mGOLDEN_LEGGINGS;
@@ -1800,6 +1827,11 @@ final class VanillaItems{
 		return clone self::$_mIRON_HOE;
 	}
 
+	public static function IRON_HORSE_ARMOR() : HorseArmor{
+		if(!isset(self::$_mIRON_HORSE_ARMOR)){ self::init(); }
+		return clone self::$_mIRON_HORSE_ARMOR;
+	}
+
 	public static function IRON_INGOT() : Item{
 		if(!isset(self::$_mIRON_INGOT)){ self::init(); }
 		return clone self::$_mIRON_INGOT;
@@ -1873,6 +1905,11 @@ final class VanillaItems{
 	public static function LEATHER_CAP() : Armor{
 		if(!isset(self::$_mLEATHER_CAP)){ self::init(); }
 		return clone self::$_mLEATHER_CAP;
+	}
+
+	public static function LEATHER_HORSE_ARMOR() : LeatherHorseArmor{
+		if(!isset(self::$_mLEATHER_HORSE_ARMOR)){ self::init(); }
+		return clone self::$_mLEATHER_HORSE_ARMOR;
 	}
 
 	public static function LEATHER_PANTS() : Armor{
@@ -1983,6 +2020,11 @@ final class VanillaItems{
 	public static function NETHERITE_HOE() : Hoe{
 		if(!isset(self::$_mNETHERITE_HOE)){ self::init(); }
 		return clone self::$_mNETHERITE_HOE;
+	}
+
+	public static function NETHERITE_HORSE_ARMOR() : HorseArmor{
+		if(!isset(self::$_mNETHERITE_HORSE_ARMOR)){ self::init(); }
+		return clone self::$_mNETHERITE_HORSE_ARMOR;
 	}
 
 	public static function NETHERITE_INGOT() : Item{

@@ -243,6 +243,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::COPPER_CHESTPLATE, Items::COPPER_CHESTPLATE());
 		$this->map1to1Item(Ids::COPPER_HELMET, Items::COPPER_HELMET());
 		$this->map1to1Item(Ids::COPPER_HOE, Items::COPPER_HOE());
+		$this->map1to1Item(Ids::COPPER_HORSE_ARMOR, Items::COPPER_HORSE_ARMOR());
 		$this->map1to1Item(Ids::COPPER_INGOT, Items::COPPER_INGOT());
 		$this->map1to1Item(Ids::COPPER_LEGGINGS, Items::COPPER_LEGGINGS());
 		$this->map1to1Item(Ids::COPPER_NUGGET, Items::COPPER_NUGGET());
@@ -259,6 +260,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::DARK_OAK_HANGING_SIGN, Items::DARK_OAK_HANGING_SIGN());
 		$this->map1to1Item(Ids::DARK_OAK_SIGN, Items::DARK_OAK_SIGN());
 		$this->map1to1Item(Ids::DIAMOND, Items::DIAMOND());
+		$this->map1to1Item(Ids::DIAMOND_HORSE_ARMOR, Items::DIAMOND_HORSE_ARMOR());
 		$this->map1to1Item(Ids::DIAMOND_AXE, Items::DIAMOND_AXE());
 		$this->map1to1Item(Ids::DIAMOND_BOOTS, Items::DIAMOND_BOOTS());
 		$this->map1to1Item(Ids::DIAMOND_CHESTPLATE, Items::DIAMOND_CHESTPLATE());
@@ -304,6 +306,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::GOLD_INGOT, Items::GOLD_INGOT());
 		$this->map1to1Item(Ids::GOLD_NUGGET, Items::GOLD_NUGGET());
 		$this->map1to1Item(Ids::GOLDEN_APPLE, Items::GOLDEN_APPLE());
+		$this->map1to1Item(Ids::GOLDEN_HORSE_ARMOR, Items::GOLDEN_HORSE_ARMOR());
 		$this->map1to1Item(Ids::GOLDEN_AXE, Items::GOLDEN_AXE());
 		$this->map1to1Item(Ids::GOLDEN_BOOTS, Items::GOLDEN_BOOTS());
 		$this->map1to1Item(Ids::GOLDEN_CARROT, Items::GOLDEN_CARROT());
@@ -328,6 +331,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::IRON_CHESTPLATE, Items::IRON_CHESTPLATE());
 		$this->map1to1Item(Ids::IRON_HELMET, Items::IRON_HELMET());
 		$this->map1to1Item(Ids::IRON_HOE, Items::IRON_HOE());
+		$this->map1to1Item(Ids::IRON_HORSE_ARMOR, Items::IRON_HORSE_ARMOR());
 		$this->map1to1Item(Ids::IRON_INGOT, Items::IRON_INGOT());
 		$this->map1to1Item(Ids::IRON_LEGGINGS, Items::IRON_LEGGINGS());
 		$this->map1to1Item(Ids::IRON_NUGGET, Items::IRON_NUGGET());
@@ -341,6 +345,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::LAPIS_LAZULI, Items::LAPIS_LAZULI());
 		$this->map1to1Item(Ids::LAVA_BUCKET, Items::LAVA_BUCKET());
 		$this->map1to1Item(Ids::LEATHER, Items::LEATHER());
+		$this->map1to1Item(Ids::LEATHER_HORSE_ARMOR, Items::LEATHER_HORSE_ARMOR());
 		$this->map1to1Item(Ids::LEATHER_BOOTS, Items::LEATHER_BOOTS());
 		$this->map1to1Item(Ids::LEATHER_CHESTPLATE, Items::LEATHER_TUNIC());
 		$this->map1to1Item(Ids::LEATHER_HELMET, Items::LEATHER_CAP());
@@ -388,6 +393,7 @@ final class ItemSerializerDeserializerRegistrar{
 		$this->map1to1Item(Ids::NETHERITE_CHESTPLATE, Items::NETHERITE_CHESTPLATE());
 		$this->map1to1Item(Ids::NETHERITE_HELMET, Items::NETHERITE_HELMET());
 		$this->map1to1Item(Ids::NETHERITE_HOE, Items::NETHERITE_HOE());
+		$this->map1to1Item(Ids::NETHERITE_HORSE_ARMOR, Items::NETHERITE_HORSE_ARMOR());
 		$this->map1to1Item(Ids::NETHERITE_INGOT, Items::NETHERITE_INGOT());
 		$this->map1to1Item(Ids::NETHERITE_LEGGINGS, Items::NETHERITE_LEGGINGS());
 		$this->map1to1Item(Ids::NETHERITE_PICKAXE, Items::NETHERITE_PICKAXE());

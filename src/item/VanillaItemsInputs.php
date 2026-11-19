@@ -197,6 +197,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("cooked_rabbit", fn(IID $id) => new CookedRabbit($id, "Cooked Rabbit"));
 		self::register("cooked_salmon", fn(IID $id) => new CookedSalmon($id, "Cooked Salmon"));
 		self::register("cookie", fn(IID $id) => new Cookie($id, "Cookie"));
+		self::register("copper_horse_armor", fn(IID $id) => new HorseArmor($id, "Copper Horse Armor"));
 		self::register("copper_ingot", fn(IID $id) => new Item($id, "Copper Ingot"));
 		self::register("copper_nugget", fn(IID $id) => new Item($id, "Copper Nugget"));
 		self::registerDelayed("coral_fan", fn(string $name) : CoralFan => new CoralFan(self::makeIID($name))); //uses VanillaBlocks in constructor :(
@@ -206,6 +207,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::registerDelayed("dark_oak_sign", fn(string $name) : ItemBlockWallOrFloor => new ItemBlockWallOrFloor(self::makeIID($name), Blocks::DARK_OAK_SIGN(), Blocks::DARK_OAK_WALL_SIGN()));
 		self::registerDelayed("dark_oak_hanging_sign", fn(string $name) : HangingSign => new HangingSign(self::makeIID($name), "Dark Oak Hanging Sign", Blocks::DARK_OAK_CEILING_CENTER_HANGING_SIGN(), Blocks::DARK_OAK_CEILING_EDGES_HANGING_SIGN(), Blocks::DARK_OAK_WALL_HANGING_SIGN()));
 		self::register("diamond", fn(IID $id) => new Item($id, "Diamond"));
+		self::register("diamond_horse_armor", fn(IID $id) => new HorseArmor($id, "Diamond Horse Armor"));
 		self::register("disc_fragment_5", fn(IID $id) => new Item($id, "Disc Fragment (5)"));
 		self::register("dragon_breath", fn(IID $id) => new Item($id, "Dragon's Breath"));
 		self::register("dried_kelp", fn(IID $id) => new DriedKelp($id, "Dried Kelp"));
@@ -237,6 +239,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("gold_ingot", fn(IID $id) => new Item($id, "Gold Ingot"));
 		self::register("gold_nugget", fn(IID $id) => new Item($id, "Gold Nugget"));
 		self::register("golden_apple", fn(IID $id) => new GoldenApple($id, "Golden Apple"));
+		self::register("golden_horse_armor", fn(IID $id) => new HorseArmor($id, "Golden Horse Armor"));
 		self::register("golden_carrot", fn(IID $id) => new GoldenCarrot($id, "Golden Carrot"));
 		self::register("gunpowder", fn(IID $id) => new Item($id, "Gunpowder"));
 		self::register("heart_of_the_sea", fn(IID $id) => new Item($id, "Heart of the Sea"));
@@ -244,6 +247,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("honeycomb", fn(IID $id) => new Item($id, "Honeycomb"));
 		self::register("ice_bomb", fn(IID $id) => new IceBomb($id, "Ice Bomb"));
 		self::register("ink_sac", fn(IID $id) => new Item($id, "Ink Sac"));
+		self::register("iron_horse_armor", fn(IID $id) => new HorseArmor($id, "Iron Horse Armor"));
 		self::register("iron_ingot", fn(IID $id) => new Item($id, "Iron Ingot"));
 		self::register("iron_nugget", fn(IID $id) => new Item($id, "Iron Nugget"));
 		self::registerDelayed("jungle_sign", fn(string $name) : ItemBlockWallOrFloor => new ItemBlockWallOrFloor(self::makeIID($name), Blocks::JUNGLE_SIGN(), Blocks::JUNGLE_WALL_SIGN()));
@@ -251,6 +255,7 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("lapis_lazuli", fn(IID $id) => new Item($id, "Lapis Lazuli"));
 		self::registerDelayed("lava_bucket", fn(string $name) : LiquidBucket => new LiquidBucket(self::makeIID($name), "Lava Bucket", Blocks::LAVA()));
 		self::register("leather", fn(IID $id) => new Item($id, "Leather"));
+		self::register("leather_horse_armor", fn(IID $id) => new LeatherHorseArmor($id, "Leather Horse Armor"));
 		self::register("lingering_potion", fn(IID $id) => new SplashPotion($id, "Lingering Potion", linger: true));
 		self::register("mace", fn(IID $id) => new Mace($id, "Mace", [EnchantmentTags::MACE]));
 		self::register("magma_cream", fn(IID $id) => new Item($id, "Magma Cream"));
@@ -267,6 +272,9 @@ final class VanillaItemsInputs extends RegistrySource{
 		self::register("nether_brick", fn(IID $id) => new Item($id, "Nether Brick"));
 		self::register("nether_quartz", fn(IID $id) => new Item($id, "Nether Quartz"));
 		self::register("nether_star", fn(IID $id) => new Item($id, "Nether Star"));
+		self::register("netherite_horse_armor", fn(IID $id) => new class($id, "Netherite Horse Armor") extends HorseArmor{
+			public function isFireProof() : bool{ return true; }
+		});
 		self::register("netherite_ingot", fn(IID $id) => new class($id, "Netherite Ingot") extends Item{
 			public function isFireProof() : bool{ return true; }
 		});

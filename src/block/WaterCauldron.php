@@ -139,6 +139,7 @@ final class WaterCauldron extends FillableCauldron{
 					ItemTypeIds::LEATHER_TUNIC,
 					ItemTypeIds::LEATHER_PANTS,
 					ItemTypeIds::LEATHER_BOOTS,
+					ItemTypeIds::LEATHER_HORSE_ARMOR,
 					ItemTypeIds::WOLF_ARMOR => true,
 					default => false
 				} && $item->getCustomColor()?->toRGBA() !== $this->customWaterColor->toRGBA()){

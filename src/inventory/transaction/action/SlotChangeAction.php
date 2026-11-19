@@ -28,8 +28,10 @@ namespace pocketmine\inventory\transaction\action;
 use pocketmine\inventory\SlotValidatedInventory;
 use pocketmine\inventory\transaction\TransactionValidationException;
 use pocketmine\item\Item;
+use pocketmine\item\ItemLockMode;
 use pocketmine\player\InventoryWindow;
 use pocketmine\player\Player;
+use pocketmine\player\PlayerInventoryWindow;
 
 /**
  * Represents an action causing a change in an inventory slot.
@@ -76,6 +78,13 @@ class SlotChangeAction extends InventoryAction{
 		}
 		if($this->targetItem->getCount() > $inventory->getMaxStackSize()){
 			throw new TransactionValidationException("Target item exceeds inventory max stack size");
+		}
+		if(
+			$this->sourceItem->getLockMode() === ItemLockMode::PLAYER_INVENTORY_SLOT &&
+			$this->inventoryWindow instanceof PlayerInventoryWindow &&
+			$this->inventoryWindow->getType() === PlayerInventoryWindow::TYPE_INVENTORY
+		){
+			throw new TransactionValidationException("Source item is locked in slot");
 		}
 		if($inventory instanceof SlotValidatedInventory && !$this->targetItem->isNull()){
 			foreach($inventory->getSlotValidators() as $validator){

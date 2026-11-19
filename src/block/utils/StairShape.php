@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\block\utils;
 
-
 enum StairShape{
 	case STRAIGHT;
 	case INNER_LEFT;

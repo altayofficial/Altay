@@ -35,13 +35,13 @@ class HeavyCore extends Transparent{
 	protected function recalculateCollisionBoxes() : array{
 		return [
 			AxisAlignedBB::one()
-				->trim(Facing::UP, 8 / 16)
-				->squash(Axis::X, 4 / 16)
-				->squash(Axis::Z, 4 / 16)
+				->trimmedCopy(Facing::UP, 8 / 16)
+				->squashedCopy(Axis::X, 4 / 16)
+				->squashedCopy(Axis::Z, 4 / 16)
 		];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 }

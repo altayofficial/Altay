@@ -25,9 +25,9 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\inventory\CampfireInventory;
 use pocketmine\block\tile\Campfire as TileCampfire;
 use pocketmine\block\utils\HorizontalFacing;
+use pocketmine\block\utils\HorizontalFacingOption;
 use pocketmine\block\utils\HorizontalFacingTrait;
 use pocketmine\block\utils\Lightable;
 use pocketmine\block\utils\LightableTrait;
@@ -42,6 +42,7 @@ use pocketmine\entity\projectile\SplashPotion;
 use pocketmine\event\block\CampfireCookEvent;
 use pocketmine\event\entity\EntityDamageByBlockEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\inventory\Inventory;
 use pocketmine\item\Durable;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\item\Item;
@@ -74,7 +75,7 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 	private const UPDATE_INTERVAL_TICKS = 10;
 
 	//not initialized until the block has been set in the world
-	private CampfireInventory $inventory;
+	private ?Inventory $inventory = null;
 
 	/**
 	 * @var int[] slot => ticks
@@ -94,7 +95,8 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 			$this->inventory = $tile->getInventory();
 			$this->cookingTimes = $tile->getCookingTimes();
 		}else{
-			$this->inventory = new CampfireInventory($this->position);
+			$this->inventory = null;
+			$this->cookingTimes = [];
 		}
 
 		return $this;
@@ -126,12 +128,12 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 		];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 
 	protected function recalculateCollisionBoxes() : array{
-		return [AxisAlignedBB::one()->trim(Facing::UP, 9 / 16)];
+		return [AxisAlignedBB::one()->trimmedCopy(Facing::UP, 9 / 16)];
 	}
 
 	protected function getFurnaceType() : FurnaceType{
@@ -162,18 +164,18 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 		return $this->cookingTimes[$slot] ?? 0;
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($this->getSide(Facing::DOWN) instanceof Campfire){
 			return false;
 		}
 		if($player !== null){
-			$this->facing = $player->getHorizontalFacing();
+			$this->facing = HorizontalFacingOption::fromFacing($player->getHorizontalFacing());
 		}
 		$this->lit = true;
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if(!$this->lit){
 			if($item->getTypeId() === ItemTypeIds::FIRE_CHARGE){
 				$item->pop();
@@ -193,10 +195,11 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 			return true;
 		}
 
-		if($this->position->getWorld()->getServer()->getCraftingManager()->getFurnaceRecipeManager($this->getFurnaceType())->match($item) !== null){
+		$inventory = $this->inventory;
+		if($inventory !== null && $this->position->getWorld()->getServer()->getCraftingManager()->getFurnaceRecipeManager($this->getFurnaceType())->match($item) !== null){
 			$ingredient = clone $item;
 			$ingredient->setCount(1);
-			if(count($this->inventory->addItem($ingredient)) === 0){
+			if(count($inventory->addItem($ingredient)) === 0){
 				$item->pop();
 				$this->position->getWorld()->addSound($this->position, new ItemFrameAddItemSound());
 				return true;
@@ -231,8 +234,8 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 	}
 
 	public function onScheduledUpdate() : void{
-		if($this->lit){
-			$items = $this->inventory->getContents();
+		if($this->lit && ($inventory = $this->inventory) !== null){
+			$items = $inventory->getContents();
 			$furnaceType = $this->getFurnaceType();
 			$maxCookDuration = $furnaceType->getCookDurationTicks();
 			foreach($items as $slot => $item){
@@ -250,7 +253,7 @@ class Campfire extends Transparent implements Lightable, HorizontalFacing{
 						continue;
 					}
 
-					$this->inventory->setItem($slot, VanillaItems::AIR());
+					$inventory->setItem($slot, VanillaItems::AIR());
 					$this->setCookingTime($slot, 0);
 					$this->position->getWorld()->dropItem($this->position->add(0.5, 1, 0.5), $ev->getResult());
 				}

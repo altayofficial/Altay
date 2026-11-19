@@ -421,10 +421,10 @@ final class CraftingManagerFromDataHelper{
 	 * @return mixed[]
 	 *
 	 * @phpstan-template TData of object
-	 * @phpstan-param class-string<TData> $modelCLass
+	 * @phpstan-param class-string<TData> $modelClass
 	 * @phpstan-return list<TData>
 	 */
-	public static function loadJsonArrayOfObjectsFile(string $filePath, string $modelCLass) : array{
+	public static function loadJsonArrayOfObjectsFile(string $filePath, string $modelClass) : array{
 		$recipes = json_decode(Filesystem::fileGetContents($filePath));
 		if(!is_array($recipes)){
 			throw new SavedDataLoadingException("$filePath root should be an array, got " . get_debug_type($recipes));
@@ -441,7 +441,7 @@ final class CraftingManagerFromDataHelper{
 				throw new SavedDataLoadingException("Invalid entry at index $i: expected object, got " . get_debug_type($item));
 			}
 			try{
-				$result[] = $mapper->map($item, (new \ReflectionClass($modelCLass))->newInstanceWithoutConstructor());
+				$result[] = $mapper->map($item, (new \ReflectionClass($modelClass))->newInstanceWithoutConstructor());
 			}catch(\JsonMapper_Exception $e){
 				throw new SavedDataLoadingException("Invalid entry at index $i: " . $e->getMessage(), 0, $e);
 			}

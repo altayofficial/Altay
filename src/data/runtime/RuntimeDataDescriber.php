@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\data\runtime;
 
 use pocketmine\block\utils\WallConnectionType;
+use pocketmine\math\Axis;
 use pocketmine\math\Facing;
 
 /**
@@ -40,42 +41,22 @@ interface RuntimeDataDescriber{
 	public function int(int $bits, int &$value) : void;
 
 	/**
-	 * Writes an int in the given range, calculating the required number of bits automatically.
+	 * Same as boundedInt() but automatically calculates the required number of bits from the range.
 	 * The range bounds must be constant.
 	 */
 	public function boundedIntAuto(int $min, int $max, int &$value) : void;
 
 	public function bool(bool &$value) : void;
 
-	public function horizontalFacing(int &$facing) : void;
+	public function facingExcept(Facing &$facing, Facing $except) : void;
 
-	/**
-	 * @param int[] $faces
-	 */
-	public function facingFlags(array &$faces) : void;
-
-	/**
-	 * @param int[] $faces
-	 */
-	public function horizontalFacingFlags(array &$faces) : void;
-
-	public function facing(int &$facing) : void;
-
-	public function facingExcept(int &$facing, int $except) : void;
-
-	public function axis(int &$axis) : void;
-
-	public function horizontalAxis(int &$axis) : void;
+	public function horizontalAxis(Axis &$axis) : void;
 
 	/**
 	 * @param WallConnectionType[] $connections
-	 * @phpstan-param array<Facing::NORTH|Facing::EAST|Facing::SOUTH|Facing::WEST, WallConnectionType> $connections
+	 * @phpstan-param array<value-of<Facing::NORTH|Facing::EAST|Facing::SOUTH|Facing::WEST>, WallConnectionType> $connections
 	 */
 	public function wallConnections(array &$connections) : void;
-
-	public function railShape(int &$railShape) : void;
-
-	public function straightOnlyRailShape(int &$railShape) : void;
 
 	/**
 	 * @phpstan-template T of \UnitEnum

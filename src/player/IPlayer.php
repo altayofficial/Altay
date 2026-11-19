@@ -25,13 +25,15 @@ declare(strict_types=1);
 
 namespace pocketmine\player;
 
+use DateTimeImmutable;
+
 interface IPlayer{
 
 	public function getName() : string;
 
-	public function getFirstPlayed() : ?int;
+	public function getFirstPlayed() : ?DateTimeImmutable;
 
-	public function getLastPlayed() : ?int;
+	public function getLastPlayed() : ?DateTimeImmutable;
 
 	public function hasPlayedBefore() : bool;
 

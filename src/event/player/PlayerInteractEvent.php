@@ -29,6 +29,7 @@ use pocketmine\block\Block;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 use pocketmine\item\Item;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 
@@ -52,7 +53,7 @@ class PlayerInteractEvent extends PlayerEvent implements Cancellable{
 		protected Item $item,
 		protected Block $blockTouched,
 		?Vector3 $touchVector,
-		protected int $blockFace,
+		protected Facing $blockFace,
 		protected int $action = PlayerInteractEvent::RIGHT_CLICK_BLOCK
 	){
 		$this->player = $player;
@@ -75,7 +76,7 @@ class PlayerInteractEvent extends PlayerEvent implements Cancellable{
 		return $this->touchVector;
 	}
 
-	public function getFace() : int{
+	public function getFace() : Facing{
 		return $this->blockFace;
 	}
 

@@ -25,15 +25,17 @@ declare(strict_types=1);
 
 namespace pocketmine\block;
 
-use pocketmine\block\inventory\BrewingStandInventory;
-use pocketmine\block\inventory\FurnaceInventory;
-use pocketmine\block\inventory\HopperInventory;
+use pocketmine\block\inventory\window\BrewingStandInventoryWindow;
+use pocketmine\block\inventory\window\FurnaceInventoryWindow;
+use pocketmine\block\inventory\window\HopperInventoryWindow;
 use pocketmine\block\tile\BrewingStand as TileBrewingStand;
-use pocketmine\block\tile\Container;
+use pocketmine\block\tile\ContainerTile;
 use pocketmine\block\tile\Furnace as TileFurnace;
 use pocketmine\block\tile\Hopper as TileHopper;
 use pocketmine\block\tile\Jukebox as TileJukebox;
 use pocketmine\block\tile\Tile;
+use pocketmine\block\utils\Container;
+use pocketmine\block\utils\ContainerTrait;
 use pocketmine\block\utils\PoweredByRedstone;
 use pocketmine\block\utils\PoweredByRedstoneTrait;
 use pocketmine\block\utils\SupportType;
@@ -42,6 +44,7 @@ use pocketmine\entity\object\ItemEntity;
 use pocketmine\event\block\BlockItemPickupEvent;
 use pocketmine\event\inventory\InventoryMoveItemEvent;
 use pocketmine\inventory\Inventory;
+use pocketmine\inventory\SlotValidatedInventory;
 use pocketmine\item\Bucket;
 use pocketmine\item\GlassBottle;
 use pocketmine\item\Item;
@@ -52,27 +55,30 @@ use pocketmine\item\VanillaItems;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
+use pocketmine\player\InventoryWindow;
 use pocketmine\player\Player;
 use pocketmine\world\BlockTransaction;
+use pocketmine\world\Position;
 use function count;
 use function min;
 
-class Hopper extends Transparent implements PoweredByRedstone{
+class Hopper extends Transparent implements Container, PoweredByRedstone{
+	use ContainerTrait;
 	use PoweredByRedstoneTrait;
 
 	private const BOWL_DEPTH = 6 / 16;
 
-	private int $facing = Facing::DOWN;
+	private Facing $facing = Facing::DOWN;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
 		$w->facingExcept($this->facing, Facing::UP);
 		$w->bool($this->powered);
 	}
 
-	public function getFacing() : int{ return $this->facing; }
+	public function getFacing() : Facing{ return $this->facing; }
 
 	/** @return $this */
-	public function setFacing(int $facing) : self{
+	public function setFacing(Facing $facing) : self{
 		if($facing === Facing::UP){
 			throw new \InvalidArgumentException("Hopper may not face upward");
 		}
@@ -82,16 +88,16 @@ class Hopper extends Transparent implements PoweredByRedstone{
 
 	protected function recalculateCollisionBoxes() : array{
 		$result = [
-			AxisAlignedBB::one()->trim(Facing::UP, self::BOWL_DEPTH) //the empty area around the bottom is currently considered solid
+			AxisAlignedBB::one()->trimmedCopy(Facing::UP, self::BOWL_DEPTH) //the empty area around the bottom is currently considered solid
 		];
 
 		foreach(Facing::HORIZONTAL as $f){ //add the frame parts around the bowl
-			$result[] = AxisAlignedBB::one()->trim($f, 14 / 16);
+			$result[] = AxisAlignedBB::one()->trimmedCopy($f, 14 / 16);
 		}
 		return $result;
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return match($facing){
 			Facing::UP => SupportType::FULL,
 			Facing::DOWN => $this->facing === Facing::DOWN ? SupportType::CENTER : SupportType::NONE,
@@ -99,21 +105,14 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		};
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		$this->facing = $face === Facing::DOWN ? Facing::DOWN : Facing::opposite($face);
 
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
-		if($player !== null){
-			$tile = $this->position->getWorld()->getTile($this->position);
-			if($tile instanceof TileHopper){ //TODO: find a way to have inventories open on click without this boilerplate in every block
-				$player->setCurrentWindow($tile->getInventory());
-			}
-			return true;
-		}
-		return false;
+	protected function newMenu(Player $player, Inventory $inventory, Position $position) : InventoryWindow{
+		return new HopperInventoryWindow($player, $inventory, $position);
 	}
 
 	public function onScheduledUpdate() : void{
@@ -149,9 +148,9 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		$success = $this->push($inventory);
 		// Hoppers that have a container above them, won't try to pick up items.
 		$origin = $this->getLoadedTile($this->position->getSide(Facing::UP));
-		if($origin instanceof Container){
+		if($origin instanceof ContainerTile){
 			// Hoppers only pull from the container part directly above them, not from the other half of a double chest.
-			$success = $this->pull($inventory, $origin->getRealInventory()) || $success;
+			$success = $this->pull($inventory, $origin) || $success;
 		}elseif($origin instanceof TileJukebox){
 			$success = $this->pullFromJukebox($inventory, $origin) || $success;
 		}else{
@@ -167,7 +166,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * This function handles pushing items from the hopper to a tile in the direction the hopper is facing.
 	 * Returns true if an item was successfully pushed or false on failure.
 	 */
-	private function push(HopperInventory $inventory) : bool{
+	private function push(Inventory $inventory) : bool{
 		$destination = null;
 
 		for($slot = 0, $size = $inventory->getSize(); $slot < $size; $slot++){
@@ -187,12 +186,12 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				// If the hopper is facing down, it will push every item to the furnace's input slot, even items that aren't smeltable.
 				// If the hopper is facing in any other direction, it will only push items that can be used as fuel to the furnace's fuel slot.
 				if($this->facing === Facing::DOWN){
-					$slotInFurnace = FurnaceInventory::SLOT_INPUT;
+					$slotInFurnace = FurnaceInventoryWindow::SLOT_INPUT;
 				}else{
 					if($item->getFuelTime() === 0){
 						continue;
 					}
-					$slotInFurnace = FurnaceInventory::SLOT_FUEL;
+					$slotInFurnace = FurnaceInventoryWindow::SLOT_FUEL;
 				}
 				if(!$this->transferToSlot($inventory, $slot, $item, $destination->getInventory(), $slotInFurnace)){
 					continue;
@@ -260,7 +259,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 				$this->position->getWorld()->setBlock($jukeboxBlock->getPosition(), $jukeboxBlock);
 				return true;
 
-			}elseif($destination instanceof Container){
+			}elseif($destination instanceof ContainerTile){
 				if(!$this->transferToInventory($inventory, $slot, $item, $destination->getInventory())){
 					continue;
 				}
@@ -277,27 +276,28 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * This function handles pulling items by the hopper from a container above.
 	 * Returns true if an item was successfully pulled or false on failure.
 	 */
-	private function pull(HopperInventory $inventory, Inventory $origin) : bool{
+	private function pull(Inventory $inventory, ContainerTile $originTile) : bool{
+		$origin = $originTile->getRealInventory();
 		// Hoppers interact differently when pulling from different kinds of tiles.
 		//TODO: Composter
-		if($origin instanceof FurnaceInventory){
+		if($originTile instanceof TileFurnace){
 			// Hoppers either pull empty buckets from the furnace's fuel slot or pull from its result slot.
 			// They prioritise pulling from the fuel slot over the result slot.
-			$item = $origin->getFuel();
+			$item = $origin->getItem(FurnaceInventoryWindow::SLOT_FUEL);
 			if($item instanceof Bucket){
-				$slot = FurnaceInventory::SLOT_FUEL;
+				$slot = FurnaceInventoryWindow::SLOT_FUEL;
 			}else{
-				$slot = FurnaceInventory::SLOT_RESULT;
-				$item = $origin->getResult();
+				$slot = FurnaceInventoryWindow::SLOT_RESULT;
+				$item = $origin->getItem($slot);
 				if($item->isNull()){
 					return false;
 				}
 			}
 			return $this->transferToInventory($origin, $slot, $item, $inventory);
 
-		}elseif($origin instanceof BrewingStandInventory){
+		}elseif($originTile instanceof TileBrewingStand){
 			// Hoppers only pull the brewed potions out of a brewing stand's bottle slots.
-			foreach([BrewingStandInventory::SLOT_BOTTLE_LEFT, BrewingStandInventory::SLOT_BOTTLE_MIDDLE, BrewingStandInventory::SLOT_BOTTLE_RIGHT] as $slot){
+			foreach([BrewingStandInventoryWindow::SLOT_BOTTLE_LEFT, BrewingStandInventoryWindow::SLOT_BOTTLE_MIDDLE, BrewingStandInventoryWindow::SLOT_BOTTLE_RIGHT] as $slot){
 				$item = $origin->getItem($slot);
 				if($item->isNull() || !$this->transferToInventory($origin, $slot, $item, $inventory)){
 					continue;
@@ -321,7 +321,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * This function handles pulling the inserted record out of a jukebox above the hopper.
 	 * Returns true if the record was successfully pulled or false on failure.
 	 */
-	private function pullFromJukebox(HopperInventory $inventory, TileJukebox $jukebox) : bool{
+	private function pullFromJukebox(Inventory $inventory, TileJukebox $jukebox) : bool{
 		//TODO:
 		// Just like inserting a record, pulling one out should be blocked while the jukebox is playing, since a playing
 		// jukebox emits a redstone signal which powers the hopper. We can neither rely on redstone nor tell whether the
@@ -364,7 +364,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * This function handles picking up items by the hopper.
 	 * Returns true if an item was successfully picked up or false on failure.
 	 */
-	private function pickup(HopperInventory $inventory) : bool{
+	private function pickup(Inventory $inventory) : bool{
 		// In Bedrock Edition hoppers collect from the lower 3/4 of the block space above them, down to the floor of
 		// their own bowl - that's where items dropped onto a hopper come to rest.
 		$pickupCollisionBox = new AxisAlignedBB(
@@ -447,6 +447,9 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	 * the item already occupying that slot. Returns true if the item was moved.
 	 */
 	private function transferToSlot(Inventory $source, int $sourceSlot, Item $sourceItem, Inventory $destination, int $destinationSlot) : bool{
+		if(!$this->passesSlotValidators($destination, $sourceItem, $destinationSlot)){
+			return false;
+		}
 		$itemInSlot = $destination->getItem($destinationSlot);
 		if(!$this->canMergeInto($destination, $itemInSlot, (clone $sourceItem)->setCount(1))){
 			return false;
@@ -488,7 +491,7 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	private function transferToInventory(Inventory $source, int $sourceSlot, Item $sourceItem, Inventory $destination) : bool{
 		$originalSourceItem = clone $sourceItem;
 		$itemToMove = $sourceItem->pop();
-		if(!$destination->canAddItem($itemToMove)){
+		if(!$destination->canAddItem($itemToMove) || !$this->passesSlotValidators($destination, $itemToMove, null)){
 			return false;
 		}
 		$itemToMove = $this->callMoveItemEvent($source, $destination, $itemToMove);
@@ -504,6 +507,24 @@ class Hopper extends Transparent implements PoweredByRedstone{
 		if(count($leftover) !== 0){
 			$this->returnItemToSource($source, $sourceSlot, $itemToMove);
 			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Inventory::addItem() and setItem() don't run slot validators, those only apply to player transactions. Hoppers
+	 * have to check them by hand, otherwise they'd happily put shulker boxes into shulker boxes.
+	 * A null slot means "any slot", which is good enough for the validators we have right now.
+	 */
+	private function passesSlotValidators(Inventory $inventory, Item $item, ?int $slot) : bool{
+		if(!$inventory instanceof SlotValidatedInventory){
+			return true;
+		}
+		foreach($inventory->getSlotValidators() as $validator){
+			//hmm, validators take a concrete slot, so for "any slot" we just ask about slot 0
+			if($validator->validate($inventory, $item, $slot ?? 0) !== null){
+				return false;
+			}
 		}
 		return true;
 	}
@@ -596,19 +617,19 @@ class Hopper extends Transparent implements PoweredByRedstone{
 	/**
 	 * Returns the brewing stand slot the given item would be pushed into, or null if the item cannot be pushed.
 	 */
-	private function getBrewingStandSlot(BrewingStandInventory $inventory, Item $item) : ?int{
+	private function getBrewingStandSlot(Inventory $inventory, Item $item) : ?int{
 		// Hoppers pushing from above fill the ingredient slot, while hoppers pushing from the side fill the fuel and bottle slots.
 		if($this->facing === Facing::DOWN){
-			return BrewingStandInventory::SLOT_INGREDIENT;
+			return BrewingStandInventoryWindow::SLOT_INGREDIENT;
 		}
 		if($item->equals(VanillaItems::BLAZE_POWDER(), false)){
-			return BrewingStandInventory::SLOT_FUEL;
+			return BrewingStandInventoryWindow::SLOT_FUEL;
 		}
 		if(!$item instanceof Potion && !$item instanceof SplashPotion && !$item instanceof GlassBottle){
 			return null;
 		}
 
-		foreach([BrewingStandInventory::SLOT_BOTTLE_LEFT, BrewingStandInventory::SLOT_BOTTLE_MIDDLE, BrewingStandInventory::SLOT_BOTTLE_RIGHT] as $bottleSlot){
+		foreach([BrewingStandInventoryWindow::SLOT_BOTTLE_LEFT, BrewingStandInventoryWindow::SLOT_BOTTLE_MIDDLE, BrewingStandInventoryWindow::SLOT_BOTTLE_RIGHT] as $bottleSlot){
 			$itemInSlot = $inventory->getItem($bottleSlot);
 			if($itemInSlot->isNull() || ($itemInSlot->canStackWith($item) && $itemInSlot->getCount() < $itemInSlot->getMaxStackSize())){
 				return $bottleSlot;

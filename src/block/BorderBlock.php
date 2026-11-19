@@ -34,7 +34,7 @@ use pocketmine\world\BlockTransaction;
 
 class BorderBlock extends Wall{
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($player !== null && !$this->canBeModifiedBy($player)){
 			return false;
 		}
@@ -59,9 +59,9 @@ class BorderBlock extends Wall{
 	protected function recalculateCollisionBoxes() : array{
 		//the vanilla border block is infinitely tall, but the collision box cache only accounts for overflow into
 		//directly adjacent blocks, so this is the tallest box the engine can actually collide with
-		$boxes = parent::recalculateCollisionBoxes();
-		foreach($boxes as $box){
-			$box->extend(Facing::UP, 0.5);
+		$boxes = [];
+		foreach(parent::recalculateCollisionBoxes() as $box){
+			$boxes[] = $box->extendedCopy(Facing::UP, 0.5);
 		}
 
 		return $boxes;

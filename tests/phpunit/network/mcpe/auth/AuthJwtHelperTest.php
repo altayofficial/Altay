@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\auth;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use pocketmine\network\mcpe\JwtUtils;
 use function openssl_pkey_get_private;
@@ -77,9 +78,7 @@ PEM;
 		yield "array with others" => [["api://something-else", AuthJwtHelper::MOJANG_AUDIENCE]];
 	}
 
-	/**
-	 * @dataProvider acceptedAudienceProvider
-	 */
+	#[DataProvider("acceptedAudienceProvider")]
 	public function testAcceptsAudience(mixed $audience) : void{
 		$key = self::loadKey();
 		$claims = AuthJwtHelper::validateSelfSignedAuthToken(self::signedToken($audience, $key), JwtUtils::emitDerPublicKey($key), AuthJwtHelper::MOJANG_AUDIENCE);
@@ -97,9 +96,7 @@ PEM;
 		yield "number" => [1];
 	}
 
-	/**
-	 * @dataProvider rejectedAudienceProvider
-	 */
+	#[DataProvider("rejectedAudienceProvider")]
 	public function testRejectsAudience(mixed $audience) : void{
 		$key = self::loadKey();
 		$this->expectException(VerifyLoginException::class);

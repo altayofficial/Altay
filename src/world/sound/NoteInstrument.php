@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\world\sound;
 
-
 enum NoteInstrument{
 	case PIANO;
 	case BASS_DRUM;

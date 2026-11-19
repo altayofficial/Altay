@@ -52,7 +52,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@2.32.0
       with:
-        php-version: "8.1"
+        php-version: "8.4"
       env:
         GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
@@ -60,8 +60,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: "~/.cache/composer"
-        key: "php-8.1-composer-${{ hashFiles('**/composer.json') }}"
-        restore-keys: "php-8.1-composer-"
+        key: "php-8.4-composer-${{ hashFiles('**/composer.json') }}"
+        restore-keys: "php-8.4-composer-"
 
     - name: Merge "stable" into "dev" and push changes
       run: |

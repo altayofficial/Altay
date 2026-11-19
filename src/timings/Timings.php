@@ -118,7 +118,6 @@ abstract class Timings{
 	private static array $eventHandlers = [];
 
 	private static TimingsHandler $asyncTaskCompletionParent;
-
 	/** @var TimingsHandler[] */
 	private static array $asyncTaskCompletion = [];
 

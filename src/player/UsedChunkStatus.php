@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\player;
 
-
 enum UsedChunkStatus{
 	case NEEDED;
 	case REQUESTED_GENERATION;

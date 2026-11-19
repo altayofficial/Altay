@@ -30,7 +30,7 @@ use pocketmine\entity\Entity;
 use pocketmine\entity\Living;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\player\PlayerExhaustEvent;
+use pocketmine\event\entity\EntityExhaustEvent;
 use pocketmine\event\player\PlayerSpearStabEvent;
 use pocketmine\item\enchantment\VanillaEnchantments;
 use pocketmine\math\Vector3;
@@ -211,7 +211,7 @@ class Spear extends TieredTool implements Releasable{
 
 		$player->setMotion($player->getMotion()->addVector($push));
 		$player->getWorld()->addSound($player->getPosition(), $this->getLungeSound($lungeLevel));
-		$player->getHungerManager()->exhaust(self::BASE_LUNGE_EXHAUST * $lungeLevel, PlayerExhaustEvent::CAUSE_ATTACK);
+		$player->getHungerManager()->exhaust(self::BASE_LUNGE_EXHAUST * $lungeLevel, EntityExhaustEvent::CAUSE_ATTACK);
 	}
 
 	/**
@@ -260,7 +260,7 @@ class Spear extends TieredTool implements Releasable{
 		$direction = $player->getDirectionVector()->normalize()->multiply(1.5);
 		$searchBox = $player->getBoundingBox()
 			->expandedCopy(1.5, 1.0, 1.5)
-			->offset($direction->x, $direction->y, $direction->z);
+			->offsetCopy($direction->x, $direction->y, $direction->z);
 
 		$target = null;
 		$closestDistance = PHP_FLOAT_MAX;

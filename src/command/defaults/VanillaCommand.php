@@ -42,7 +42,13 @@ abstract class VanillaCommand extends Command{
 	public const MAX_COORD = 30000000;
 	public const MIN_COORD = -30000000;
 
-	protected function fetchPermittedPlayerTarget(CommandSender $sender, ?string $target, string $selfPermission, string $otherPermission) : ?Player{
+	protected function fetchPermittedPlayerTarget(
+		string $testPermissionContext,
+		CommandSender $sender,
+		?string $target,
+		string $selfPermission,
+		string $otherPermission
+	) : ?Player{
 		//TODO: we need proper command selector support, but this one is useful and easy to hack in for now
 		if($target !== null && $target !== "@s"){
 			$player = $this->getPlayerByPrefix($sender, $target);
@@ -55,9 +61,12 @@ abstract class VanillaCommand extends Command{
 			throw new InvalidCommandSyntaxException();
 		}
 
+		//TODO: using loud testPermission here will generate misleading messages
+		//e.g. if the sender has self permission and tries to use the command on another player, it will give them a
+		//generic message saying that they don't have permission to use the command, which is not correct
 		if(
-			($player === $sender && $this->testPermission($sender, $selfPermission)) ||
-			($player !== $sender && $this->testPermission($sender, $otherPermission))
+			($player === $sender && $this->testPermission($testPermissionContext, $sender, $selfPermission)) ||
+			($player !== $sender && $this->testPermission($testPermissionContext, $sender, $otherPermission))
 		){
 			return $player;
 		}

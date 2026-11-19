@@ -35,7 +35,6 @@ use pocketmine\utils\Config;
 use pocketmine\utils\Utils;
 use Symfony\Component\Filesystem\Path;
 use function copy;
-use function count;
 use function dirname;
 use function file_exists;
 use function is_dir;
@@ -52,8 +51,6 @@ use const DIRECTORY_SEPARATOR;
 abstract class PluginBase implements Plugin{
 	private bool $isEnabled = false;
 
-	private string $resourceFolder;
-
 	private ?Config $config = null;
 	private string $configFile;
 
@@ -61,16 +58,15 @@ abstract class PluginBase implements Plugin{
 	private TaskScheduler $scheduler;
 
 	public function __construct(
-		private PluginLoader $loader,
 		private Server $server,
 		private PluginDescription $description,
 		private string $dataFolder,
-		private string $file
+		private string $file,
+		private string $resourceFolder,
 	){
 		$this->dataFolder = rtrim($dataFolder, "/" . DIRECTORY_SEPARATOR) . "/";
-		//TODO: this is accessed externally via reflection, not unused
 		$this->file = rtrim($file, "/" . DIRECTORY_SEPARATOR) . "/";
-		$this->resourceFolder = Path::join($this->file, "resources") . "/";
+		$this->resourceFolder = rtrim(str_replace(DIRECTORY_SEPARATOR, "/", $resourceFolder), "/") . "/";
 
 		$this->configFile = Path::join($this->dataFolder, "config.yml");
 
@@ -147,21 +143,10 @@ abstract class PluginBase implements Plugin{
 	 * Registers commands declared in the plugin manifest
 	 */
 	private function registerYamlCommands() : void{
-		$pluginCmds = [];
-
 		foreach(Utils::stringifyKeys($this->description->getCommands()) as $key => $data){
 			if(str_contains($key, ":")){
 				$this->logger->error($this->server->getLanguage()->translate(KnownTranslationFactory::pocketmine_plugin_commandError($key, $this->description->getFullName(), ":")));
 				continue;
-			}
-
-			$newCmd = new PluginCommand($key, $this);
-			if(($description = $data->getDescription()) !== null){
-				$newCmd->setDescription($description);
-			}
-
-			if(($usageMessage = $data->getUsageMessage()) !== null){
-				$newCmd->setUsage($usageMessage);
 			}
 
 			$aliasList = [];
@@ -173,7 +158,13 @@ abstract class PluginBase implements Plugin{
 				$aliasList[] = $alias;
 			}
 
-			$newCmd->setAliases($aliasList);
+			$newCmd = new PluginCommand(
+				$this->description->getName(),
+				$key,
+				$this,
+				$data->getDescription() ?? "",
+				$data->getUsageMessage()
+			);
 
 			$newCmd->setPermission($data->getPermission());
 
@@ -181,11 +172,7 @@ abstract class PluginBase implements Plugin{
 				$newCmd->setPermissionMessage($permissionDeniedMessage);
 			}
 
-			$pluginCmds[] = $newCmd;
-		}
-
-		if(count($pluginCmds) > 0){
-			$this->server->getCommandMap()->registerAll($this->description->getName(), $pluginCmds);
+			$this->server->getCommandMap()->register($newCmd, $aliasList);
 		}
 	}
 
@@ -312,12 +299,8 @@ abstract class PluginBase implements Plugin{
 		return $this->description->getFullName();
 	}
 
-	protected function getFile() : string{
+	public function getFile() : string{
 		return $this->file;
-	}
-
-	public function getPluginLoader() : PluginLoader{
-		return $this->loader;
 	}
 
 	public function getScheduler() : TaskScheduler{

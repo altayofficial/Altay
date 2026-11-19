@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\block\utils;
 
-
 enum SeagrassType{
 	case NORMAL;
 	case DOUBLE_TOP;

@@ -85,7 +85,7 @@ class ResourcePacksPacketHandler extends PacketHandler{
 	 * @var ResourcePack[]
 	 * @phpstan-var array<string, ResourcePack>
 	 */
-	private array $resourcePacksById = [];
+	private array $resourcePacksByPrintableId = [];
 
 	private bool $requestedMetadata = false;
 	private bool $requestedStack = false;
@@ -119,27 +119,29 @@ class ResourcePacksPacketHandler extends PacketHandler{
 	){
 		$this->requestQueue = new \SplQueue();
 		foreach($resourcePackStack as $pack){
-			$this->resourcePacksById[$pack->getPackId()] = $pack;
+			$this->resourcePacksByPrintableId[$pack->getPackId()->toString()] = $pack;
 		}
 	}
 
-	private function getPackById(string $id) : ?ResourcePack{
-		return $this->resourcePacksById[strtolower($id)] ?? null;
+	private function getPackByPrintableId(string $printableId) : ?ResourcePack{
+		return $this->resourcePacksByPrintableId[strtolower($printableId)] ?? null;
 	}
 
 	public function setUp() : void{
 		$resourcePackEntries = array_map(function(ResourcePack $pack) : ResourcePackInfoEntry{
 			//TODO: more stuff
 
+			$uuid = $pack->getPackId();
+			$printableId = $uuid->toString();
 			return new ResourcePackInfoEntry(
-				packId: Uuid::fromString($pack->getPackId()),
+				packId: $uuid,
 				version: $pack->getPackVersion(),
 				sizeBytes: $pack->getPackSize(),
-				encryptionKey: $this->encryptionKeys[$pack->getPackId()] ?? "",
+				encryptionKey: $this->encryptionKeys[$printableId] ?? "",
 				subPackName: "",
-				contentId: $pack->getPackId(),
+				contentId: $printableId,
 				hasScripts: false,
-				cdnUrl: $this->cdnUrls[$pack->getPackId()] ?? ""
+				cdnUrl: $this->cdnUrls[$printableId] ?? ""
 			);
 		}, $this->resourcePackStack);
 		//TODO: support forcing server packs
@@ -179,30 +181,31 @@ class ResourcePacksPacketHandler extends PacketHandler{
 					throw new PacketHandlingException("Cannot request resource pack metadata after resource pack stack");
 				}
 
-				if(count($packet->packIds) > count($this->resourcePacksById)){
-					throw new PacketHandlingException(sprintf("Requested metadata for more resource packs (%d) than available on the server (%d)", count($packet->packIds), count($this->resourcePacksById)));
+				if(count($packet->packIds) > count($this->resourcePacksByPrintableId)){
+					throw new PacketHandlingException(sprintf("Requested metadata for more resource packs (%d) than available on the server (%d)", count($packet->packIds), count($this->resourcePacksByPrintableId)));
 				}
 
 				$seen = [];
-				foreach($packet->packIds as $uuid){
+				foreach($packet->packIds as $requestedPrintableId){
 					//dirty hack for mojang's dirty hack for versions
-					$splitPos = strpos($uuid, "_");
+					$splitPos = strpos($requestedPrintableId, "_");
 					if($splitPos !== false){
-						$uuid = substr($uuid, 0, $splitPos);
+						$requestedPrintableId = substr($requestedPrintableId, 0, $splitPos);
 					}
-					$pack = $this->getPackById($uuid);
+					$pack = $this->getPackByPrintableId($requestedPrintableId);
 
 					if(!($pack instanceof ResourcePack)){
 						//Client requested a resource pack but we don't have it available on the server
-						$this->disconnectWithError("Unknown pack $uuid requested, available packs: " . implode(", ", array_keys($this->resourcePacksById)));
+						$this->disconnectWithError("Unknown pack $requestedPrintableId requested, available packs: " . implode(", ", array_keys($this->resourcePacksByPrintableId)));
 						return false;
 					}
-					if(isset($seen[$pack->getPackId()])){
-						throw new PacketHandlingException("Repeated metadata request for pack $uuid");
+					$printableId = $pack->getPackId()->toString();
+					if(isset($seen[$printableId])){
+						throw new PacketHandlingException("Repeated metadata request for pack $requestedPrintableId");
 					}
 
 					$this->session->sendDataPacket(ResourcePackDataInfoPacket::create(
-						$pack->getPackId(),
+						$printableId,
 						self::PACK_CHUNK_SIZE,
 						(int) ceil($pack->getPackSize() / self::PACK_CHUNK_SIZE),
 						$pack->getPackSize(),
@@ -210,7 +213,7 @@ class ResourcePacksPacketHandler extends PacketHandler{
 						false,
 						ResourcePackType::RESOURCES //TODO: this might be an addon (not behaviour pack), needed to properly support client-side custom items
 					));
-					$seen[$pack->getPackId()] = true;
+					$seen[$printableId] = true;
 				}
 				$this->session->getLogger()->debug("Player requested download of " . count($packet->packIds) . " resource packs");
 				break;
@@ -221,7 +224,7 @@ class ResourcePacksPacketHandler extends PacketHandler{
 				$this->requestedStack = true;
 
 				$stack = array_map(static function(ResourcePack $pack) : ResourcePackStackEntry{
-					return new ResourcePackStackEntry($pack->getPackId(), $pack->getPackVersion(), ""); //TODO: subpacks
+					return new ResourcePackStackEntry($pack->getPackId()->toString(), $pack->getPackVersion(), ""); //TODO: subpacks
 				}, $this->resourcePackStack);
 
 				if($this->chemistryResourcePacks){
@@ -252,15 +255,15 @@ class ResourcePacksPacketHandler extends PacketHandler{
 	}
 
 	public function handleResourcePackChunkRequest(ResourcePackChunkRequestPacket $packet) : bool{
-		$pack = $this->getPackById($packet->packId);
+		$pack = $this->getPackByPrintableId($packet->packId);
 		if(!($pack instanceof ResourcePack)){
-			$this->disconnectWithError("Invalid request for chunk $packet->chunkIndex of unknown pack $packet->packId, available packs: " . implode(", ", array_keys($this->resourcePacksById)));
+			$this->disconnectWithError("Invalid request for chunk $packet->chunkIndex of unknown pack $packet->packId, available packs: " . implode(", ", array_keys($this->resourcePacksByPrintableId)));
 			return false;
 		}
 
-		$packId = $pack->getPackId(); //use this because case may be different
+		$printableId = $pack->getPackId()->toString(); //use this because case may be different in the packet vs locally
 
-		if(isset($this->downloadedChunks[$packId][$packet->chunkIndex])){
+		if(isset($this->downloadedChunks[$printableId][$packet->chunkIndex])){
 			$this->disconnectWithError("Duplicate request for chunk $packet->chunkIndex of pack $packet->packId");
 			return false;
 		}
@@ -271,10 +274,10 @@ class ResourcePacksPacketHandler extends PacketHandler{
 			return false;
 		}
 
-		if(!isset($this->downloadedChunks[$packId])){
-			$this->downloadedChunks[$packId] = [$packet->chunkIndex => true];
+		if(!isset($this->downloadedChunks[$printableId])){
+			$this->downloadedChunks[$printableId] = [$packet->chunkIndex => true];
 		}else{
-			$this->downloadedChunks[$packId][$packet->chunkIndex] = true;
+			$this->downloadedChunks[$printableId][$packet->chunkIndex] = true;
 		}
 
 		$this->requestQueue->enqueue([$pack, $packet->chunkIndex]);
@@ -293,12 +296,12 @@ class ResourcePacksPacketHandler extends PacketHandler{
 		 */
 		[$pack, $chunkIndex] = $this->requestQueue->dequeue();
 
-		$packId = $pack->getPackId();
+		$printableId = $pack->getPackId()->toString();
 		$offset = $chunkIndex * self::PACK_CHUNK_SIZE;
 		$chunkData = $pack->getPackChunk($offset, self::PACK_CHUNK_SIZE);
 		$this->activeRequests++;
 		$this->session
-			->sendDataPacketWithReceipt(ResourcePackChunkDataPacket::create($packId, $chunkIndex, $offset, $chunkData))
+			->sendDataPacketWithReceipt(ResourcePackChunkDataPacket::create($printableId, $chunkIndex, $offset, $chunkData))
 			->onCompletion(
 				function() : void{
 					$this->activeRequests--;

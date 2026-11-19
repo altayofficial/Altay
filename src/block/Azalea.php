@@ -42,7 +42,7 @@ use function mt_rand;
 class Azalea extends Flowable{
 	use StaticSupportTrait;
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($item instanceof Fertilizer){
 			$item->pop();
 			if($player === null || !$player->hasFiniteResources() || mt_rand(1, 100) <= 45){
@@ -72,10 +72,10 @@ class Azalea extends Flowable{
 	protected function recalculateCollisionBoxes() : array{
 		return [
 			AxisAlignedBB::one()
-				->squash(Axis::X, 6 / 16)
-				->squash(Axis::Z, 6 / 16)
-				->trim(Facing::UP, 8 / 16),
-			AxisAlignedBB::one()->trim(Facing::DOWN, 8 / 16)
+				->squashedCopy(Axis::X, 6 / 16)
+				->squashedCopy(Axis::Z, 6 / 16)
+				->trimmedCopy(Facing::UP, 8 / 16),
+			AxisAlignedBB::one()->trimmedCopy(Facing::DOWN, 8 / 16)
 		];
 	}
 

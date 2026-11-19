@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\world\generator\object;
 
-
 enum TreeType{
 	case OAK;
 	case SPRUCE;

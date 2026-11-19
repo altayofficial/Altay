@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\block\utils;
 
-
 enum DripleafState{
 	case STABLE;
 	case UNSTABLE;

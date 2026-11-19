@@ -34,7 +34,7 @@ use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\world\World;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\ItemFrame
  */
 class ItemFrame extends Spawnable{

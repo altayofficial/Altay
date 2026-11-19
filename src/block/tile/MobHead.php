@@ -34,7 +34,7 @@ use pocketmine\nbt\tag\FloatTag;
 use function floor;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\MobHead
  */
 class MobHead extends Spawnable{

@@ -45,6 +45,6 @@ final class CreativeInventoryEntry{
 	public function getGroup() : ?CreativeGroup{ return $this->group; }
 
 	public function matchesItem(Item $item) : bool{
-		return $item->equals($this->item, checkDamage: true, checkCompound: false);
+		return $item->equals($this->item, checkCompound: false);
 	}
 }

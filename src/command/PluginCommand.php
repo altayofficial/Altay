@@ -39,8 +39,7 @@ final class PluginCommand extends Command implements PluginOwned{
 	public function __construct(
 		string $namespace,
 		string $name,
-		private Plugin $owner,
-		private CommandExecutor $executor,
+		private PluginBase $owner,
 		Translatable|string $description = "",
 		Translatable|string|null $usageMessage = null
 	){
@@ -53,7 +52,7 @@ final class PluginCommand extends Command implements PluginOwned{
 			return false;
 		}
 
-		if(!$this->executor->onCommand($sender, $this, $commandLabel, $args)){
+		if(!$this->owner->onCommand($sender, $this, $commandLabel, $args)){
 			throw new InvalidCommandSyntaxException();
 		}
 
@@ -62,13 +61,5 @@ final class PluginCommand extends Command implements PluginOwned{
 
 	public function getOwningPlugin() : Plugin{
 		return $this->owner;
-	}
-
-	public function getExecutor() : CommandExecutor{
-		return $this->executor;
-	}
-
-	public function setExecutor(CommandExecutor $executor) : void{
-		$this->executor = $executor;
 	}
 }

@@ -29,7 +29,7 @@ use pocketmine\block\Note as BlockNote;
 use pocketmine\nbt\tag\CompoundTag;
 
 /**
- * @deprecated
+ * @internal
  */
 class Note extends Tile{
 	private int $pitch = 0;

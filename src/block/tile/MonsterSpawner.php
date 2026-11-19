@@ -32,7 +32,7 @@ use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 
 /**
- * @deprecated
+ * @internal
  */
 class MonsterSpawner extends Spawnable{
 

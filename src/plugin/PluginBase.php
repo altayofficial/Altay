@@ -26,7 +26,6 @@ declare(strict_types=1);
 namespace pocketmine\plugin;
 
 use pocketmine\command\Command;
-use pocketmine\command\CommandExecutor;
 use pocketmine\command\CommandSender;
 use pocketmine\command\PluginCommand;
 use pocketmine\lang\KnownTranslationFactory;
@@ -38,7 +37,6 @@ use Symfony\Component\Filesystem\Path;
 use function copy;
 use function dirname;
 use function file_exists;
-use function fopen;
 use function is_dir;
 use function mkdir;
 use function rtrim;
@@ -50,7 +48,7 @@ use function substr;
 use function trim;
 use const DIRECTORY_SEPARATOR;
 
-abstract class PluginBase implements Plugin, CommandExecutor{
+abstract class PluginBase implements Plugin{
 	private bool $isEnabled = false;
 
 	private ?Config $config = null;
@@ -163,7 +161,6 @@ abstract class PluginBase implements Plugin, CommandExecutor{
 			$newCmd = new PluginCommand(
 				$this->description->getName(),
 				$key,
-				$this,
 				$this,
 				$data->getDescription() ?? "",
 				$data->getUsageMessage()

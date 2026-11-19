@@ -40,7 +40,7 @@ use function rtrim;
 use function sprintf;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\BaseSign
  */
 class Sign extends Spawnable{

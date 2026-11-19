@@ -1619,6 +1619,13 @@ final class KnownTranslationFactory{
 		]);
 	}
 
+	public static function pocketmine_command_error_playerAmbiguous(Translatable|string $playerName, Translatable|string $matches) : Translatable{
+		return new Translatable(KnownTranslationKeys::POCKETMINE_COMMAND_ERROR_PLAYERAMBIGUOUS, [
+			"playerName" => $playerName,
+			"matches" => $matches,
+		]);
+	}
+
 	public static function pocketmine_command_error_playerNotFound(Translatable|string $playerName) : Translatable{
 		return new Translatable(KnownTranslationKeys::POCKETMINE_COMMAND_ERROR_PLAYERNOTFOUND, [
 			"playerName" => $playerName,

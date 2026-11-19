@@ -86,7 +86,7 @@ final class HopperPickupShulkerNestTest extends HopperTestBase implements Listen
 		}
 		for($slot = 0, $size = $this->shulkerInventory->getSize(); $slot < $size; $slot++){
 			$item = $this->shulkerInventory->getItem($slot);
-			if($item->equals(VanillaBlocks::SHULKER_BOX()->asItem(), false, false)){
+			if($item->equals(VanillaBlocks::SHULKER_BOX()->asItem(), false)){
 				throw new TestFailedException("A shulker box was inserted into another shulker box after $tick ticks");
 			}
 		}
@@ -99,7 +99,7 @@ final class HopperPickupShulkerNestTest extends HopperTestBase implements Listen
 		if($this->shulkerInventory === null || $this->countItems([$this->shulkerInventory]) === 0){
 			throw new TestFailedException("The hopper never moved the dirt into the shulker box within " . self::DURATION_TICKS . " ticks");
 		}
-		if($this->countDroppedItems(static fn(Item $item) : bool => $item->equals(VanillaBlocks::SHULKER_BOX()->asItem(), false, false)) !== 1){
+		if($this->countDroppedItems(static fn(Item $item) : bool => $item->equals(VanillaBlocks::SHULKER_BOX()->asItem(), false)) !== 1){
 			throw new TestFailedException("The dropped shulker box should have stayed on the ground");
 		}
 	}

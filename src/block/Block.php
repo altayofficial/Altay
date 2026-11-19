@@ -589,7 +589,7 @@ class Block{
 	}
 
 	/**
-	 * @deprecated TL;DR: Don't use this function. Its results are confusing and inconsistent.
+	 * @internal TL;DR: Don't use this function. Its results are confusing and inconsistent.
 	 *
 	 * No one is sure what the meaning of this property actually is. It's borrowed from Minecraft Java Edition, and is
 	 * used by various blocks for support checks.

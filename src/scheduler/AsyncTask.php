@@ -52,7 +52,7 @@ use function spl_object_id;
  * a dedicated thread instead.
  *
  * The Server instance is not accessible inside {@link AsyncTask::onRun()}. It can only be accessed in the main server
- * thread, e.g. during {@link AsyncTask::onCompletion()} or {@link AsyncTask::onProgressUpdate()}. This means that
+ * thread, e.g. during {@link AsyncTask::onCompletion()}. This means that
  * whatever you do in onRun() must be able to work without the Server instance.
  *
  * If you want to store non-thread-safe objects to access when the task completes, store them using
@@ -158,7 +158,7 @@ abstract class AsyncTask extends Runnable{
 	 * Retrieves data stored in thread-local storage.
 	 *
 	 * If you used storeLocal(), you can use this on the same thread to fetch data stored. This should be used during
-	 * onProgressUpdate() and onCompletion() to fetch thread-local data stored on the parent thread.
+	 * onCompletion() to fetch thread-local data stored on the parent thread.
 	 *
 	 * @return mixed
 	 *

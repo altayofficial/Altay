@@ -70,7 +70,7 @@ final class ComplexAliasRecipeIngredient implements RecipeIngredient{
 			return false;
 		}
 		foreach($this->items as $candidate){
-			if($candidate->equals($item, true, $candidate->hasNamedTag())){
+			if($candidate->equals($item, $candidate->hasNamedTag())){
 				return true;
 			}
 		}

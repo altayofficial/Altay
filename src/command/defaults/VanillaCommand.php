@@ -31,7 +31,11 @@ use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
+use function array_map;
+use function count;
+use function implode;
 use function is_numeric;
+use function strcasecmp;
 use function substr;
 
 abstract class VanillaCommand extends Command{
@@ -47,9 +51,8 @@ abstract class VanillaCommand extends Command{
 	) : ?Player{
 		//TODO: we need proper command selector support, but this one is useful and easy to hack in for now
 		if($target !== null && $target !== "@s"){
-			$player = $sender->getServer()->getPlayerByPrefix($target);
+			$player = $this->getPlayerByPrefix($sender, $target);
 			if($player === null){
-				$sender->sendMessage(KnownTranslationFactory::pocketmine_command_error_playerNotFound($target)->prefix(TextFormat::RED));
 				return null;
 			}
 		}elseif($sender instanceof Player){
@@ -67,6 +70,27 @@ abstract class VanillaCommand extends Command{
 		){
 			return $player;
 		}
+		return null;
+	}
+
+	/**
+	 * Resolves a player name typed by the sender. An exact name wins, otherwise the prefix has to match exactly one
+	 * online player. Sends the error message itself when nothing or more than one player matches.
+	 */
+	protected function getPlayerByPrefix(CommandSender $sender, string $name) : ?Player{
+		$matches = $sender->getServer()->getPlayersByPrefix($name);
+		if(count($matches) === 0){
+			$sender->sendMessage(KnownTranslationFactory::pocketmine_command_error_playerNotFound($name)->prefix(TextFormat::RED));
+			return null;
+		}
+		if(count($matches) === 1 || strcasecmp($matches[0]->getName(), $name) === 0){
+			return $matches[0];
+		}
+
+		$sender->sendMessage(KnownTranslationFactory::pocketmine_command_error_playerAmbiguous(
+			$name,
+			implode(", ", array_map(fn(Player $p) => $p->getName(), $matches))
+		)->prefix(TextFormat::RED));
 		return null;
 	}
 

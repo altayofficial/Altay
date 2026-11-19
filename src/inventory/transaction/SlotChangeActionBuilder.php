@@ -98,7 +98,7 @@ final class SlotChangeActionBuilder extends BaseInventory{
 	public function getMatchingItemCount(int $slot, Item $test, bool $checkTags) : int{
 		$slotItem = $this->changedSlots[$slot] ?? null;
 		if($slotItem !== null){
-			return $slotItem->equals($test, true, $checkTags) ? $slotItem->getCount() : 0;
+			return $slotItem->equals($test, $checkTags) ? $slotItem->getCount() : 0;
 		}
 		return $this->inventoryWindow->getInventory()->getMatchingItemCount($slot, $test, $checkTags);
 	}

@@ -95,7 +95,7 @@ class Armor extends Durable implements DyeableItem{
 			default => null
 		};
 
-		return $repairItem !== null && $material->equals($repairItem, false, false);
+		return $repairItem !== null && $material->equals($repairItem, false);
 	}
 
 	public function getTrim() : ?ArmorTrim{

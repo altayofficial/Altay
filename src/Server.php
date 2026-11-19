@@ -173,7 +173,8 @@ use function spl_object_id;
 use function sprintf;
 use function str_repeat;
 use function str_replace;
-use function stripos;
+use function str_starts_with;
+use function strcasecmp;
 use function strlen;
 use function strrpos;
 use function strtolower;
@@ -181,10 +182,10 @@ use function strval;
 use function time;
 use function touch;
 use function trim;
+use function usort;
 use function yaml_parse;
 use const DIRECTORY_SEPARATOR;
 use const PHP_EOL;
-use const PHP_INT_MAX;
 
 /**
  * The class that manages everything
@@ -617,36 +618,6 @@ class Server {
 	}
 
 	/**
-	 * @deprecated This method's results are unpredictable. The string "Steve" will return the player named "SteveJobs",
-	 * until another player named "SteveJ" joins the server, at which point it will return that player instead. Prefer
-	 * filtering the results of {@link Server::getOnlinePlayers()} yourself.
-	 *
-	 * Returns an online player whose name begins with or equals the given string (case insensitive).
-	 * The closest match will be returned, or null if there are no online matches.
-	 *
-	 * @see Server::getPlayerExact()
-	 */
-	public function getPlayerByPrefix(string $name) : ?Player{
-		$found = null;
-		$name = strtolower($name);
-		$delta = PHP_INT_MAX;
-		foreach($this->getOnlinePlayers() as $player){
-			if(stripos($player->getName(), $name) === 0){
-				$curDelta = strlen($player->getName()) - strlen($name);
-				if($curDelta < $delta){
-					$found = $player;
-					$delta = $curDelta;
-				}
-				if($curDelta === 0){
-					break;
-				}
-			}
-		}
-
-		return $found;
-	}
-
-	/**
 	 * Returns an online player with the given name (case insensitive), or null if not found.
 	 */
 	public function getPlayerExact(string $name) : ?Player{
@@ -658,6 +629,34 @@ class Server {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Returns every online player whose name starts with the given prefix (case insensitive). Useful for resolving
+	 * names typed by users, e.g. in commands or forms.
+	 *
+	 * An exact match always comes first, the rest are sorted by name length, then alphabetically, so the result
+	 * doesn't depend on who joined first. If more than one player matches, it's up to the caller to decide what to
+	 * do, don't just take the first one blindly unless that's really what you want.
+	 *
+	 * @return Player[]
+	 * @phpstan-return list<Player>
+	 */
+	public function getPlayersByPrefix(string $prefix) : array{
+		$prefix = strtolower($prefix);
+		$matches = [];
+		foreach($this->getOnlinePlayers() as $player){
+			if(str_starts_with(strtolower($player->getName()), $prefix)){
+				$matches[] = $player;
+			}
+		}
+
+		//exact match ends up first anyway, since it's the shortest possible name with this prefix
+		usort($matches, function(Player $a, Player $b) : int{
+			$byLength = strlen($a->getName()) <=> strlen($b->getName());
+			return $byLength !== 0 ? $byLength : strcasecmp($a->getName(), $b->getName());
+		});
+		return $matches;
 	}
 
 	/**

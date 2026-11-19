@@ -39,7 +39,7 @@ use pocketmine\network\mcpe\convert\TypeConverter;
 use pocketmine\world\format\io\GlobalBlockStateHandlers;
 
 /**
- * @deprecated
+ * @internal
  * @see \pocketmine\block\FlowerPot
  */
 class FlowerPot extends Spawnable{

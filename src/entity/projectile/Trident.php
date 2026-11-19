@@ -106,12 +106,8 @@ class Trident extends Projectile{
 		return parent::entityBaseTick($tickDiff);
 	}
 
-	protected function despawnsOnEntityHit() : bool{
-		return false;
-	}
-
 	protected function onHitEntity(Entity $entityHit, RayTraceResult $hitResult) : void{
-		parent::onHitEntity($entityHit, $hitResult);
+		$this->damageHitEntity($entityHit);
 
 		$this->canCollide = false;
 		$this->broadcastSound(new TridentHitEntitySound());

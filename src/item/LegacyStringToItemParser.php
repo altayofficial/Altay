@@ -44,8 +44,10 @@ use function strtolower;
 use function trim;
 
 /**
- * @deprecated
+ * @internal
  * @see StringToItemParser
+ *
+ * only kept around because flat world presets saved in level.dat can still have legacy IDs like "7" or "35:4" in them
  *
  * This class replaces the functionality that used to be provided by ItemFactory::fromString(), but in a more dynamic
  * way.

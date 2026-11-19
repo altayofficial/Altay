@@ -31,7 +31,6 @@ use pocketmine\command\utils\InvalidCommandSyntaxException;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\permission\DefaultPermissionNames;
 use pocketmine\player\Player;
-use pocketmine\utils\TextFormat;
 use function array_shift;
 use function count;
 use function implode;
@@ -57,15 +56,13 @@ class KickCommand extends VanillaCommand{
 		$name = array_shift($args);
 		$reason = trim(implode(" ", $args));
 
-		if(($player = $sender->getServer()->getPlayerByPrefix($name)) instanceof Player){
+		if(($player = $this->getPlayerByPrefix($sender, $name)) instanceof Player){
 			$player->kick($reason !== "" ? KnownTranslationFactory::pocketmine_disconnect_kick($reason) : KnownTranslationFactory::pocketmine_disconnect_kick_noReason());
 			if($reason !== ""){
 				Command::broadcastCommandMessage($sender, KnownTranslationFactory::commands_kick_success_reason($player->getName(), $reason));
 			}else{
 				Command::broadcastCommandMessage($sender, KnownTranslationFactory::commands_kick_success($player->getName()));
 			}
-		}else{
-			$sender->sendMessage(KnownTranslationFactory::commands_generic_player_notFound()->prefix(TextFormat::RED));
 		}
 
 		return true;

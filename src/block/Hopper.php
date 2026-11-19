@@ -622,7 +622,7 @@ class Hopper extends Transparent implements Container, PoweredByRedstone{
 		if($this->facing === Facing::DOWN){
 			return BrewingStandInventoryWindow::SLOT_INGREDIENT;
 		}
-		if($item->equals(VanillaItems::BLAZE_POWDER(), true, false)){
+		if($item->equals(VanillaItems::BLAZE_POWDER(), false)){
 			return BrewingStandInventoryWindow::SLOT_FUEL;
 		}
 		if(!$item instanceof Potion && !$item instanceof SplashPotion && !$item instanceof GlassBottle){

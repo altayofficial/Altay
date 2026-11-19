@@ -724,10 +724,9 @@ class Item implements \JsonSerializable{
 	/**
 	 * Compares an Item to this Item and check if they match.
 	 *
-	 * @param bool $checkDamage   @deprecated
 	 * @param bool $checkCompound Whether to verify that the items' NBT match.
 	 */
-	final public function equals(Item $item, bool $checkDamage = true, bool $checkCompound = true) : bool{
+	final public function equals(Item $item, bool $checkCompound = true) : bool{
 		return $this->getStateId() === $item->getStateId() &&
 			(!$checkCompound || $this->getNamedTag()->equals($item->getNamedTag()));
 	}
@@ -736,7 +735,7 @@ class Item implements \JsonSerializable{
 	 * Returns whether this item could stack with the given item (ignoring stack size and count).
 	 */
 	final public function canStackWith(Item $other) : bool{
-		return $this->equals($other, true, true);
+		return $this->equals($other);
 	}
 
 	/**

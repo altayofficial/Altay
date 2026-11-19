@@ -52,14 +52,10 @@ abstract class Timings{
 	public static TimingsHandler $playerNetworkSendCompress;
 	public static TimingsHandler $playerNetworkSendCompressBroadcast;
 	public static TimingsHandler $playerNetworkSendCompressSessionBuffer;
-	/** @deprecated Bedrock-layer encryption is gone, nothing is timed here any more */
-	public static TimingsHandler $playerNetworkSendEncrypt;
 	public static TimingsHandler $playerNetworkSendInventorySync;
 	public static TimingsHandler $playerNetworkSendPreSpawnGameData;
 	public static TimingsHandler $playerNetworkReceive;
 	public static TimingsHandler $playerNetworkReceiveDecompress;
-	/** @deprecated Bedrock-layer encryption is gone, nothing is timed here any more */
-	public static TimingsHandler $playerNetworkReceiveDecrypt;
 	public static TimingsHandler $playerChunkOrder;
 	public static TimingsHandler $playerChunkSend;
 	public static TimingsHandler $connection;
@@ -148,13 +144,11 @@ abstract class Timings{
 		self::$playerNetworkSendCompress = new TimingsHandler("Player Network Send - Compression", self::$playerNetworkSend);
 		self::$playerNetworkSendCompressBroadcast = new TimingsHandler("Player Network Send - Compression (Broadcast)", self::$playerNetworkSendCompress);
 		self::$playerNetworkSendCompressSessionBuffer = new TimingsHandler("Player Network Send - Compression (Session Buffer)", self::$playerNetworkSendCompress);
-		self::$playerNetworkSendEncrypt = new TimingsHandler("Player Network Send - Encryption", self::$playerNetworkSend);
 		self::$playerNetworkSendInventorySync = new TimingsHandler("Player Network Send - Inventory Sync", self::$playerNetworkSend);
 		self::$playerNetworkSendPreSpawnGameData = new TimingsHandler("Player Network Send - Pre-Spawn Game Data", self::$playerNetworkSend);
 
 		self::$playerNetworkReceive = new TimingsHandler("Player Network Receive", self::$connection);
 		self::$playerNetworkReceiveDecompress = new TimingsHandler("Player Network Receive - Decompression", self::$playerNetworkReceive);
-		self::$playerNetworkReceiveDecrypt = new TimingsHandler("Player Network Receive - Decryption", self::$playerNetworkReceive);
 
 		self::$broadcastPackets = new TimingsHandler("Broadcast Packets", self::$playerNetworkSend);
 

@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\permission;
 
-use pocketmine\Server;
 use pocketmine\utils\Utils;
 use function count;
 use function spl_object_id;
@@ -75,8 +74,7 @@ class PermissionManager{
 	}
 
 	/**
-	 * @deprecated Superseded by server chat broadcast channels
-	 * @see Server::subscribeToBroadcastChannel()
+	 * @internal
 	 */
 	public function subscribeToPermission(string $permission, PermissibleInternal $permissible) : void{
 		if(!isset($this->permSubs[$permission])){
@@ -86,8 +84,7 @@ class PermissionManager{
 	}
 
 	/**
-	 * @deprecated Superseded by server chat broadcast channels
-	 * @see Server::unsubscribeFromBroadcastChannel()
+	 * @internal
 	 */
 	public function unsubscribeFromPermission(string $permission, PermissibleInternal $permissible) : void{
 		if(isset($this->permSubs[$permission][spl_object_id($permissible)])){
@@ -100,8 +97,7 @@ class PermissionManager{
 	}
 
 	/**
-	 * @deprecated Superseded by server chat broadcast channels
-	 * @see Server::unsubscribeFromAllBroadcastChannels()
+	 * @internal
 	 */
 	public function unsubscribeFromAllPermissions(PermissibleInternal $permissible) : void{
 		foreach(Utils::promoteKeys($this->permSubs) as $permission => $subs){
@@ -114,8 +110,7 @@ class PermissionManager{
 	}
 
 	/**
-	 * @deprecated Superseded by server chat broadcast channels
-	 * @see Server::getBroadcastChannelSubscribers()
+	 * @internal
 	 * @return PermissibleInternal[]
 	 */
 	public function getPermissionSubscriptions(string $permission) : array{

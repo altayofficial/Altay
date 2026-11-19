@@ -1044,8 +1044,8 @@ abstract class Entity{
 			$this->forceMovementUpdate = false;
 		}
 
-		$this->updateMovement();
 		$this->updatePassengerPositions();
+		$this->updateMovement();
 
 		Timings::$entityBaseTick->startTiming();
 		$hasUpdate = $this->entityBaseTick($tickDiff);

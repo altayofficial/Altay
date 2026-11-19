@@ -1,0 +1,40 @@
+<?php
+
+/*
+ *
+ *      _    _ _
+ *     / \  | | |_ __ _ _   _
+ *    / _ \ | | __/ _` | | | |
+ *   / ___ \| | || (_| | |_| |
+ *  /_/   \_\_|\__\__,_|\__, |
+ *                       |___/
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Original work by the PocketMine Team.
+ * https://www.pocketmine.net/
+ *
+ * @author Altay Team
+ * @link https://github.com/altayofficial
+ */
+
+declare(strict_types=1);
+
+namespace pocketmine\data\bedrock;
+
+final class BoatTypeIds{
+	public const OAK = 0;
+	public const SPRUCE = 1;
+	public const BIRCH = 2;
+	public const JUNGLE = 3;
+	public const ACACIA = 4;
+	public const DARK_OAK = 5;
+	public const MANGROVE = 6;
+	public const BAMBOO = 7;
+	public const CHERRY = 8;
+	public const PALE_OAK = 9;
+	public const POPLAR = 10;
+}

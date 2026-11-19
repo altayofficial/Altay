@@ -26,6 +26,8 @@ declare(strict_types=1);
 namespace pocketmine\entity;
 
 use pocketmine\block\RuntimeBlockStateRegistry;
+use pocketmine\data\bedrock\BoatTypeIdMap;
+use pocketmine\data\bedrock\BoatTypeIds;
 use pocketmine\data\bedrock\LegacyEntityIdToStringIdMap;
 use pocketmine\data\bedrock\PotionTypeIdMap;
 use pocketmine\data\bedrock\PotionTypeIds;
@@ -33,6 +35,7 @@ use pocketmine\data\SavedDataLoadingException;
 use pocketmine\entity\EntityDataHelper as Helper;
 use pocketmine\entity\object\AreaEffectCloud;
 use pocketmine\entity\object\ArmorStand;
+use pocketmine\entity\object\Boat;
 use pocketmine\entity\object\Cushion;
 use pocketmine\entity\object\EndCrystal;
 use pocketmine\entity\object\ExperienceOrb;
@@ -50,6 +53,7 @@ use pocketmine\entity\projectile\Snowball;
 use pocketmine\entity\projectile\SplashPotion;
 use pocketmine\entity\projectile\Trident;
 use pocketmine\entity\projectile\WindCharge;
+use pocketmine\item\BoatType;
 use pocketmine\item\Item;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
@@ -101,6 +105,11 @@ final class EntityFactory{
 		$this->register(Arrow::class, function(World $world, CompoundTag $nbt) : Arrow{
 			return new Arrow(Helper::parseLocation($nbt, $world), null, $nbt->getByte(Arrow::TAG_CRIT, 0) === 1, $nbt);
 		}, ['Arrow', 'minecraft:arrow']);
+
+		$this->register(Boat::class, function(World $world, CompoundTag $nbt) : Boat{
+			$type = BoatTypeIdMap::getInstance()->fromId($nbt->getInt(Boat::TAG_VARIANT, BoatTypeIds::OAK)) ?? BoatType::OAK;
+			return new Boat(Helper::parseLocation($nbt, $world), $type, $nbt);
+		}, ['Boat', 'minecraft:boat']);
 
 		$this->register(Cushion::class, function(World $world, CompoundTag $nbt) : Cushion{
 			return new Cushion(Helper::parseLocation($nbt, $world), $nbt);

@@ -923,8 +923,8 @@ final class VanillaBlocks{
 	private static Water $_mWATER;
 	private static WaterCauldron $_mWATER_CAULDRON;
 	private static NetherVines $_mWEEPING_VINES;
-	private static WeightedPressurePlateHeavy $_mWEIGHTED_PRESSURE_PLATE_HEAVY;
-	private static WeightedPressurePlateLight $_mWEIGHTED_PRESSURE_PLATE_LIGHT;
+	private static WeightedPressurePlate $_mWEIGHTED_PRESSURE_PLATE_HEAVY;
+	private static WeightedPressurePlate $_mWEIGHTED_PRESSURE_PLATE_LIGHT;
 	private static Wheat $_mWHEAT;
 	private static Flower $_mWHITE_TULIP;
 	private static Wildflowers $_mWILDFLOWERS;
@@ -1850,8 +1850,8 @@ final class VanillaBlocks{
 			"water" => fn(Water $v) => self::$_mWATER = $v,
 			"water_cauldron" => fn(WaterCauldron $v) => self::$_mWATER_CAULDRON = $v,
 			"weeping_vines" => fn(NetherVines $v) => self::$_mWEEPING_VINES = $v,
-			"weighted_pressure_plate_heavy" => fn(WeightedPressurePlateHeavy $v) => self::$_mWEIGHTED_PRESSURE_PLATE_HEAVY = $v,
-			"weighted_pressure_plate_light" => fn(WeightedPressurePlateLight $v) => self::$_mWEIGHTED_PRESSURE_PLATE_LIGHT = $v,
+			"weighted_pressure_plate_heavy" => fn(WeightedPressurePlate $v) => self::$_mWEIGHTED_PRESSURE_PLATE_HEAVY = $v,
+			"weighted_pressure_plate_light" => fn(WeightedPressurePlate $v) => self::$_mWEIGHTED_PRESSURE_PLATE_LIGHT = $v,
 			"wheat" => fn(Wheat $v) => self::$_mWHEAT = $v,
 			"white_tulip" => fn(Flower $v) => self::$_mWHITE_TULIP = $v,
 			"wildflowers" => fn(Wildflowers $v) => self::$_mWILDFLOWERS = $v,
@@ -6313,12 +6313,12 @@ final class VanillaBlocks{
 		return clone self::$_mWEEPING_VINES;
 	}
 
-	public static function WEIGHTED_PRESSURE_PLATE_HEAVY() : WeightedPressurePlateHeavy{
+	public static function WEIGHTED_PRESSURE_PLATE_HEAVY() : WeightedPressurePlate{
 		if(!isset(self::$_mWEIGHTED_PRESSURE_PLATE_HEAVY)){ self::init(); }
 		return clone self::$_mWEIGHTED_PRESSURE_PLATE_HEAVY;
 	}
 
-	public static function WEIGHTED_PRESSURE_PLATE_LIGHT() : WeightedPressurePlateLight{
+	public static function WEIGHTED_PRESSURE_PLATE_LIGHT() : WeightedPressurePlate{
 		if(!isset(self::$_mWEIGHTED_PRESSURE_PLATE_LIGHT)){ self::init(); }
 		return clone self::$_mWEIGHTED_PRESSURE_PLATE_LIGHT;
 	}

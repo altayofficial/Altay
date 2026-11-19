@@ -36,8 +36,8 @@ use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\StringTag;
 use pocketmine\world\World;
 
-class DecoratedPot extends Spawnable implements Container{
-	use ContainerTrait;
+class DecoratedPot extends Spawnable implements ContainerTile{
+	use ContainerTileTrait;
 
 	public const TAG_SHERDS = "sherds";
 

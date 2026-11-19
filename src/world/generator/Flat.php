@@ -74,7 +74,7 @@ class Flat extends Generator{
 
 		$biomeArray = new PalettedBlockArray($this->options->getBiomeId());
 		foreach($this->chunk->getSubChunks() as $y => $subChunk){
-			$this->chunk->setSubChunk($y, new SubChunk(Block::EMPTY_STATE_ID, [], clone $biomeArray));
+			$this->chunk->setSubChunk($y, new SubChunk(Block::EMPTY_STATE_ID, null, null, clone $biomeArray));
 		}
 
 		$structure = $this->options->getStructure();

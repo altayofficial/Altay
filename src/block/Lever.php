@@ -32,7 +32,6 @@ use pocketmine\math\Axis;
 use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
-use pocketmine\utils\AssumptionFailedError;
 use pocketmine\world\BlockTransaction;
 use pocketmine\world\sound\RedstonePowerOffSound;
 use pocketmine\world\sound\RedstonePowerOnSound;
@@ -62,7 +61,7 @@ class Lever extends Flowable{
 		return $this;
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if(!$this->canBeSupportedAt($blockReplace, Facing::opposite($face))){
 			return false;
 		}
@@ -80,7 +79,6 @@ class Lever extends Flowable{
 			Facing::SOUTH => LeverFacing::SOUTH,
 			Facing::WEST => LeverFacing::WEST,
 			Facing::EAST => LeverFacing::EAST,
-			default => throw new AssumptionFailedError("Bad facing value"),
 		};
 
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
@@ -92,7 +90,7 @@ class Lever extends Flowable{
 		}
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		$this->activated = !$this->activated;
 		$world = $this->position->getWorld();
 		$world->setBlock($this->position, $this);
@@ -103,7 +101,7 @@ class Lever extends Flowable{
 		return true;
 	}
 
-	private function canBeSupportedAt(Block $block, int $face) : bool{
+	private function canBeSupportedAt(Block $block, Facing $face) : bool{
 		return $block->getAdjacentSupportType($face)->hasCenterSupport();
 	}
 

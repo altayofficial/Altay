@@ -379,6 +379,12 @@ parameters:
 			path: ../../../src/block/Nylium.php
 
 		-
+			message: '#^Offset 0\|1\|2\|3\|4\|5\|6\|7\|8\|9 might not exist on array\{array\{2, 3\}, array\{5, 4\}, array\{4, 16777221\}, array\{5, 16777220\}, array\{3, 16777218\}, array\{2, 16777219\}\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: ../../../src/block/Rail.php
+
+		-
 			message: '#^Parameter \#1 \$x of method pocketmine\\world\\World\:\:getFullLightAt\(\) expects int, float\|int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -449,54 +455,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/block/Sugarcane.php
-
-		-
-			message: '#^Parameter \#1 \$x of class pocketmine\\math\\Vector3 constructor expects float\|int, int\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/block/tile/Chest.php
-
-		-
-			message: '#^Parameter \#1 \$x of method pocketmine\\world\\World\:\:getTileAt\(\) expects int, int\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/block/tile/Chest.php
-
-		-
-			message: '#^Parameter \#2 \$value of method pocketmine\\nbt\\tag\\CompoundTag\:\:setInt\(\) expects int, int\|null given\.$#'
-			identifier: argument.type
-			count: 4
-			path: ../../../src/block/tile/Chest.php
-
-		-
-			message: '#^Parameter \#2 \$y of method pocketmine\\world\\World\:\:getTileAt\(\) expects int, float\|int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/block/tile/Chest.php
-
-		-
-			message: '#^Parameter \#3 \$z of class pocketmine\\math\\Vector3 constructor expects float\|int, int\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/block/tile/Chest.php
-
-		-
-			message: '#^Parameter \#3 \$z of method pocketmine\\world\\World\:\:getTileAt\(\) expects int, int\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/block/tile/Chest.php
-
-		-
-			message: '#^Property pocketmine\\block\\tile\\Chest\:\:\$pairX \(int\|null\) does not accept float\|int\.$#'
-			identifier: assign.propertyType
-			count: 2
-			path: ../../../src/block/tile/Chest.php
-
-		-
-			message: '#^Property pocketmine\\block\\tile\\Chest\:\:\$pairZ \(int\|null\) does not accept float\|int\.$#'
-			identifier: assign.propertyType
-			count: 2
-			path: ../../../src/block/tile/Chest.php
 
 		-
 			message: '#^Constant pocketmine\\block\\tile\\MobHead\:\:TAG_MOUTH_MOVING is unused\.$#'
@@ -577,12 +535,6 @@ parameters:
 			path: ../../../src/command/defaults/WhitelistCommand.php
 
 		-
-			message: '#^Parameter \#1 \$path of static method pocketmine\\utils\\Filesystem\:\:cleanPath\(\) expects string, mixed given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/crash/CrashDump.php
-
-		-
 			message: '#^Possibly invalid array key type float\|int\<0, max\>\.$#'
 			identifier: offsetAccess.invalidOffset
 			count: 1
@@ -611,12 +563,6 @@ parameters:
 			identifier: binaryOp.invalid
 			count: 1
 			path: ../../../src/crash/CrashDumpRenderer.php
-
-		-
-			message: '#^Parameter \#1 \$faces of method pocketmine\\block\\Vine\:\:setFaces\(\) expects list\<2\|3\|4\|5\>, array\<int\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/data/bedrock/block/convert/VanillaBlockMappings.php
 
 		-
 			message: '#^Parameter \#1 \$blockToItemId of class pocketmine\\data\\bedrock\\item\\BlockItemIdMap constructor expects array\<string, string\>, array\<mixed, mixed\> given\.$#'
@@ -659,6 +605,12 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/entity/object/FallingBlock.php
+
+		-
+			message: '#^Offset 0\|1\|2\|3\|4\|5 might not exist on array\{3\: 0, 4\: 1, 2\: 2, 5\: 3\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 3
+			path: ../../../src/entity/object/Painting.php
 
 		-
 			message: '#^Parameter \#1 \$x of method pocketmine\\world\\World\:\:getBlockAt\(\) expects int, float\|int given\.$#'
@@ -758,6 +710,12 @@ parameters:
 
 		-
 			message: '#^Cannot call method getAttributeMap\(\) on pocketmine\\player\\Player\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: ../../../src/network/mcpe/NetworkSession.php
+
+		-
+			message: '#^Cannot call method getCommandAliasMap\(\) on pocketmine\\player\\Player\|null\.$#'
 			identifier: method.nonObject
 			count: 1
 			path: ../../../src/network/mcpe/NetworkSession.php

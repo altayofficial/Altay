@@ -64,7 +64,7 @@ class NetherFungus extends Flowable{
 			$supportBlock->getTypeId() === BlockTypeIds::SOUL_SOIL;
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($item instanceof Fertilizer){
 			$item->pop();
 			if($this->getSide(Facing::DOWN)->getTypeId() === $this->nyliumTypeId && ($player === null || !$player->hasFiniteResources() || mt_rand(1, 100) <= 40)){

@@ -41,7 +41,7 @@ class DriedGhast extends Opaque implements HorizontalFacing{
 	protected int $rehydrationLevel = 0;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->horizontalFacing($this->facing);
+		$w->enum($this->facing);
 		$w->boundedIntAuto(0, self::MAX_REHYDRATION_LEVEL, $this->rehydrationLevel);
 	}
 

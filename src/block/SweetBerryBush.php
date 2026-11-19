@@ -61,20 +61,13 @@ class SweetBerryBush extends Flowable implements Ageable{
 		return 0;
 	}
 
-	/**
-	 * @deprecated
-	 */
-	protected function canBeSupportedBy(Block $block) : bool{
-		return $block->getTypeId() !== BlockTypeIds::FARMLAND && //bedrock-specific thing (bug?)
-			($block->hasTypeTag(BlockTypeTags::DIRT) || $block->hasTypeTag(BlockTypeTags::MUD));
-	}
-
 	private function canBeSupportedAt(Block $block) : bool{
 		$supportBlock = $block->getSide(Facing::DOWN);
-		return $this->canBeSupportedBy($supportBlock);
+		return $supportBlock->getTypeId() !== BlockTypeIds::FARMLAND && //bedrock-specific thing (bug?)
+			($supportBlock->hasTypeTag(BlockTypeTags::DIRT) || $supportBlock->hasTypeTag(BlockTypeTags::MUD));
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		$world = $this->position->getWorld();
 		if($this->age < self::STAGE_MATURE && $item instanceof Fertilizer){
 			$block = clone $this;

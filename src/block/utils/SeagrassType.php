@@ -25,19 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\block\utils;
 
-use pocketmine\utils\LegacyEnumShimTrait;
-
-/**
- * TODO: These tags need to be removed once we get rid of LegacyEnumShimTrait (PM6)
- *  These are retained for backwards compatibility only.
- *
- * @method static SeagrassType NORMAL()
- * @method static SeagrassType DOUBLE_TOP()
- * @method static SeagrassType DOUBLE_BOTTOM()
- */
 enum SeagrassType{
-	use LegacyEnumShimTrait;
-
 	case NORMAL;
 	case DOUBLE_TOP;
 	case DOUBLE_BOTTOM;

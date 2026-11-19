@@ -26,55 +26,54 @@ declare(strict_types=1);
 namespace pocketmine\block\utils;
 
 use pocketmine\data\runtime\RuntimeDataDescriber;
-use pocketmine\math\Axis;
 use pocketmine\math\Facing;
+use function spl_object_id;
 
 trait HorizontalConnectionsTrait{
 
-	/** @var int[] facing => facing */
+	/**
+	 * @var HorizontalFacingOption[]
+	 * @phpstan-var array<int, HorizontalFacingOption>
+	 */
 	protected array $connections = [];
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->horizontalFacingFlags($this->connections);
+		$w->enumSet($this->connections, HorizontalFacingOption::cases());
 	}
 
-	/** @return int[] */
+	/**
+	 * @return HorizontalFacingOption[]
+	 * @phpstan-return array<int, HorizontalFacingOption>
+	 */
 	public function getConnections() : array{ return $this->connections; }
 
-	public function isConnected(int $facing) : bool{
-		return isset($this->connections[$facing]);
+	public function isConnected(Facing $facing) : bool{
+		return isset($this->connections[spl_object_id(HorizontalFacingOption::fromFacing($facing))]);
 	}
 
 	/** @return $this */
-	public function setConnected(int $facing, bool $value) : self{
-		self::validateHorizontal($facing);
+	public function setConnected(Facing $facing, bool $value) : self{
+		$option = HorizontalFacingOption::fromFacing($facing);
 		if($value){
-			$this->connections[$facing] = $facing;
+			$this->connections[spl_object_id($option)] = $option;
 		}else{
-			unset($this->connections[$facing]);
+			unset($this->connections[spl_object_id($option)]);
 		}
 		return $this;
 	}
 
 	/**
-	 * @param int[] $connections
+	 * @param HorizontalFacingOption[] $connections
+	 * @phpstan-param array<HorizontalFacingOption> $connections
 	 * @return $this
 	 */
 	public function setConnections(array $connections) : self{
 		$uniqueConnections = [];
-		foreach($connections as $facing){
-			self::validateHorizontal($facing);
-			$uniqueConnections[$facing] = $facing;
+		foreach($connections as $option){
+			$uniqueConnections[spl_object_id($option)] = $option;
 		}
 		$this->connections = $uniqueConnections;
 		return $this;
-	}
-
-	private static function validateHorizontal(int $facing) : void{
-		$axis = Facing::axis($facing);
-		if($axis !== Axis::X && $axis !== Axis::Z){
-			throw new \InvalidArgumentException("Facing must be horizontal");
-		}
 	}
 
 	/**
@@ -85,7 +84,7 @@ trait HorizontalConnectionsTrait{
 		$changed = false;
 		foreach(Facing::HORIZONTAL as $facing){
 			$connected = $this->canConnectTo($facing);
-			if($connected !== isset($this->connections[$facing])){
+			if($connected !== $this->isConnected($facing)){
 				$this->setConnected($facing, $connected);
 				$changed = true;
 			}
@@ -97,5 +96,5 @@ trait HorizontalConnectionsTrait{
 		return $changed;
 	}
 
-	abstract protected function canConnectTo(int $facing) : bool;
+	abstract protected function canConnectTo(Facing $facing) : bool;
 }

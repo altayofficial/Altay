@@ -28,7 +28,7 @@ namespace pmmp\TesterPlugin\hopper;
 use pmmp\TesterPlugin\Main;
 use pmmp\TesterPlugin\Test;
 use pmmp\TesterPlugin\TestFailedException;
-use pocketmine\block\tile\Container;
+use pocketmine\block\tile\ContainerTile;
 use pocketmine\block\VanillaBlocks;
 use pocketmine\entity\object\ItemEntity;
 use pocketmine\inventory\Inventory;
@@ -41,13 +41,14 @@ use pocketmine\world\ChunkLoader;
 use pocketmine\world\format\Chunk;
 use pocketmine\world\World;
 
-abstract class HopperTestBase extends Test implements ChunkLoader{
+abstract class HopperTestBase extends Test{
 	protected const AREA_SIZE = 16;
 	protected const AREA_HEIGHT = 24;
 	protected const AREA_Y = 100;
 	private const ENTITY_SEARCH_PADDING = 4;
 
 	protected World $world;
+	private ChunkLoader $chunkLoader;
 	protected int $areaX;
 	protected int $areaZ;
 
@@ -74,8 +75,9 @@ abstract class HopperTestBase extends Test implements ChunkLoader{
 		$this->areaX = $chunkX << Chunk::COORD_BIT_SIZE;
 		$this->areaZ = $chunkZ << Chunk::COORD_BIT_SIZE;
 
-		$world->registerChunkLoader($this, $chunkX, $chunkZ);
-		$world->orderChunkPopulation($chunkX, $chunkZ, $this)->onCompletion(
+		$this->chunkLoader = new ChunkLoader();
+		$world->registerChunkLoader($this->chunkLoader, $chunkX, $chunkZ);
+		$world->orderChunkPopulation($chunkX, $chunkZ, $this->chunkLoader)->onCompletion(
 			function() : void{
 				$this->startTicking();
 			},
@@ -144,7 +146,7 @@ abstract class HopperTestBase extends Test implements ChunkLoader{
 		}catch(\Throwable $e){
 			$this->testLogger->logException($e);
 		}
-		$this->world->unregisterChunkLoader($this, $this->areaX >> Chunk::COORD_BIT_SIZE, $this->areaZ >> Chunk::COORD_BIT_SIZE);
+		$this->world->unregisterChunkLoader($this->chunkLoader, $this->areaX >> Chunk::COORD_BIT_SIZE, $this->areaZ >> Chunk::COORD_BIT_SIZE);
 	}
 
 	abstract protected function setUpArea() : void;
@@ -192,7 +194,7 @@ abstract class HopperTestBase extends Test implements ChunkLoader{
 	 */
 	protected function getContainerInventory(Vector3 $pos) : Inventory{
 		$tile = $this->world->getTile($pos);
-		if(!$tile instanceof Container){
+		if(!$tile instanceof ContainerTile){
 			throw new TestFailedException("Expected a container tile at " . $pos->__toString() . ", but found " . ($tile === null ? "nothing" : $tile::class));
 		}
 		return $tile->getInventory();

@@ -74,7 +74,7 @@ class ArmorStand extends Living{
 	private const TAG_POSE_INDEX = "PoseIndex"; //TAG_Int
 	private const TAG_ARMOR_SLOT = "Slot"; //TAG_Byte
 
-	public static function getNetworkTypeId() : string{ return EntityIds::ARMOR_STAND; }
+	public function getNetworkTypeId() : string{ return EntityIds::ARMOR_STAND; }
 
 	protected SimpleInventory $handInventory;
 
@@ -182,7 +182,7 @@ class ArmorStand extends Living{
 			return true;
 		}
 
-		$heldItem = $player->getInventory()->getItemInHand();
+		$heldItem = $player->getMainHandItem();
 		$target = $this->findEquipmentSlot($heldItem, $clickPos->getY());
 		if($target === null){
 			return false;
@@ -201,7 +201,7 @@ class ArmorStand extends Living{
 		if($player->hasFiniteResources()){
 			if(!$heldItem->isNull()){
 				$heldItem->pop();
-				$player->getInventory()->setItemInHand($heldItem);
+				$player->setMainHandItem($heldItem);
 			}
 			if(!$oldItem->isNull()){
 				foreach($player->getInventory()->addItem($oldItem) as $failed){
@@ -401,7 +401,7 @@ class ArmorStand extends Living{
 	}
 
 	protected function onDispose() : void{
-		$this->handInventory->removeAllViewers();
+		$this->handInventory->removeAllWindows();
 		parent::onDispose();
 	}
 

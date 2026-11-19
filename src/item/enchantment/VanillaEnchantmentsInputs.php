@@ -46,8 +46,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("PROTECTION", new ProtectionEnchantment(
 			KnownTranslationFactory::enchantment_protect_all(),
 			Rarity::COMMON,
-			0,
-			0,
 			4,
 			0.75,
 			null,
@@ -57,8 +55,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("FIRE_PROTECTION", new ProtectionEnchantment(
 			KnownTranslationFactory::enchantment_protect_fire(),
 			Rarity::UNCOMMON,
-			0,
-			0,
 			4,
 			1.25,
 			[
@@ -73,8 +69,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("FEATHER_FALLING", new ProtectionEnchantment(
 			KnownTranslationFactory::enchantment_protect_fall(),
 			Rarity::UNCOMMON,
-			0,
-			0,
 			4,
 			2.5,
 			[
@@ -86,8 +80,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("BLAST_PROTECTION", new ProtectionEnchantment(
 			KnownTranslationFactory::enchantment_protect_explosion(),
 			Rarity::RARE,
-			0,
-			0,
 			4,
 			1.5,
 			[
@@ -100,8 +92,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("PROJECTILE_PROTECTION", new ProtectionEnchantment(
 			KnownTranslationFactory::enchantment_protect_projectile(),
 			Rarity::UNCOMMON,
-			0,
-			0,
 			4,
 			1.5,
 			[
@@ -113,8 +103,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("THORNS", new Enchantment(
 			KnownTranslationFactory::enchantment_thorns(),
 			Rarity::MYTHIC,
-			0,
-			0,
 			3,
 			fn(int $level) : int => 20 * ($level - 1) + 10,
 			50
@@ -122,8 +110,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("RESPIRATION", new Enchantment(
 			KnownTranslationFactory::enchantment_oxygen(),
 			Rarity::RARE,
-			0,
-			0,
 			3,
 			fn(int $level) : int => 10 * $level,
 			30
@@ -132,8 +118,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("FROST_WALKER", new Enchantment(
 			KnownTranslationFactory::enchantment_frostwalker(),
 			Rarity::RARE,
-			0,
-			0,
 			2,
 			fn(int $level) : int => 10 * $level,
 			15
@@ -141,8 +125,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("AQUA_AFFINITY", new Enchantment(
 			KnownTranslationFactory::enchantment_waterWorker(),
 			Rarity::RARE,
-			0,
-			0,
 			1,
 			null,
 			40
@@ -151,8 +133,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("SHARPNESS", new SharpnessEnchantment(
 			KnownTranslationFactory::enchantment_damage_all(),
 			Rarity::COMMON,
-			0,
-			0,
 			5,
 			fn(int $level) : int => 11 * ($level - 1) + 1,
 			20
@@ -160,8 +140,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("KNOCKBACK", new KnockbackEnchantment(
 			KnownTranslationFactory::enchantment_knockback(),
 			Rarity::UNCOMMON,
-			0,
-			0,
 			2,
 			fn(int $level) : int => 20 * ($level - 1) + 5,
 			50
@@ -169,8 +147,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("FIRE_ASPECT", new FireAspectEnchantment(
 			KnownTranslationFactory::enchantment_fire(),
 			Rarity::RARE,
-			0,
-			0,
 			2,
 			fn(int $level) : int => 20 * ($level - 1) + 10,
 			50
@@ -180,8 +156,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("EFFICIENCY", new Enchantment(
 			KnownTranslationFactory::enchantment_digging(),
 			Rarity::COMMON,
-			0,
-			0,
 			5,
 			fn(int $level) : int => 10 * ($level - 1) + 1,
 			50
@@ -189,8 +163,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("FORTUNE", new Enchantment(
 			KnownTranslationFactory::enchantment_lootBonusDigger(),
 			Rarity::RARE,
-			0,
-			0,
 			3,
 			fn(int $level) : int => 9 * ($level - 1) + 15,
 			50
@@ -198,8 +170,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("SILK_TOUCH", new Enchantment(
 			KnownTranslationFactory::enchantment_untouching(),
 			Rarity::MYTHIC,
-			0,
-			0,
 			1,
 			fn(int $level) : int => 15,
 			50
@@ -207,8 +177,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("UNBREAKING", new Enchantment(
 			KnownTranslationFactory::enchantment_durability(),
 			Rarity::UNCOMMON,
-			0,
-			0,
 			3,
 			fn(int $level) : int => 8 * ($level - 1) + 5,
 			50
@@ -217,8 +185,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("POWER", new Enchantment(
 			KnownTranslationFactory::enchantment_arrowDamage(),
 			Rarity::COMMON,
-			0,
-			0,
 			5,
 			fn(int $level) : int => 10 * ($level - 1) + 1,
 			15
@@ -226,8 +192,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("PUNCH", new Enchantment(
 			KnownTranslationFactory::enchantment_arrowKnockback(),
 			Rarity::RARE,
-			0,
-			0,
 			2,
 			fn(int $level) : int => 20 * ($level - 1) + 12,
 			25
@@ -235,8 +199,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("FLAME", new Enchantment(
 			KnownTranslationFactory::enchantment_arrowFire(),
 			Rarity::RARE,
-			0,
-			0,
 			1,
 			fn(int $level) : int => 20,
 			30
@@ -244,8 +206,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("INFINITY", new Enchantment(
 			KnownTranslationFactory::enchantment_arrowInfinite(),
 			Rarity::MYTHIC,
-			0,
-			0,
 			1,
 			fn(int $level) : int => 20,
 			30
@@ -254,8 +214,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("MENDING", new Enchantment(
 			KnownTranslationFactory::enchantment_mending(),
 			Rarity::RARE,
-			0,
-			0,
 			1,
 			fn(int $level) : int => 25,
 			50
@@ -264,8 +222,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("VANISHING", new Enchantment(
 			KnownTranslationFactory::enchantment_curse_vanishing(),
 			Rarity::MYTHIC,
-			0,
-			0,
 			1,
 			fn(int $level) : int => 25,
 			25
@@ -274,8 +230,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("DENSITY", new Enchantment(
 			KnownTranslationFactory::enchantment_heavy_weapon_density(),
 			Rarity::COMMON,
-			0,
-			0,
 			5,
 			fn(int $level) : int => 8 * ($level - 1) + 5,
 			20
@@ -284,8 +238,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("BREACH", new Enchantment(
 			KnownTranslationFactory::enchantment_heavy_weapon_breach(),
 			Rarity::RARE,
-			0,
-			0,
 			4,
 			fn(int $level) : int => 9 * ($level - 1) + 15,
 			20
@@ -294,8 +246,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("WIND_BURST", new Enchantment(
 			KnownTranslationFactory::enchantment_heavy_weapon_windburst(),
 			Rarity::MYTHIC,
-			0,
-			0,
 			3,
 			fn(int $level) : int => 9 * ($level - 1) + 15,
 			20
@@ -304,8 +254,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("MULTISHOT", new Enchantment(
 			KnownTranslationFactory::enchantment_crossbowMultishot(),
 			Rarity::RARE,
-			0,
-			0,
 			1,
 			fn(int $level) : int => 20,
 			50
@@ -314,8 +262,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("PIERCING", new Enchantment(
 			KnownTranslationFactory::enchantment_crossbowPiercing(),
 			Rarity::COMMON,
-			0,
-			0,
 			4,
 			fn(int $level) : int => 10 * ($level - 1) + 1,
 			50
@@ -324,8 +270,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("QUICK_CHARGE", new Enchantment(
 			KnownTranslationFactory::enchantment_crossbowQuickCharge(),
 			Rarity::UNCOMMON,
-			0,
-			0,
 			3,
 			fn(int $level) : int => 20 * ($level - 1) + 12,
 			50
@@ -334,8 +278,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("SWIFT_SNEAK", new Enchantment(
 			KnownTranslationFactory::enchantment_swift_sneak(),
 			Rarity::MYTHIC,
-			0,
-			0,
 			3,
 			fn(int $level) : int => 10 * $level,
 			5
@@ -344,8 +286,6 @@ final class VanillaEnchantmentsInputs extends RegistrySource{
 		self::register("LUNGE", new Enchantment(
 			"enchantment.lunge",
 			Rarity::UNCOMMON,
-			0,
-			0,
 			3,
 			fn(int $level) : int => 10 * $level,
 			25

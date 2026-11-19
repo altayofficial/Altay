@@ -42,7 +42,7 @@ class MossBlock extends Opaque{
 	private const SPREAD_RADIUS = 3;
 	private const SPREAD_VERTICAL_RANGE = 5;
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if(!$item instanceof Fertilizer || $face !== Facing::UP){
 			return false;
 		}

@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\block\utils\HorizontalFacing;
+use pocketmine\block\utils\HorizontalFacingOption;
 use pocketmine\block\utils\HorizontalFacingTrait;
 use pocketmine\block\utils\SupportType;
 use pocketmine\data\runtime\RuntimeDataDescriber;
@@ -45,7 +46,7 @@ class Door extends Transparent implements HorizontalFacing{
 	protected bool $open = false;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->horizontalFacing($this->facing);
+		$w->enum($this->facing);
 		$w->bool($this->top);
 		$w->bool($this->hingeRight);
 		$w->bool($this->open);
@@ -100,10 +101,10 @@ class Door extends Transparent implements HorizontalFacing{
 
 	protected function recalculateCollisionBoxes() : array{
 		//TODO: doors are 0.1825 blocks thick, instead of 0.1875 like JE (https://bugs.mojang.com/browse/MCPE-19214)
-		return [AxisAlignedBB::one()->trim($this->open ? Facing::rotateY($this->facing, !$this->hingeRight) : $this->facing, 327 / 400)];
+		return [AxisAlignedBB::one()->trimmedCopy($this->open ? Facing::rotateY($this->facing->toFacing(), !$this->hingeRight) : $this->facing->toFacing(), 327 / 400)];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 
@@ -113,7 +114,7 @@ class Door extends Transparent implements HorizontalFacing{
 		}
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if($face === Facing::UP){
 			$blockUp = $this->getSide(Facing::UP);
 			if(!$blockUp->canBeReplaced() || !$this->canBeSupportedAt($blockReplace)){
@@ -121,11 +122,13 @@ class Door extends Transparent implements HorizontalFacing{
 			}
 
 			if($player !== null){
-				$this->facing = $player->getHorizontalFacing();
+				//TODO: not sure if entities should use HorizontalFacingOption too
+				$this->facing = HorizontalFacingOption::fromFacing($player->getHorizontalFacing());
 			}
 
-			$next = $this->getSide(Facing::rotateY($this->facing, false));
-			$next2 = $this->getSide(Facing::rotateY($this->facing, true));
+			$realFacing = $this->facing->toFacing();
+			$next = $this->getSide(Facing::rotateY($realFacing, false));
+			$next2 = $this->getSide(Facing::rotateY($realFacing, true));
 
 			if($next->hasSameTypeId($this) || (!$next2->isTransparent() && $next->isTransparent())){ //Door hinge
 				$this->hingeRight = true;
@@ -141,7 +144,7 @@ class Door extends Transparent implements HorizontalFacing{
 		return false;
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		$this->open = !$this->open;
 
 		$other = $this->getSide($this->top ? Facing::DOWN : Facing::UP);

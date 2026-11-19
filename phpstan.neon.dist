@@ -1,7 +1,6 @@
 includes:
 	- tests/phpstan/analyse-for-current-php-version.neon.php
 	- tests/phpstan/configs/actual-problems.neon
-	- tests/phpstan/configs/php-bugs.neon
 	- tests/phpstan/configs/phpstan-bugs.neon
 	- tests/phpstan/configs/property-hook-sadness.neon
 	- tests/phpstan/configs/spl-fixed-array-sucks.neon
@@ -10,9 +9,7 @@ includes:
 	- vendor/phpstan/phpstan-strict-rules/rules.neon
 
 rules:
-	- pocketmine\phpstan\rules\DeprecatedLegacyEnumAccessRule
 	- pocketmine\phpstan\rules\DisallowDynamicNewRule
-	- pocketmine\phpstan\rules\DisallowEnumComparisonRule
 	- pocketmine\phpstan\rules\DisallowForeachByReferenceRule
 	- pocketmine\phpstan\rules\ExplodeLimitRule
 	- pocketmine\phpstan\rules\UnsafeForeachRule

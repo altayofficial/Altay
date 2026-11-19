@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe\handler;
 
-use pocketmine\inventory\Inventory;
 use pocketmine\item\Durable;
 use pocketmine\network\mcpe\InventoryManager;
 use pocketmine\network\mcpe\protocol\types\inventory\ContainerUIIds;
@@ -33,6 +32,7 @@ use pocketmine\network\mcpe\protocol\types\inventory\FullContainerName;
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponse;
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponseContainerInfo;
 use pocketmine\network\mcpe\protocol\types\inventory\stackresponse\ItemStackResponseSlotInfo;
+use pocketmine\player\InventoryWindow;
 use pocketmine\utils\AssumptionFailedError;
 
 final class ItemStackResponseBuilder{
@@ -53,20 +53,11 @@ final class ItemStackResponseBuilder{
 	}
 
 	/**
-	 * @phpstan-return array{Inventory, int}
+	 * @phpstan-return array{InventoryWindow, int}
 	 */
-	private function getInventoryAndSlot(int $containerInterfaceId, int $slotId) : ?array{
+	private function locateWindowAndSlot(int $containerInterfaceId, int $slotId) : ?array{
 		[$windowId, $slotId] = ItemStackContainerIdTranslator::translate($containerInterfaceId, $this->inventoryManager->getCurrentWindowId(), $slotId);
-		$windowAndSlot = $this->inventoryManager->locateWindowAndSlot($windowId, $slotId);
-		if($windowAndSlot === null){
-			return null;
-		}
-		[$inventory, $slot] = $windowAndSlot;
-		if(!$inventory->slotExists($slot)){
-			return null;
-		}
-
-		return [$inventory, $slot];
+		return $this->inventoryManager->locateWindowAndSlot($windowId, $slotId);
 	}
 
 	public function build() : ItemStackResponse{
@@ -76,18 +67,18 @@ final class ItemStackResponseBuilder{
 				continue;
 			}
 			foreach($slotIds as $slotId){
-				$inventoryAndSlot = $this->getInventoryAndSlot($containerInterfaceId, $slotId);
-				if($inventoryAndSlot === null){
+				$windowAndSlot = $this->locateWindowAndSlot($containerInterfaceId, $slotId);
+				if($windowAndSlot === null){
 					//a plugin may have closed the inventory during an event, or the slot may have been invalid
 					continue;
 				}
-				[$inventory, $slot] = $inventoryAndSlot;
+				[$window, $slot] = $windowAndSlot;
 
-				$itemStackInfo = $this->inventoryManager->getItemStackInfo($inventory, $slot);
+				$itemStackInfo = $this->inventoryManager->getItemStackInfo($window, $slot);
 				if($itemStackInfo === null){
 					throw new AssumptionFailedError("ItemStackInfo should never be null for an open inventory");
 				}
-				$item = $inventory->getItem($slot);
+				$item = $window->getInventory()->getItem($slot);
 
 				$responseInfosByContainer[$containerInterfaceId][] = new ItemStackResponseSlotInfo(
 					$slotId,

@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\utils;
 
+use pocketmine\command\CommandAliasMap;
 use pocketmine\command\CommandSender;
 use pocketmine\lang\Language;
 use pocketmine\lang\Translatable;
@@ -43,6 +44,8 @@ use const PHP_INT_MAX;
 final class BroadcastLoggerForwarder implements CommandSender{
 	use PermissibleDelegateTrait;
 
+	private CommandAliasMap $commandAliasMap;
+
 	public function __construct(
 		private Server $server, //annoying useless dependency
 		private \Logger $logger,
@@ -50,6 +53,7 @@ final class BroadcastLoggerForwarder implements CommandSender{
 	){
 		//this doesn't need any permissions
 		$this->perm = new PermissibleBase([]);
+		$this->commandAliasMap = new CommandAliasMap();
 	}
 
 	public function getLanguage() : Language{
@@ -79,4 +83,6 @@ final class BroadcastLoggerForwarder implements CommandSender{
 	public function setScreenLineHeight(?int $height) : void{
 		//NOOP
 	}
+
+	public function getCommandAliasMap() : CommandAliasMap{ return $this->commandAliasMap; }
 }

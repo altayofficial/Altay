@@ -52,7 +52,7 @@ class WindCharge extends Throwable{
 
 	protected float $damage = 1.0;
 
-	public static function getNetworkTypeId() : string{ return EntityIds::WIND_CHARGE_PROJECTILE; }
+	public function getNetworkTypeId() : string{ return EntityIds::WIND_CHARGE_PROJECTILE; }
 
 	protected function getInitialSizeInfo() : EntitySizeInfo{ return new EntitySizeInfo(0.3125, 0.3125); }
 

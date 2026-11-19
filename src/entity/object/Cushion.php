@@ -54,7 +54,7 @@ class Cushion extends Living{
 
 	protected int $maxDeadTicks = 1;
 
-	public static function getNetworkTypeId() : string{ return "minecraft:cushion"; }
+	public function getNetworkTypeId() : string{ return "minecraft:cushion"; }
 
 	protected function getInitialSizeInfo() : EntitySizeInfo{ return new EntitySizeInfo(0.249, 0.999); }
 

@@ -297,8 +297,16 @@ class Server {
 
 	private ServerConfigGroup $configGroup;
 
-	/** @var Player[] */
+	/**
+	 * @var Player[]
+	 * @phpstan-var array<string, Player>
+	 */
 	private array $playerList = [];
+	/**
+	 * @var Player[]
+	 * @phpstan-var array<string, Player>
+	 */
+	private array $playersByXuid = [];
 
 	private SignalHandler $signalHandler;
 
@@ -670,6 +678,16 @@ class Server {
 	 */
 	public function getPlayerByUUID(UuidInterface $uuid) : ?Player{
 		return $this->getPlayerByRawUUID($uuid->getBytes());
+	}
+
+	/**
+	 * Returns the online player with the given XUID, or null if not found. Unlike names, XUIDs never change, so this
+	 * is the one to use if you're keying stored data by Xbox account.
+	 *
+	 * Players who aren't signed into Xbox Live (e.g. with xbox-auth disabled) have no XUID and can't be found this way.
+	 */
+	public function getPlayerByXuid(string $xuid) : ?Player{
+		return $xuid !== "" ? $this->playersByXuid[$xuid] ?? null : null;
 	}
 
 	public function getConfigGroup() : ServerConfigGroup{
@@ -2032,6 +2050,9 @@ class Server {
 			$p->getNetworkSession()->onPlayerAdded($player);
 		}
 		$this->playerList[$player->getUniqueId()->getBytes()] = $player;
+		if(($xuid = $player->getXuid()) !== ""){
+			$this->playersByXuid[$xuid] = $player;
+		}
 
 		return true;
 	}
@@ -2039,6 +2060,9 @@ class Server {
 	public function removeOnlinePlayer(Player $player) : void{
 		if(isset($this->playerList[$rawUUID = $player->getUniqueId()->getBytes()])){
 			unset($this->playerList[$rawUUID]);
+			if(($xuid = $player->getXuid()) !== "" && ($this->playersByXuid[$xuid] ?? null) === $player){
+				unset($this->playersByXuid[$xuid]);
+			}
 			foreach($this->playerList as $p){
 				$p->getNetworkSession()->onPlayerRemoved($player);
 			}

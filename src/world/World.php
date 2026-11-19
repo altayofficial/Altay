@@ -3446,7 +3446,10 @@ class World implements ChunkManager{
 	}
 
 	private function queueUnloadChunk(int $x, int $z) : void{
-		$this->unloadQueue[World::chunkHash($x, $z)] = microtime(true);
+		$chunkHash = World::chunkHash($x, $z);
+		//unset first so it goes to the back, unloadChunks() needs the queue ordered by time
+		unset($this->unloadQueue[$chunkHash]);
+		$this->unloadQueue[$chunkHash] = microtime(true);
 	}
 
 	public function unloadChunkRequest(int $x, int $z, bool $safe = true) : bool{
@@ -4006,15 +4009,10 @@ class World implements ChunkManager{
 			$maxUnload = 96;
 			$now = microtime(true);
 			foreach($this->unloadQueue as $index => $time){
-				World::getXZ($index, $X, $Z);
-
-				if(!$force){
-					if($maxUnload <= 0){
-						break;
-					}elseif($time > ($now - $this->chunkUnloadDelay)){
-						continue;
-					}
+				if(!$force && ($maxUnload <= 0 || $time > ($now - $this->chunkUnloadDelay))){
+					break;
 				}
+				World::getXZ($index, $X, $Z);
 
 				//If the chunk can't be unloaded, it stays on the queue
 				if($this->unloadChunk($X, $Z, true)){

@@ -54,9 +54,10 @@ use const CURLOPT_POSTFIELDS;
 
 class TimingsCommand extends VanillaCommand{
 
-	public function __construct(){
+	public function __construct(string $namespace, string $name){
 		parent::__construct(
-			"timings",
+			$namespace,
+			$name,
 			KnownTranslationFactory::pocketmine_command_timings_description(),
 			KnownTranslationFactory::pocketmine_command_timings_usage()
 		);

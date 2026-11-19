@@ -98,7 +98,7 @@ class Farmland extends Transparent{
 	}
 
 	protected function recalculateCollisionBoxes() : array{
-		return [AxisAlignedBB::one()->trim(Facing::UP, 1 / 16)];
+		return [AxisAlignedBB::one()->trimmedCopy(Facing::UP, 1 / 16)];
 	}
 
 	public function onNearbyBlockChange() : void{

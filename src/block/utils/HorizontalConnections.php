@@ -33,26 +33,23 @@ use pocketmine\math\Facing;
 interface HorizontalConnections{
 
 	/**
-	 * @return int[]
-	 * @see Facing
+	 * @return HorizontalFacingOption[]
+	 * @phpstan-return array<int, HorizontalFacingOption>
 	 */
 	public function getConnections() : array;
 
-	public function isConnected(int $facing) : bool;
+	public function isConnected(Facing $facing) : bool;
 
 	/**
 	 * @return $this
-	 *
-	 * @see Facing
 	 */
-	public function setConnected(int $facing, bool $value) : self;
+	public function setConnected(Facing $facing, bool $value) : self;
 
 	/**
-	 * @param int[] $connections
+	 * @param HorizontalFacingOption[] $connections
+	 * @phpstan-param array<HorizontalFacingOption> $connections
 	 *
 	 * @return $this
-	 *
-	 * @see Facing
 	 */
 	public function setConnections(array $connections) : self;
 

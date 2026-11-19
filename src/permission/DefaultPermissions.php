@@ -83,6 +83,7 @@ abstract class DefaultPermissions{
 			Names::COMMAND_BAN_LIST,
 			Names::COMMAND_BAN_PLAYER,
 			Names::COMMAND_CLEAR_OTHER,
+			Names::COMMAND_CMDALIAS_EDIT_GLOBAL,
 			Names::COMMAND_DEFAULTGAMEMODE,
 			Names::COMMAND_DIFFICULTY,
 			Names::COMMAND_EFFECT_OTHER,
@@ -137,6 +138,8 @@ abstract class DefaultPermissions{
 		}
 
 		foreach([
+			Names::COMMAND_CMDALIAS_EDIT_SELF,
+			Names::COMMAND_CMDALIAS_LIST,
 			Names::COMMAND_KILL_SELF,
 			Names::COMMAND_ME,
 			Names::COMMAND_HELP,

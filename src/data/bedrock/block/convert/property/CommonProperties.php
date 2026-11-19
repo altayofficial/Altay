@@ -35,6 +35,7 @@ use pocketmine\block\SimplePressurePlate;
 use pocketmine\block\Slab;
 use pocketmine\block\Stair;
 use pocketmine\block\Stem;
+use pocketmine\block\StraightOnlyRail;
 use pocketmine\block\Torch;
 use pocketmine\block\Trapdoor;
 use pocketmine\block\utils\Ageable;
@@ -48,44 +49,47 @@ use pocketmine\block\utils\CoralType;
 use pocketmine\block\utils\DyeColor;
 use pocketmine\block\utils\HorizontalConnections;
 use pocketmine\block\utils\HorizontalFacing;
+use pocketmine\block\utils\HorizontalFacingOption;
 use pocketmine\block\utils\Lightable;
 use pocketmine\block\utils\MultiAnyFacing;
 use pocketmine\block\utils\PillarRotation;
 use pocketmine\block\utils\SignLikeRotation;
 use pocketmine\block\utils\SlabType;
 use pocketmine\block\utils\StairShape;
+use pocketmine\block\utils\StraightOnlyRailShape;
 use pocketmine\block\utils\WallConnectionType;
 use pocketmine\block\Wall;
 use pocketmine\block\Wood;
 use pocketmine\data\bedrock\block\BlockLegacyMetadata;
 use pocketmine\data\bedrock\block\BlockStateNames as StateNames;
 use pocketmine\data\bedrock\block\BlockStateStringValues;
+use pocketmine\math\Axis;
 use pocketmine\math\Facing;
 use pocketmine\utils\SingletonTrait;
 
 final class CommonProperties{
 	use SingletonTrait;
 
-	/** @phpstan-var ValueFromStringProperty<AnyFacing, int> */
+	/** @phpstan-var ValueFromStringProperty<AnyFacing, Facing> */
 	public readonly ValueFromStringProperty $blockFace;
-	/** @phpstan-var ValueFromStringProperty<PillarRotation, int> */
+	/** @phpstan-var ValueFromStringProperty<PillarRotation, Axis> */
 	public readonly ValueFromStringProperty $pillarAxis;
 	/** @phpstan-var ValueFromStringProperty<Torch, int> */
 	public readonly ValueFromStringProperty $torchFacing;
 
-	/** @phpstan-var ValueFromStringProperty<HorizontalFacing, int> */
+	/** @phpstan-var ValueFromStringProperty<HorizontalFacing, HorizontalFacingOption> */
 	public readonly ValueFromStringProperty $horizontalFacingCardinal;
-	/** @phpstan-var ValueFromIntProperty<HorizontalFacing, int> */
+	/** @phpstan-var ValueFromIntProperty<HorizontalFacing, HorizontalFacingOption> */
 	public readonly ValueFromIntProperty $horizontalFacingSWNE;
-	/** @phpstan-var ValueFromIntProperty<HorizontalFacing, int> */
+	/** @phpstan-var ValueFromIntProperty<HorizontalFacing, HorizontalFacingOption> */
 	public readonly ValueFromIntProperty $horizontalFacingSWNEInverted;
-	/** @phpstan-var ValueFromIntProperty<HorizontalFacing, int> */
+	/** @phpstan-var ValueFromIntProperty<HorizontalFacing, HorizontalFacingOption> */
 	public readonly ValueFromIntProperty $horizontalFacingClassic;
 
-	/** @phpstan-var ValueFromIntProperty<AnyFacing, int> */
+	/** @phpstan-var ValueFromIntProperty<AnyFacing, Facing> */
 	public readonly ValueFromIntProperty $anyFacingClassic;
 
-	/** @phpstan-var ValueSetFromIntProperty<MultiAnyFacing, int> */
+	/** @phpstan-var ValueSetFromIntProperty<MultiAnyFacing, Facing> */
 	public readonly ValueSetFromIntProperty $multiFacingFlags;
 
 	/** @phpstan-var IntProperty<SignLikeRotation> */
@@ -98,6 +102,8 @@ final class CommonProperties{
 	public readonly IntProperty $cropAgeMax7;
 	/** @phpstan-var BoolProperty<DoublePlant> */
 	public readonly BoolProperty $doublePlantHalf;
+	/** @phpstan-var ValueFromIntProperty<StraightOnlyRail, StraightOnlyRailShape> */
+	public readonly ValueFromIntProperty $straightOnlyRailShape;
 
 	/** @phpstan-var IntProperty<Liquid> */
 	public readonly IntProperty $liquidData;
@@ -217,29 +223,30 @@ final class CommonProperties{
 	private function __construct(){
 		$vm = ValueMappings::getInstance();
 
+		//TODO: crude hack here - since we have no HorizontalFacing enum we need to use ints and convert to enum in the accessors
 		$hfGet = fn(HorizontalFacing $v) => $v->getFacing();
-		$hfSet = fn(HorizontalFacing $v, int $facing) => $v->setFacing($facing);
+		$hfSet = fn(HorizontalFacing $v, HorizontalFacingOption $facing) => $v->setFacing($facing);
 		$this->horizontalFacingCardinal = new ValueFromStringProperty(StateNames::MC_CARDINAL_DIRECTION, $vm->cardinalDirection, $hfGet, $hfSet);
 
 		$this->blockFace = new ValueFromStringProperty(
 			StateNames::MC_BLOCK_FACE,
 			$vm->blockFace,
 			fn(AnyFacing $b) => $b->getFacing(),
-			fn(AnyFacing $b, int $v) => $b->setFacing($v)
+			fn(AnyFacing $b, Facing $v) => $b->setFacing($v)
 		);
 
 		$this->pillarAxis = new ValueFromStringProperty(
 			StateNames::PILLAR_AXIS,
 			$vm->pillarAxis,
 			fn(PillarRotation $b) => $b->getAxis(),
-			fn(PillarRotation $b, int $v) => $b->setAxis($v)
+			fn(PillarRotation $b, Axis $v) => $b->setAxis($v)
 		);
 
 		$this->torchFacing = new ValueFromStringProperty(
 			StateNames::TORCH_FACING_DIRECTION,
 			$vm->torchFacing,
-			fn(Torch $b) => $b->getFacing(),
-			fn(Torch $b, int $v) => $b->setFacing($v)
+			fn(Torch $b) => $b->getFacing()->value,
+			fn(Torch $b, int $v) => $b->setFacing(Facing::from($v))
 		);
 
 		$this->horizontalFacingSWNE = new ValueFromIntProperty(StateNames::DIRECTION, $vm->horizontalFacingSWNE, $hfGet, $hfSet);
@@ -250,19 +257,19 @@ final class CommonProperties{
 			StateNames::FACING_DIRECTION,
 			$vm->facing,
 			fn(AnyFacing $b) => $b->getFacing(),
-			fn(AnyFacing $b, int $v) => $b->setFacing($v)
+			fn(AnyFacing $b, Facing $v) => $b->setFacing($v)
 		);
 
 		$this->multiFacingFlags = new ValueSetFromIntProperty(
 			StateNames::MULTI_FACE_DIRECTION_BITS,
-			IntFromRawStateMap::int([
+			EnumFromRawStateMap::int(Facing::class, fn(Facing $case) => match ($case) {
 				Facing::DOWN => BlockLegacyMetadata::MULTI_FACE_DIRECTION_FLAG_DOWN,
 				Facing::UP => BlockLegacyMetadata::MULTI_FACE_DIRECTION_FLAG_UP,
 				Facing::NORTH => BlockLegacyMetadata::MULTI_FACE_DIRECTION_FLAG_NORTH,
 				Facing::SOUTH => BlockLegacyMetadata::MULTI_FACE_DIRECTION_FLAG_SOUTH,
 				Facing::WEST => BlockLegacyMetadata::MULTI_FACE_DIRECTION_FLAG_WEST,
 				Facing::EAST => BlockLegacyMetadata::MULTI_FACE_DIRECTION_FLAG_EAST
-			]),
+			}),
 			fn(MultiAnyFacing $b) => $b->getFaces(),
 			fn(MultiAnyFacing $b, array $v) => $b->setFaces($v)
 		);
@@ -273,6 +280,15 @@ final class CommonProperties{
 
 		$this->cropAgeMax7 = new IntProperty(StateNames::GROWTH, 0, 7, fn(Ageable $b) => $b->getAge(), fn(Ageable $b, int $v) => $b->setAge($v));
 		$this->doublePlantHalf = new BoolProperty(StateNames::UPPER_BLOCK_BIT, fn(DoublePlant $b) => $b->isTop(), fn(DoublePlant $b, bool $v) => $b->setTop($v));
+
+		$this->straightOnlyRailShape = new ValueFromIntProperty(StateNames::RAIL_DIRECTION, EnumFromRawStateMap::int(StraightOnlyRailShape::class, fn(StraightOnlyRailShape $case) => match($case){
+			StraightOnlyRailShape::FLAT_AXIS_Z => BlockLegacyMetadata::RAIL_STRAIGHT_NORTH_SOUTH,
+			StraightOnlyRailShape::FLAT_AXIS_X => BlockLegacyMetadata::RAIL_STRAIGHT_EAST_WEST,
+			StraightOnlyRailShape::ASCENDING_EAST => BlockLegacyMetadata::RAIL_ASCENDING_EAST,
+			StraightOnlyRailShape::ASCENDING_WEST => BlockLegacyMetadata::RAIL_ASCENDING_WEST,
+			StraightOnlyRailShape::ASCENDING_NORTH => BlockLegacyMetadata::RAIL_ASCENDING_NORTH,
+			StraightOnlyRailShape::ASCENDING_SOUTH => BlockLegacyMetadata::RAIL_ASCENDING_SOUTH
+		}), fn(StraightOnlyRail $b) => $b->getShape(), fn(StraightOnlyRail $b, StraightOnlyRailShape $v) => $b->setShape($v));
 
 		$fallingFlag = BlockLegacyMetadata::LIQUID_FALLING_FLAG;
 		$this->liquidData = new IntProperty(
@@ -364,15 +380,15 @@ final class CommonProperties{
 			new BoolProperty(StateNames::OPEN_BIT, fn(Door $b) => $b->isOpen(), fn(Door $b, bool $v) => $b->setOpen($v)),
 			new ValueFromStringProperty(
 				StateNames::MC_CARDINAL_DIRECTION,
-				IntFromRawStateMap::string([
+				EnumFromRawStateMap::string(HorizontalFacingOption::class, fn(HorizontalFacingOption $case) => match ($case) {
 					//a door facing "east" is actually facing north - thanks mojang
-					Facing::NORTH => BlockStateStringValues::MC_CARDINAL_DIRECTION_EAST,
-					Facing::EAST => BlockStateStringValues::MC_CARDINAL_DIRECTION_SOUTH,
-					Facing::SOUTH => BlockStateStringValues::MC_CARDINAL_DIRECTION_WEST,
-					Facing::WEST => BlockStateStringValues::MC_CARDINAL_DIRECTION_NORTH
-				]),
+					HorizontalFacingOption::NORTH => BlockStateStringValues::MC_CARDINAL_DIRECTION_EAST,
+					HorizontalFacingOption::EAST => BlockStateStringValues::MC_CARDINAL_DIRECTION_SOUTH,
+					HorizontalFacingOption::SOUTH => BlockStateStringValues::MC_CARDINAL_DIRECTION_WEST,
+					HorizontalFacingOption::WEST => BlockStateStringValues::MC_CARDINAL_DIRECTION_NORTH
+				}),
 				fn(HorizontalFacing $b) => $b->getFacing(),
-				fn(HorizontalFacing $b, int $v) => $b->setFacing($v)
+				fn(HorizontalFacing $b, HorizontalFacingOption $v) => $b->setFacing($v)
 			)
 		];
 
@@ -407,7 +423,7 @@ final class CommonProperties{
 		];
 
 		$this->stemProperties = [
-			new ValueFromIntProperty(StateNames::FACING_DIRECTION, $vm->facingStem, fn(Stem $b) => $b->getFacing(), fn(Stem $b, int $v) => $b->setFacing($v)),
+			new ValueFromIntProperty(StateNames::FACING_DIRECTION, $vm->facingStem, fn(Stem $b) => $b->getFacing()->value, fn(Stem $b, int $v) => $b->setFacing(Facing::from($v))),
 			$this->cropAgeMax7
 		];
 
@@ -423,11 +439,11 @@ final class CommonProperties{
 			new BoolProperty(StateNames::WALL_POST_BIT, fn(Wall $b) => $b->isPost(), fn(Wall $b, bool $v) => $b->setPost($v)),
 		];
 		foreach([
-			Facing::NORTH => StateNames::WALL_CONNECTION_TYPE_NORTH,
-			Facing::SOUTH => StateNames::WALL_CONNECTION_TYPE_SOUTH,
-			Facing::WEST => StateNames::WALL_CONNECTION_TYPE_WEST,
-			Facing::EAST => StateNames::WALL_CONNECTION_TYPE_EAST
-		] as $facing => $stateName){
+			[Facing::NORTH, StateNames::WALL_CONNECTION_TYPE_NORTH],
+			[Facing::SOUTH, StateNames::WALL_CONNECTION_TYPE_SOUTH],
+			[Facing::WEST, StateNames::WALL_CONNECTION_TYPE_WEST],
+			[Facing::EAST, StateNames::WALL_CONNECTION_TYPE_EAST]
+		] as [$facing, $stateName]){
 			$wallProperties[] = new ValueFromStringProperty(
 				$stateName,
 				//the values are the same for every side, EAST is just the one the constants got generated for
@@ -444,11 +460,11 @@ final class CommonProperties{
 
 		$horizontalConnectionProperties = [];
 		foreach([
-			Facing::NORTH => StateNames::MC_CONNECTION_NORTH,
-			Facing::SOUTH => StateNames::MC_CONNECTION_SOUTH,
-			Facing::WEST => StateNames::MC_CONNECTION_WEST,
-			Facing::EAST => StateNames::MC_CONNECTION_EAST
-		] as $facing => $stateName){
+			[Facing::NORTH, StateNames::MC_CONNECTION_NORTH],
+			[Facing::SOUTH, StateNames::MC_CONNECTION_SOUTH],
+			[Facing::WEST, StateNames::MC_CONNECTION_WEST],
+			[Facing::EAST, StateNames::MC_CONNECTION_EAST]
+		] as [$facing, $stateName]){
 			$horizontalConnectionProperties[] = new BoolProperty(
 				$stateName,
 				fn(HorizontalConnections $b) => $b->isConnected($facing),

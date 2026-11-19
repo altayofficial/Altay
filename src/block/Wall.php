@@ -34,7 +34,7 @@ use pocketmine\math\Facing;
 use function array_filter;
 
 /**
- * @phpstan-type WallConnectionSet array<Facing::NORTH|Facing::EAST|Facing::SOUTH|Facing::WEST, WallConnectionType>
+ * @phpstan-type WallConnectionSet array<value-of<Facing::NORTH|Facing::EAST|Facing::SOUTH|Facing::WEST>, WallConnectionType>
  */
 class Wall extends Transparent implements StateDeriving{
 
@@ -56,8 +56,8 @@ class Wall extends Transparent implements StateDeriving{
 	 */
 	public function getConnections() : array{ return $this->connections; }
 
-	public function getConnection(int $face) : WallConnectionType{
-		return $this->connections[$face] ?? WallConnectionType::NONE;
+	public function getConnection(Facing $face) : WallConnectionType{
+		return $this->connections[$face->value] ?? WallConnectionType::NONE;
 	}
 
 	/**
@@ -72,14 +72,14 @@ class Wall extends Transparent implements StateDeriving{
 	}
 
 	/** @return $this */
-	public function setConnection(int $face, WallConnectionType $type) : self{
+	public function setConnection(Facing $face, WallConnectionType $type) : self{
 		if($face !== Facing::NORTH && $face !== Facing::SOUTH && $face !== Facing::WEST && $face !== Facing::EAST){
 			throw new \InvalidArgumentException("Facing can only be north, east, south or west");
 		}
 		if($type !== WallConnectionType::NONE){
-			$this->connections[$face] = $type;
+			$this->connections[$face->value] = $type;
 		}else{
-			unset($this->connections[$face]);
+			unset($this->connections[$face->value]);
 		}
 		return $this;
 	}
@@ -110,12 +110,12 @@ class Wall extends Transparent implements StateDeriving{
 		foreach(Facing::HORIZONTAL as $facing){
 			$block = $this->getSide($facing);
 			if($block instanceof static || $block instanceof FenceGate || $block instanceof Thin || $block->getSupportType(Facing::opposite($facing)) === SupportType::FULL){
-				if(!isset($this->connections[$facing])){
-					$this->connections[$facing] = WallConnectionType::SHORT;
+				if(!isset($this->connections[$facing->value])){
+					$this->connections[$facing->value] = WallConnectionType::SHORT;
 					$changed++;
 				}
-			}elseif(isset($this->connections[$facing])){
-				unset($this->connections[$facing]);
+			}elseif(isset($this->connections[$facing->value])){
+				unset($this->connections[$facing->value]);
 				$changed++;
 			}
 		}
@@ -132,10 +132,10 @@ class Wall extends Transparent implements StateDeriving{
 	protected function recalculateCollisionBoxes() : array{
 		//walls don't have any special collision boxes like fences do
 
-		$north = isset($this->connections[Facing::NORTH]);
-		$south = isset($this->connections[Facing::SOUTH]);
-		$west = isset($this->connections[Facing::WEST]);
-		$east = isset($this->connections[Facing::EAST]);
+		$north = isset($this->connections[Facing::NORTH->value]);
+		$south = isset($this->connections[Facing::SOUTH->value]);
+		$west = isset($this->connections[Facing::WEST->value]);
+		$east = isset($this->connections[Facing::EAST->value]);
 
 		$inset = 0.25;
 		if(
@@ -151,15 +151,15 @@ class Wall extends Transparent implements StateDeriving{
 
 		return [
 			AxisAlignedBB::one()
-				->extend(Facing::UP, 0.5)
-				->trim(Facing::NORTH, $north ? 0 : $inset)
-				->trim(Facing::SOUTH, $south ? 0 : $inset)
-				->trim(Facing::WEST, $west ? 0 : $inset)
-				->trim(Facing::EAST, $east ? 0 : $inset)
+				->extendedCopy(Facing::UP, 0.5)
+				->trimmedCopy(Facing::NORTH, $north ? 0 : $inset)
+				->trimmedCopy(Facing::SOUTH, $south ? 0 : $inset)
+				->trimmedCopy(Facing::WEST, $west ? 0 : $inset)
+				->trimmedCopy(Facing::EAST, $east ? 0 : $inset)
 		];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return Facing::axis($facing) === Axis::Y ? SupportType::CENTER : SupportType::NONE;
 	}
 }

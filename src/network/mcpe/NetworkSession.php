@@ -121,6 +121,7 @@ use pocketmine\world\format\io\GlobalItemDataHandlers;
 use pocketmine\world\Position;
 use pocketmine\world\World;
 use pocketmine\YmlServerProperties;
+use function array_filter;
 use function array_map;
 use function array_slice;
 use function array_values;
@@ -129,7 +130,6 @@ use function bin2hex;
 use function count;
 use function get_class;
 use function implode;
-use function in_array;
 use function is_string;
 use function json_encode;
 use function ord;
@@ -1011,11 +1011,11 @@ class NetworkSession{
 		foreach($resourcePacks as $resourcePack){
 			$key = $packManager->getPackEncryptionKey($resourcePack->getPackId());
 			if($key !== null){
-				$keys[$resourcePack->getPackId()] = $key;
+				$keys[$resourcePack->getPackId()->toString()] = $key;
 			}
 			$cdnUrl = $packManager->getPackCdnUrl($resourcePack->getPackId());
 			if($cdnUrl !== null){
-				$cdnUrls[$resourcePack->getPackId()] = $cdnUrl;
+				$cdnUrls[$resourcePack->getPackId()->toString()] = $cdnUrl;
 			}
 		}
 		$event = new PlayerResourcePackOfferEvent($this->info, $resourcePacks, $keys, $packManager->resourcePacksRequired());
@@ -1180,21 +1180,24 @@ class NetworkSession{
 
 	public function syncAvailableCommands() : void{
 		$commandData = [];
-		foreach($this->server->getCommandMap()->getCommands() as $command){
-			if(isset($commandData[$command->getLabel()]) || $command->getLabel() === "help" || !$command->testPermissionSilent($this->player)){
+		$globalAliasMap = $this->server->getCommandMap()->getAliasMap();
+		$userAliasMap = $this->player->getCommandAliasMap();
+		foreach($this->server->getCommandMap()->getUniqueCommands() as $command){
+			if(!$command->testPermissionSilent($this->player)){
 				continue;
 			}
 
-			$lname = strtolower($command->getLabel());
-			$aliases = $command->getAliases();
-			$aliasObj = null;
-			if(count($aliases) > 0){
-				if(!in_array($lname, $aliases, true)){
-					//work around a client bug which makes the original name not show when aliases are used
-					$aliases[] = $lname;
-				}
-				$aliasObj = new CommandHardEnum(ucfirst($command->getLabel()) . "Aliases", $aliases);
+			$userAliases = $userAliasMap->getMergedAliases($command->getId(), $globalAliasMap);
+			//the client doesn't like it when we override /help
+			$aliases = array_values(array_filter($userAliases, fn(string $alias) => $alias !== "help" && $alias !== "?"));
+			if(count($aliases) === 0){
+				continue;
 			}
+			$firstNetworkAlias = $aliases[0];
+			//use filtered aliases for command name discovery - this allows /help to still be shown as /pocketmine:help
+			//on the client without conflicting with the client's built-in /help command
+			$lname = strtolower($firstNetworkAlias);
+			$aliasObj = new CommandHardEnum(ucfirst($firstNetworkAlias) . "Aliases", $aliases);
 
 			$description = $command->getDescription();
 			$data = new CommandData(
@@ -1209,10 +1212,10 @@ class NetworkSession{
 				chainedSubCommandData: []
 			);
 
-			$commandData[$command->getLabel()] = $data;
+			$commandData[] = $data;
 		}
 
-		$this->sendDataPacket(AvailableCommandsPacketAssembler::assemble(array_values($commandData), [], []));
+		$this->sendDataPacket(AvailableCommandsPacketAssembler::assemble($commandData, [], []));
 	}
 
 	/**

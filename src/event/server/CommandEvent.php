@@ -28,6 +28,7 @@ namespace pocketmine\event\server;
 use pocketmine\command\CommandSender;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
+use pocketmine\event\Event;
 
 /**
  * Called when any CommandSender runs a command, before it is parsed.
@@ -43,7 +44,7 @@ use pocketmine\event\CancellableTrait;
  *
  * The message DOES NOT begin with a slash.
  */
-class CommandEvent extends ServerEvent implements Cancellable{
+class CommandEvent extends Event implements Cancellable{
 	use CancellableTrait;
 
 	public function __construct(

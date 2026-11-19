@@ -25,7 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\world\sound;
 
-use pocketmine\entity\object\Cushion;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\types\LevelSoundEvent;
@@ -41,7 +40,7 @@ class CushionBreakSound implements Sound{
 			LevelSoundEvent::DEATH,
 			$pos,
 			-1,
-			Cushion::getNetworkTypeId(),
+			"minecraft:cushion",
 			false,
 			false,
 			$this->entityId,

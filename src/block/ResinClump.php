@@ -28,6 +28,7 @@ namespace pocketmine\block;
 use pocketmine\block\utils\MultiAnyFacing;
 use pocketmine\block\utils\MultiAnySupportTrait;
 use pocketmine\block\utils\SupportType;
+use pocketmine\math\Facing;
 
 final class ResinClump extends Transparent implements MultiAnyFacing{
 	use MultiAnySupportTrait;
@@ -36,7 +37,7 @@ final class ResinClump extends Transparent implements MultiAnyFacing{
 		return false;
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 
@@ -45,7 +46,7 @@ final class ResinClump extends Transparent implements MultiAnyFacing{
 	}
 
 	/**
-	 * @return int[]
+	 * @return Facing[]
 	 */
 	protected function getInitialPlaceFaces(Block $blockReplace) : array{
 		return $blockReplace instanceof ResinClump ? $blockReplace->faces : [];

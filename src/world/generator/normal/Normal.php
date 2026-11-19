@@ -195,11 +195,11 @@ class Normal extends Generator{
 			if($y >= 0 && $y < $minNoiseSubChunk){
 				//Everything above 0 and below noiseMin is always solid stone, which can be flood-filled instead of
 				//setting the blocks one at a time - this is vastly faster
-				$blocks = [new PalettedBlockArray($stone)];
+				$blocks = new PalettedBlockArray($stone);
 			}else{
-				$blocks = [];
+				$blocks = null;
 			}
-			$chunk->setSubChunk($y, new SubChunk(Block::EMPTY_STATE_ID, $blocks, clone $biomeArray));
+			$chunk->setSubChunk($y, new SubChunk(Block::EMPTY_STATE_ID, $blocks, null, clone $biomeArray));
 		}
 
 		for($x = 0; $x < Chunk::EDGE_LENGTH; ++$x){

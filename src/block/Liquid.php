@@ -94,7 +94,7 @@ abstract class Liquid extends Transparent{
 		return [];
 	}
 
-	public function getSupportType(int $facing) : SupportType{
+	public function getSupportType(Facing $facing) : SupportType{
 		return SupportType::NONE;
 	}
 
@@ -172,7 +172,7 @@ abstract class Liquid extends Transparent{
 		$world = $this->position->getWorld();
 
 		foreach(Facing::HORIZONTAL as $j){
-			[$dx, $dy, $dz] = Facing::OFFSET[$j];
+			[$dx, $dy, $dz] = Facing::OFFSET[$j->value];
 
 			$sideX = $x + $dx;
 			$sideY = $y + $dy;
@@ -208,7 +208,7 @@ abstract class Liquid extends Transparent{
 
 		if($this->falling){
 			foreach(Facing::HORIZONTAL as $facing){
-				[$dx, $dy, $dz] = Facing::OFFSET[$facing];
+				[$dx, $dy, $dz] = Facing::OFFSET[$facing->value];
 				if(
 					!$this->canFlowInto($world->getBlockAt($x + $dx, $y + $dy, $z + $dz)) ||
 					!$this->canFlowInto($world->getBlockAt($x + $dx, $y + $dy + 1, $z + $dz))

@@ -29,6 +29,7 @@ use pocketmine\block\utils\Ageable;
 use pocketmine\block\utils\AgeableTrait;
 use pocketmine\block\utils\BlockEventHelper;
 use pocketmine\block\utils\HorizontalFacing;
+use pocketmine\block\utils\HorizontalFacingOption;
 use pocketmine\block\utils\HorizontalFacingTrait;
 use pocketmine\data\runtime\RuntimeDataDescriber;
 use pocketmine\entity\Entity;
@@ -49,42 +50,42 @@ class ShelfMushroom extends Flowable implements Ageable, HorizontalFacing{
 	public const MAX_AGE = 1;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->horizontalFacing($this->facing);
+		$w->enum($this->facing);
 		$w->boundedIntAuto(0, self::MAX_AGE, $this->age);
 	}
 
 	protected function recalculateCollisionBoxes() : array{
 		return [
 			AxisAlignedBB::one()
-				->squash(Facing::axis(Facing::rotateY($this->facing, true)), 3 / 16)
-				->trim(Facing::DOWN, 4 / 16)
-				->trim(Facing::UP, 5 / 16)
-				->trim(Facing::opposite($this->facing), 9 / 16)
+				->squashedCopy(Facing::axis(Facing::rotateY($this->facing->toFacing(), true)), 3 / 16)
+				->trimmedCopy(Facing::DOWN, 4 / 16)
+				->trimmedCopy(Facing::UP, 5 / 16)
+				->trimmedCopy(Facing::opposite($this->facing->toFacing()), 9 / 16)
 		];
 	}
 
-	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+	public function place(BlockTransaction $tx, Item $item, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		if(Facing::axis($face) === Axis::Y || !$this->canBeSupportedAt($blockReplace, Facing::opposite($face))){
 			return false;
 		}
-		$this->facing = $face;
+		$this->facing = HorizontalFacingOption::fromFacing($face);
 
 		return parent::place($tx, $item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
 	public function onNearbyBlockChange() : void{
-		if(!$this->canBeSupportedAt($this, Facing::opposite($this->facing))){
+		if(!$this->canBeSupportedAt($this, Facing::opposite($this->facing->toFacing()))){
 			$this->position->getWorld()->useBreakOn($this->position);
 		}else{
 			parent::onNearbyBlockChange();
 		}
 	}
 
-	private function canBeSupportedAt(Block $block, int $face) : bool{
+	private function canBeSupportedAt(Block $block, Facing $face) : bool{
 		return $block->getAdjacentSupportType($face)->hasCenterSupport();
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($item instanceof Fertilizer && $this->grow($player)){
 			$item->pop();
 

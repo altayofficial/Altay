@@ -70,7 +70,7 @@ class DecoratedPot extends Transparent implements HorizontalFacing{
 	}
 
 	protected function recalculateCollisionBoxes() : array{
-		return [AxisAlignedBB::one()->contract(1 / 16, 0, 1 / 16)];
+		return [AxisAlignedBB::one()->contractedCopy(1 / 16, 0, 1 / 16)];
 	}
 
 	public function isAffectedBySilkTouch() : bool{

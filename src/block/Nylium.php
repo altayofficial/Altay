@@ -75,7 +75,7 @@ class Nylium extends Opaque{
 		}
 	}
 
-	public function onInteract(Item $item, int $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
+	public function onInteract(Item $item, Facing $face, Vector3 $clickVector, ?Player $player = null, array &$returnedItems = []) : bool{
 		if($item instanceof Fertilizer && $this->getSide(Facing::UP)->getTypeId() === BlockTypeIds::AIR){
 			$item->pop();
 			$this->growVegetation(new Random());

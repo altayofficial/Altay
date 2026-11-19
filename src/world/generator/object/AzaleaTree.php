@@ -85,8 +85,8 @@ final class AzaleaTree extends Tree{
 			$isSideUp = $i < $leadUpCount + $sideUpCount - 1;
 
 			if(!$isLeadUp){
-				$cx += Facing::OFFSET[$direction][0];
-				$cz += Facing::OFFSET[$direction][2];
+				$cx += Facing::OFFSET[$direction->value][0];
+				$cz += Facing::OFFSET[$direction->value][2];
 			}
 
 			if($this->canOverride($transaction->fetchBlockAt($cx, $cy, $cz))){

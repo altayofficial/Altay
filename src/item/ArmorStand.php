@@ -38,7 +38,7 @@ use function fmod;
 
 class ArmorStand extends Item{
 
-	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
+	public function onInteractBlock(Player $player, Block $blockReplace, Block $blockClicked, Facing $face, Vector3 $clickVector, array &$returnedItems) : ItemUseResult{
 		$above = $blockReplace->getSide(Facing::UP);
 		if(!$blockReplace->canBeReplaced() || !$above->canBeReplaced()){
 			return ItemUseResult::NONE;
@@ -48,8 +48,8 @@ class ArmorStand extends Item{
 		$world = $pos->getWorld();
 
 		$boundingBox = AxisAlignedBB::one()
-			->offset($pos->getX(), $pos->getY(), $pos->getZ())
-			->extend(Facing::UP, 1);
+			->offsetCopy($pos->getX(), $pos->getY(), $pos->getZ())
+			->extendedCopy(Facing::UP, 1);
 		foreach($world->getNearbyEntities($boundingBox) as $entity){
 			if($entity instanceof EntityArmorStand){
 				return ItemUseResult::NONE;

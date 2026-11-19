@@ -29,27 +29,18 @@ use pocketmine\math\Facing;
 
 interface MultiAnyFacing{
 
-	/**
-	 * @return int[]
-	 * @see Facing
-	 */
+	/** @return Facing[] */
 	public function getFaces() : array;
 
-	public function hasFace(int $face) : bool;
+	public function hasFace(Facing $face) : bool;
+
+	/** @return $this */
+	public function setFace(Facing $face, bool $value) : self;
 
 	/**
-	 * @return $this
-	 *
-	 * @see Facing
-	 */
-	public function setFace(int $face, bool $value) : self;
-
-	/**
-	 * @param int[] $faces
+	 * @param Facing[] $faces
 	 *
 	 * @return $this
-	 *
-	 * @see Facing
 	 */
 	public function setFaces(array $faces) : self;
 

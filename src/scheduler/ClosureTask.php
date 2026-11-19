@@ -25,8 +25,6 @@ declare(strict_types=1);
 
 namespace pocketmine\scheduler;
 
-use DaveRandom\CallbackValidator\CallbackType;
-use DaveRandom\CallbackValidator\ReturnType;
 use pocketmine\utils\Utils;
 
 /**
@@ -48,7 +46,7 @@ class ClosureTask extends Task{
 	public function __construct(
 		private \Closure $closure
 	){
-		Utils::validateCallableSignature(new CallbackType(new ReturnType()), $closure);
+		Utils::validateCallableSignature(function() : void{}, $closure);
 	}
 
 	public function getName() : string{

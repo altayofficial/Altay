@@ -453,7 +453,7 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("mossy_stone_brick_stairs", fn(BID $id) => new Stair($id, "Mossy Stone Brick Stairs", $stoneBreakInfo));
 		self::register("stone_button", fn(BID $id) => new StoneButton($id, "Stone Button", new Info(BreakInfo::pickaxe(0.5))));
 		self::register("stonecutter", fn(BID $id) => new Stonecutter($id, "Stonecutter", new Info(BreakInfo::pickaxe(3.5))));
-		self::register("stone_pressure_plate", fn(BID $id) => new StonePressurePlate($id, "Stone Pressure Plate", new Info(BreakInfo::pickaxe(0.5)), 20));
+		self::register("stone_pressure_plate", fn(BID $id) => new StonePressurePlate($id, "Stone Pressure Plate", new Info(BreakInfo::pickaxe(0.5)), deactivationDelayTicks: 20));
 
 		$stoneSlabBreakInfo = new Info(BreakInfo::pickaxe(2.0, ToolTier::WOOD, 30.0));
 
@@ -517,14 +517,14 @@ final class VanillaBlocksInputs extends RegistrySource{
 		self::register("lily_pad", fn(BID $id) => new WaterLily($id, "Lily Pad", new Info(BreakInfo::instant())));
 
 		$weightedPressurePlateBreakInfo = new Info(BreakInfo::pickaxe(0.5));
-		self::register("weighted_pressure_plate_heavy", fn(BID $id) => new WeightedPressurePlateHeavy(
+		self::register("weighted_pressure_plate_heavy", fn(BID $id) => new WeightedPressurePlate(
 			$id,
 			"Weighted Pressure Plate Heavy",
 			$weightedPressurePlateBreakInfo,
 			deactivationDelayTicks: 10,
 			signalStrengthFactor: 0.1
 		));
-		self::register("weighted_pressure_plate_light", fn(BID $id) => new WeightedPressurePlateLight(
+		self::register("weighted_pressure_plate_light", fn(BID $id) => new WeightedPressurePlate(
 			$id,
 			"Weighted Pressure Plate Light",
 			$weightedPressurePlateBreakInfo,

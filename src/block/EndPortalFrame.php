@@ -37,7 +37,7 @@ class EndPortalFrame extends Opaque implements HorizontalFacing{
 	protected bool $eye = false;
 
 	protected function describeBlockOnlyState(RuntimeDataDescriber $w) : void{
-		$w->horizontalFacing($this->facing);
+		$w->enum($this->facing);
 		$w->bool($this->eye);
 	}
 
@@ -54,6 +54,6 @@ class EndPortalFrame extends Opaque implements HorizontalFacing{
 	}
 
 	protected function recalculateCollisionBoxes() : array{
-		return [AxisAlignedBB::one()->trim(Facing::UP, 3 / 16)];
+		return [AxisAlignedBB::one()->trimmedCopy(Facing::UP, 3 / 16)];
 	}
 }

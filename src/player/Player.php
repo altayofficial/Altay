@@ -25,12 +25,14 @@ declare(strict_types=1);
 
 namespace pocketmine\player;
 
+use DateTimeImmutable;
 use pocketmine\block\BaseSign;
 use pocketmine\block\BedBase;
 use pocketmine\block\BlockTypeTags;
 use pocketmine\block\RespawnAnchor;
 use pocketmine\block\UnknownBlock;
 use pocketmine\block\VanillaBlocks;
+use pocketmine\command\CommandAliasMap;
 use pocketmine\command\CommandSender;
 use pocketmine\crafting\CraftingGrid;
 use pocketmine\data\java\GameModeIdMap;
@@ -51,6 +53,7 @@ use pocketmine\entity\projectile\Arrow;
 use pocketmine\entity\Skin;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntityExhaustEvent;
 use pocketmine\event\entity\EntityExtinguishEvent;
 use pocketmine\event\inventory\InventoryCloseEvent;
 use pocketmine\event\inventory\InventoryOpenEvent;
@@ -65,7 +68,6 @@ use pocketmine\event\player\PlayerDropItemEvent;
 use pocketmine\event\player\PlayerEmoteEvent;
 use pocketmine\event\player\PlayerEntityInteractEvent;
 use pocketmine\event\player\PlayerEntityPickEvent;
-use pocketmine\event\player\PlayerExhaustEvent;
 use pocketmine\event\player\PlayerGameModeChangeEvent;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\event\player\PlayerItemConsumeEvent;
@@ -91,9 +93,7 @@ use pocketmine\form\FormValidationException;
 use pocketmine\inventory\CallbackInventoryListener;
 use pocketmine\inventory\CreativeInventory;
 use pocketmine\inventory\Inventory;
-use pocketmine\inventory\PlayerCraftingInventory;
-use pocketmine\inventory\PlayerCursorInventory;
-use pocketmine\inventory\TemporaryInventory;
+use pocketmine\inventory\SimpleInventory;
 use pocketmine\inventory\transaction\action\DropItemAction;
 use pocketmine\inventory\transaction\InventoryTransaction;
 use pocketmine\inventory\transaction\TransactionBuilder;
@@ -113,6 +113,8 @@ use pocketmine\item\Spear;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\lang\Language;
 use pocketmine\lang\Translatable;
+use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
@@ -244,17 +246,17 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	protected bool $authenticated;
 	protected PlayerInfo $playerInfo;
 
-	protected ?Inventory $currentWindow = null;
-	/** @var Inventory[] */
+	protected ?InventoryWindow $currentWindow = null;
+	/** @var PlayerInventoryWindow[] */
 	protected array $permanentWindows = [];
-	protected PlayerCursorInventory $cursorInventory;
-	protected PlayerCraftingInventory $craftingGrid;
+	protected Inventory $cursorInventory;
+	protected CraftingGrid $craftingGrid;
 	protected CreativeInventory $creativeInventory;
 
 	protected int $messageCounter = 2;
 
-	protected int $firstPlayed;
-	protected int $lastPlayed;
+	protected DateTimeImmutable $firstPlayed;
+	protected DateTimeImmutable $lastPlayed;
 	protected GameMode $gamemode;
 
 	/**
@@ -337,6 +339,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	/** @phpstan-var positive-int|null  */
 	protected ?int $lineHeight = null;
+	private CommandAliasMap $commandAliasMap;
+
 	protected string $locale = "en_US";
 
 	protected int $startAction = -1;
@@ -388,11 +392,13 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$rootPermissions[DefaultPermissions::ROOT_OPERATOR] = true;
 		}
 		$this->perm = new PermissibleBase($rootPermissions);
+		$this->commandAliasMap = new CommandAliasMap();
+
 		$this->chunksPerTick = $this->server->getConfigGroup()->getPropertyInt(YmlServerProperties::CHUNK_SENDING_PER_TICK, 4);
 		$this->spawnThreshold = (int) (($this->server->getConfigGroup()->getPropertyInt(YmlServerProperties::CHUNK_SENDING_SPAWN_RADIUS, 4) ** 2) * M_PI);
 		$this->chunkSelector = new ChunkSelector();
 
-		$this->chunkLoader = new class implements ChunkLoader{};
+		$this->chunkLoader = new ChunkLoader();
 		$this->chunkTicker = new ChunkTicker();
 		$world = $spawnLocation->getWorld();
 		//load the spawn chunk so we can see the terrain
@@ -410,7 +416,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	private function callDummyItemHeldEvent() : void{
-		$slot = $this->inventory->getHeldItemIndex();
+		$slot = $this->hotbar->getSelectedIndex();
 
 		$event = new PlayerItemHeldEvent($this, $this->inventory->getItem($slot), $slot);
 		$event->call();
@@ -425,7 +431,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 		$this->inventory->getListeners()->add(new CallbackInventoryListener(
 			function(Inventory $unused, int $slot) : void{
-				if($slot === $this->inventory->getHeldItemIndex()){
+				if($slot === $this->hotbar->getSelectedIndex()){
 					$this->setUsingItem(false);
 
 					$this->callDummyItemHeldEvent();
@@ -437,8 +443,12 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			}
 		));
 
-		$this->firstPlayed = $nbt->getLong(self::TAG_FIRST_PLAYED, $now = (int) (microtime(true) * 1000));
-		$this->lastPlayed = $nbt->getLong(self::TAG_LAST_PLAYED, $now);
+		$now = (int) (microtime(true) * 1000);
+		$createDateTimeImmutable = static function(string $tag) use ($nbt, $now) : DateTimeImmutable{
+			return new DateTimeImmutable('@' . $nbt->getLong($tag, $now) / 1000);
+		};
+		$this->firstPlayed = $createDateTimeImmutable(self::TAG_FIRST_PLAYED);
+		$this->lastPlayed = $createDateTimeImmutable(self::TAG_LAST_PLAYED);
 
 		if(!$this->server->getForceGamemode() && ($gameModeTag = $nbt->getTag(self::TAG_GAME_MODE)) instanceof IntTag){
 			$this->internalSetGameMode(GameModeIdMap::getInstance()->fromId($gameModeTag->getValue()) ?? GameMode::SURVIVAL); //TODO: bad hack here to avoid crashes on corrupted data
@@ -497,16 +507,16 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		return parent::getUniqueId();
 	}
 
-	public function getFirstPlayed() : int{
+	public function getFirstPlayed() : DateTimeImmutable{
 		return $this->firstPlayed;
 	}
 
-	public function getLastPlayed() : int{
+	public function getLastPlayed() : DateTimeImmutable{
 		return $this->lastPlayed;
 	}
 
 	public function hasPlayedBefore() : bool{
-		return $this->lastPlayed - $this->firstPlayed > 1; // microtime(true) - microtime(true) may have less than one millisecond difference
+		return ((int) $this->firstPlayed->diff($this->lastPlayed)->format('%s')) > 1;
 	}
 
 	/**
@@ -662,6 +672,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		}
 		$this->lineHeight = $height;
 	}
+
+	public function getCommandAliasMap() : CommandAliasMap{ return $this->commandAliasMap; }
 
 	public function canSee(Player $player) : bool{
 		return !isset($this->hiddenPlayers[$player->getUniqueId()->getBytes()]);
@@ -891,6 +903,16 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if($ticks > 0){
 			$this->usedItemsCooldown[$item->getCooldownTag() ?? $item->getStateId()] = $this->server->getTick() + $ticks;
 			$this->getNetworkSession()->onItemCooldownChanged($item, $ticks);
+		}
+	}
+
+	/**
+	 * Removes the player's cooldown time for the given item.
+	 */
+	public function removeItemCooldown(Item $item) : void{
+		if($this->hasItemCooldown($item)){
+			unset($this->usedItemsCooldown[$item->getCooldownTag() ?? $item->getStateId()]);
+			$this->getNetworkSession()->onItemCooldownChanged($item, 0);
 		}
 	}
 
@@ -1600,9 +1622,15 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if(!$this->blockCollision){
 			$this->onGround = false;
 		}else{
-			$bb = clone $this->boundingBox;
-			$bb->minY = $this->location->y - 0.2;
-			$bb->maxY = $this->location->y + 0.2;
+			//TODO: AxisAlignedBB::withComponents() would be nice here
+			$bb = new AxisAlignedBB(
+				$this->boundingBox->minX,
+				$this->location->y - 0.2,
+				$this->boundingBox->minZ,
+				$this->boundingBox->maxX,
+				$this->location->y + 0.2,
+				$this->boundingBox->maxZ
+			);
 
 			//we're already at the new position at this point; check if there are blocks we might have landed on between
 			//the old and new positions (running down stairs necessitates this)
@@ -1744,9 +1772,9 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			if($horizontalDistanceTravelled > 0){
 				//TODO: check for swimming
 				if($this->isSprinting()){
-					$this->hungerManager->exhaust(0.01 * $horizontalDistanceTravelled, PlayerExhaustEvent::CAUSE_SPRINTING);
+					$this->hungerManager->exhaust(0.01 * $horizontalDistanceTravelled, EntityExhaustEvent::CAUSE_SPRINTING);
 				}else{
-					$this->hungerManager->exhaust(0.0, PlayerExhaustEvent::CAUSE_WALKING);
+					$this->hungerManager->exhaust(0.0, EntityExhaustEvent::CAUSE_WALKING);
 				}
 
 				if($this->nextChunkOrderRun > 20){
@@ -1847,7 +1875,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				$this->fireTicks = 1;
 			}
 
-			$item = $this->getInventory()->getItemInHand();
+			$item = $this->getMainHandItem();
 			if($item instanceof Spear && $this->isUsingItem()){
 				$item->whileSpearUsing($this);
 			}
@@ -1874,7 +1902,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				$this->blockBreakHandler = null;
 			}
 
-			if($this->isUsingItem() && $this->getItemUseDuration() % 4 === 0 && ($item = $this->inventory->getItemInHand()) instanceof ConsumableItem){
+			if($this->isUsingItem() && $this->getItemUseDuration() % 4 === 0 && ($item = $this->getMainHandItem()) instanceof ConsumableItem){
 				$this->broadcastAnimation(new ConsumingItemAnimation($this, $item));
 			}
 		}
@@ -1952,10 +1980,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	public function selectHotbarSlot(int $hotbarSlot) : bool{
-		if(!$this->inventory->isHotbarSlot($hotbarSlot)){ //TODO: exception here?
+		if(!$this->hotbar->isHotbarSlot($hotbarSlot)){ //TODO: exception here?
 			return false;
 		}
-		if($hotbarSlot === $this->inventory->getHeldItemIndex()){
+		if($hotbarSlot === $this->hotbar->getSelectedIndex()){
 			return true;
 		}
 
@@ -1965,7 +1993,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			return false;
 		}
 
-		$this->inventory->setHeldItemIndex($hotbarSlot);
+		$this->hotbar->setSelectedIndex($hotbarSlot);
 		$this->setUsingItem(false);
 
 		return true;
@@ -1977,7 +2005,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	private function returnItemsFromAction(Item $oldHeldItem, Item $newHeldItem, array $extraReturnedItems) : void{
 		$heldItemChanged = false;
 
-		if(!$newHeldItem->equalsExact($oldHeldItem) && $oldHeldItem->equalsExact($this->inventory->getItemInHand())){
+		if(!$newHeldItem->equalsExact($oldHeldItem) && $oldHeldItem->equalsExact($this->getMainHandItem())){
 			//determine if the item was changed in some meaningful way, or just damaged/changed count
 			//if it was really changed we always need to set it, whether we have finite resources or not
 			$newReplica = clone $oldHeldItem;
@@ -1994,7 +2022,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				if($newHeldItem instanceof Durable && $newHeldItem->isBroken()){
 					$this->broadcastSound(new ItemBreakSound());
 				}
-				$this->inventory->setItemInHand($newHeldItem);
+				$this->setMainHandItem($newHeldItem);
 				$heldItemChanged = true;
 			}
 		}
@@ -2004,7 +2032,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		}
 
 		if($heldItemChanged && count($extraReturnedItems) > 0 && $newHeldItem->isNull()){
-			$this->inventory->setItemInHand(array_shift($extraReturnedItems));
+			$this->setMainHandItem(array_shift($extraReturnedItems));
 		}
 		foreach($this->inventory->addItem(...$extraReturnedItems) as $drop){
 			//TODO: we can't generate a transaction for this since the items aren't coming from an inventory :(
@@ -2026,7 +2054,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 */
 	public function useHeldItem() : bool{
 		$directionVector = $this->getDirectionVector();
-		$item = $this->inventory->getItemInHand();
+		$item = $this->getMainHandItem();
 		if($item instanceof ConsumableItem && $this->awaitingConsumableRelease){
 			return false;
 		}
@@ -2066,7 +2094,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * @return bool if the consumption succeeded.
 	 */
 	public function consumeHeldItem() : bool{
-		$slot = $this->inventory->getItemInHand();
+		$slot = $this->getMainHandItem();
 		if($slot instanceof ConsumableItem){
 			if($this->getItemUseDuration() < $slot->getMinUseDuration()){
 				return false;
@@ -2105,7 +2133,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 */
 	public function releaseHeldItem() : bool{
 		try{
-			$item = $this->inventory->getItemInHand();
+			$item = $this->getMainHandItem();
 			if(!$this->isUsingItem() || $this->hasItemCooldown($item)){
 				return false;
 			}
@@ -2181,21 +2209,21 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	private function equipOrAddPickedItem(int $existingSlot, Item $item) : void{
 		if($existingSlot !== -1){
-			if($existingSlot < $this->inventory->getHotbarSize()){
-				$this->inventory->setHeldItemIndex($existingSlot);
+			if($existingSlot < $this->hotbar->getSize()){
+				$this->hotbar->setSelectedIndex($existingSlot);
 			}else{
-				$this->inventory->swap($this->inventory->getHeldItemIndex(), $existingSlot);
+				$this->inventory->swap($this->hotbar->getSelectedIndex(), $existingSlot);
 			}
 		}else{
 			$firstEmpty = $this->inventory->firstEmpty();
 			if($firstEmpty === -1){ //full inventory
-				$this->inventory->setItemInHand($item);
-			}elseif($firstEmpty < $this->inventory->getHotbarSize()){
+				$this->setMainHandItem($item);
+			}elseif($firstEmpty < $this->hotbar->getSize()){
 				$this->inventory->setItem($firstEmpty, $item);
-				$this->inventory->setHeldItemIndex($firstEmpty);
+				$this->hotbar->setSelectedIndex($firstEmpty);
 			}else{
-				$this->inventory->swap($this->inventory->getHeldItemIndex(), $firstEmpty);
-				$this->inventory->setItemInHand($item);
+				$this->inventory->swap($this->hotbar->getSelectedIndex(), $firstEmpty);
+				$this->setMainHandItem($item);
 			}
 		}
 	}
@@ -2205,14 +2233,14 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 *
 	 * @return bool if an action took place successfully
 	 */
-	public function attackBlock(Vector3 $pos, int $face) : bool{
+	public function attackBlock(Vector3 $pos, Facing $face) : bool{
 		if($pos->distanceSquared($this->location) > 10000){
 			return false; //TODO: maybe this should throw an exception instead?
 		}
 
 		$target = $this->getWorld()->getBlock($pos);
 
-		$ev = new PlayerInteractEvent($this, $this->inventory->getItemInHand(), $target, null, $face, PlayerInteractEvent::LEFT_CLICK_BLOCK);
+		$ev = new PlayerInteractEvent($this, $this->getMainHandItem(), $target, null, $face, PlayerInteractEvent::LEFT_CLICK_BLOCK);
 		if($this->isSpectator()){
 			$ev->cancel();
 		}
@@ -2221,7 +2249,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			return false;
 		}
 		$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
-		if($target->onAttack($this->inventory->getItemInHand(), $face, $this)){
+		if($target->onAttack($this->getMainHandItem(), $face, $this)){
 			return true;
 		}
 
@@ -2239,7 +2267,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		return true;
 	}
 
-	public function continueBreakBlock(Vector3 $pos, int $face) : void{
+	public function continueBreakBlock(Vector3 $pos, Facing $face) : void{
 		if($this->blockBreakHandler !== null && $this->blockBreakHandler->getBlockPos()->distanceSquared($pos) < 0.0001){
 			$this->blockBreakHandler->setTargetedFace($face);
 		}
@@ -2262,12 +2290,12 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if($this->canInteract($pos->add(0.5, 0.5, 0.5), $this->isCreative() ? self::MAX_REACH_DISTANCE_CREATIVE : self::MAX_REACH_DISTANCE_SURVIVAL)){
 			$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
 			$this->stopBreakBlock($pos);
-			$item = $this->inventory->getItemInHand();
+			$item = $this->getMainHandItem();
 			$oldItem = clone $item;
 			$returnedItems = [];
 			if($this->getWorld()->useBreakOn($pos, $item, $this, true, $returnedItems)){
 				$this->returnItemsFromAction($oldItem, $item, $returnedItems);
-				$this->hungerManager->exhaust(0.005, PlayerExhaustEvent::CAUSE_MINING);
+				$this->hungerManager->exhaust(0.005, EntityExhaustEvent::CAUSE_MINING);
 				return true;
 			}
 		}else{
@@ -2282,12 +2310,12 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 *
 	 * @return bool if it did something
 	 */
-	public function interactBlock(Vector3 $pos, int $face, Vector3 $clickOffset) : bool{
+	public function interactBlock(Vector3 $pos, Facing $face, Vector3 $clickOffset) : bool{
 		$this->setUsingItem(false);
 
 		if($this->canInteract($pos->add(0.5, 0.5, 0.5), $this->isCreative() ? self::MAX_REACH_DISTANCE_CREATIVE : self::MAX_REACH_DISTANCE_SURVIVAL)){
 			$this->broadcastAnimation(new ArmSwingAnimation($this), $this->getViewers());
-			$item = $this->inventory->getItemInHand(); //this is a copy of the real item
+			$item = $this->getMainHandItem(); //this is a copy of the real item
 			$oldItem = clone $item;
 			$returnedItems = [];
 			if($this->getWorld()->useItemOn($pos, $item, $face, $clickOffset, $this, true, $returnedItems)){
@@ -2316,7 +2344,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			return false;
 		}
 
-		$heldItem = $this->inventory->getItemInHand();
+		$heldItem = $this->getMainHandItem();
 		$oldItem = clone $heldItem;
 
 		$ev = new EntityDamageByEntityEvent($this, $entity, EntityDamageEvent::CAUSE_ENTITY_ATTACK, $heldItem->getAttackPoints());
@@ -2393,7 +2421,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 			$heldItem->onAttackEntity($entity, $returnedItems);
 			$this->returnItemsFromAction($oldItem, $heldItem, $returnedItems);
 
-			$this->hungerManager->exhaust(0.1, PlayerExhaustEvent::CAUSE_ATTACK);
+			$this->hungerManager->exhaust(0.1, EntityExhaustEvent::CAUSE_ATTACK);
 		}
 
 		return true;
@@ -2405,7 +2433,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * @return bool whether the held item was a spear, even if the jab itself didn't go through (e.g. on cooldown)
 	 */
 	public function jabWithHeldSpear() : bool{
-		$item = $this->inventory->getItemInHand();
+		$item = $this->getMainHandItem();
 		if(!$item instanceof Spear){
 			return false;
 		}
@@ -2446,15 +2474,15 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 		$ev->call();
 
-		$item = $this->inventory->getItemInHand();
+		$item = $this->getMainHandItem();
 		$oldItem = clone $item;
 		if(!$ev->isCancelled()){
 			if($item->onInteractEntity($this, $entity, $clickPos)){
-				if($this->hasFiniteResources() && !$item->equalsExact($oldItem) && $oldItem->equalsExact($this->inventory->getItemInHand())){
+				if($this->hasFiniteResources() && !$item->equalsExact($oldItem) && $oldItem->equalsExact($this->getMainHandItem())){
 					if($item instanceof Durable && $item->isBroken()){
 						$this->broadcastSound(new ItemBreakSound());
 					}
-					$this->inventory->setItemInHand($item);
+					$this->setMainHandItem($item);
 				}
 			}
 			return $entity->onInteract($this, $clickPos);
@@ -2845,7 +2873,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		$this->loadQueue = [];
 
 		$this->removeCurrentWindow();
-		$this->removePermanentInventories();
+		$this->removePermanentWindows();
 
 		$this->perm->getPermissionRecalculationCallbacks()->clear();
 
@@ -2854,15 +2882,13 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 
 	protected function onDispose() : void{
 		$this->disconnect("Player destroyed");
-		$this->cursorInventory->removeAllViewers();
-		$this->craftingGrid->removeAllViewers();
+		$this->cursorInventory->removeAllWindows();
+		$this->craftingGrid->removeAllWindows();
 		parent::onDispose();
 	}
 
 	protected function destroyCycles() : void{
 		$this->networkSession = null;
-		unset($this->cursorInventory);
-		unset($this->craftingGrid);
 		$this->spawnPosition = null;
 		$this->deathPosition = null;
 		$this->blockBreakHandler = null;
@@ -2914,7 +2940,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		}
 
 		$nbt->setInt(self::TAG_GAME_MODE, GameModeIdMap::getInstance()->toId($this->gamemode));
-		$nbt->setLong(self::TAG_FIRST_PLAYED, $this->firstPlayed);
+		$nbt->setLong(self::TAG_FIRST_PLAYED, (int) $this->firstPlayed->format('Uv'));
 		$nbt->setLong(self::TAG_LAST_PLAYED, (int) floor(microtime(true) * 1000));
 
 		return $nbt;
@@ -2942,8 +2968,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				$this->getWorld()->dropItem($this->location, $item);
 			}
 
+			$this->hotbar->setSelectedIndex(0);
 			$clearInventory = fn(Inventory $inventory) => $inventory->setContents(array_filter($inventory->getContents(), fn(Item $item) => $item->keepOnDeath()));
-			$this->inventory->setHeldItemIndex(0);
 			$clearInventory($this->inventory);
 			$clearInventory($this->armorInventory);
 			$clearInventory($this->offHandInventory);
@@ -3050,7 +3076,7 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	protected function applyPostDamageEffects(EntityDamageEvent $source) : void{
 		parent::applyPostDamageEffects($source);
 
-		$this->hungerManager->exhaust(0.1, PlayerExhaustEvent::CAUSE_DAMAGE);
+		$this->hungerManager->exhaust(0.1, EntityExhaustEvent::CAUSE_DAMAGE);
 	}
 
 	public function attack(EntityDamageEvent $source) : void{
@@ -3157,15 +3183,19 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	}
 
 	protected function addDefaultWindows() : void{
-		$this->cursorInventory = new PlayerCursorInventory($this);
-		$this->craftingGrid = new PlayerCraftingInventory($this);
+		$this->cursorInventory = new SimpleInventory(1);
+		$this->craftingGrid = new CraftingGrid(CraftingGrid::SIZE_SMALL);
 
-		$this->addPermanentInventories($this->inventory, $this->armorInventory, $this->cursorInventory, $this->offHandInventory, $this->craftingGrid);
-
-		//TODO: more windows
+		$this->addPermanentWindows([
+			new PlayerInventoryWindow($this, $this->inventory, PlayerInventoryWindow::TYPE_INVENTORY),
+			new PlayerInventoryWindow($this, $this->armorInventory, PlayerInventoryWindow::TYPE_ARMOR),
+			new PlayerInventoryWindow($this, $this->cursorInventory, PlayerInventoryWindow::TYPE_CURSOR),
+			new PlayerInventoryWindow($this, $this->offHandInventory, PlayerInventoryWindow::TYPE_OFFHAND),
+			new PlayerInventoryWindow($this, $this->craftingGrid, PlayerInventoryWindow::TYPE_CRAFTING),
+		]);
 	}
 
-	public function getCursorInventory() : PlayerCursorInventory{
+	public function getCursorInventory() : Inventory{
 		return $this->cursorInventory;
 	}
 
@@ -3196,22 +3226,37 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	 * inventory.
 	 */
 	private function doCloseInventory() : void{
-		$inventories = [$this->craftingGrid, $this->cursorInventory];
-		if($this->currentWindow instanceof TemporaryInventory){
-			$inventories[] = $this->currentWindow;
+		$windowsToClear = [];
+		$mainInventoryWindow = null;
+		foreach($this->permanentWindows as $window){
+			if($window->getType() === PlayerInventoryWindow::TYPE_CRAFTING || $window->getType() === PlayerInventoryWindow::TYPE_CURSOR){
+				$windowsToClear[] = $window;
+			}elseif($window->getType() === PlayerInventoryWindow::TYPE_INVENTORY){
+				$mainInventoryWindow = $window;
+			}
+		}
+		if($mainInventoryWindow === null){
+			//TODO: in the future this might not be the case, if we implement support for the player closing their
+			//inventory window outside the protocol layer
+			//in that case we'd have to create a new ephemeral window here
+			throw new AssumptionFailedError("This should never be null");
+		}
+
+		if($this->currentWindow instanceof TemporaryInventoryWindow){
+			$windowsToClear[] = $this->currentWindow;
 		}
 
 		$builder = new TransactionBuilder();
-		foreach($inventories as $inventory){
-			$contents = $inventory->getContents();
+		foreach($windowsToClear as $window){
+			$contents = $window->getInventory()->getContents();
 
 			if(count($contents) > 0){
-				$drops = $builder->getInventory($this->inventory)->addItem(...$contents);
+				$drops = $builder->getActionBuilder($mainInventoryWindow)->addItem(...$contents);
 				foreach($drops as $drop){
 					$builder->addAction(new DropItemAction($drop));
 				}
 
-				$builder->getInventory($inventory)->clearAll();
+				$builder->getActionBuilder($window)->clearAll();
 			}
 		}
 
@@ -3223,8 +3268,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 				$this->logger->debug("Successfully evacuated items from temporary inventories");
 			}catch(TransactionCancelledException){
 				$this->logger->debug("Plugin cancelled transaction evacuating items from temporary inventories; items will be destroyed");
-				foreach($inventories as $inventory){
-					$inventory->clearAll();
+				foreach($windowsToClear as $window){
+					$window->getInventory()->clearAll();
 				}
 			}catch(TransactionValidationException $e){
 				throw new AssumptionFailedError("This server-generated transaction should never be invalid", 0, $e);
@@ -3235,18 +3280,21 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 	/**
 	 * Returns the inventory the player is currently viewing. This might be a chest, furnace, or any other container.
 	 */
-	public function getCurrentWindow() : ?Inventory{
+	public function getCurrentWindow() : ?InventoryWindow{
 		return $this->currentWindow;
 	}
 
 	/**
 	 * Opens an inventory window to the player. Returns if it was successful.
 	 */
-	public function setCurrentWindow(Inventory $inventory) : bool{
-		if($inventory === $this->currentWindow){
+	public function setCurrentWindow(InventoryWindow $window) : bool{
+		if($window === $this->currentWindow){
 			return true;
 		}
-		$ev = new InventoryOpenEvent($inventory, $this);
+		if($window->getViewer() !== $this){
+			throw new \InvalidArgumentException("Cannot reuse InventoryWindow instances, please create a new one for each player");
+		}
+		$ev = new InventoryOpenEvent($window, $this);
 		$ev->call();
 		if($ev->isCancelled()){
 			return false;
@@ -3257,10 +3305,10 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		if(($inventoryManager = $this->getNetworkSession()->getInvManager()) === null){
 			throw new \InvalidArgumentException("Player cannot open inventories in this state");
 		}
-		$this->logger->debug("Opening inventory " . get_class($inventory) . "#" . spl_object_id($inventory));
-		$inventoryManager->onCurrentWindowChange($inventory);
-		$inventory->onOpen($this);
-		$this->currentWindow = $inventory;
+		$this->logger->debug("Opening inventory window " . get_class($window) . "#" . spl_object_id($window));
+		$inventoryManager->onCurrentWindowChange($window);
+		$window->onOpen();
+		$this->currentWindow = $window;
 		return true;
 	}
 
@@ -3268,8 +3316,8 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		$this->doCloseInventory();
 		if($this->currentWindow !== null){
 			$currentWindow = $this->currentWindow;
-			$this->logger->debug("Closing inventory " . get_class($this->currentWindow) . "#" . spl_object_id($this->currentWindow));
-			$this->currentWindow->onClose($this);
+			$this->logger->debug("Closing inventory window " . get_class($this->currentWindow) . "#" . spl_object_id($this->currentWindow));
+			$this->currentWindow->onClose();
 			if(($inventoryManager = $this->getNetworkSession()->getInvManager()) !== null){
 				$inventoryManager->onCurrentWindowRemove();
 			}
@@ -3278,18 +3326,29 @@ class Player extends Human implements CommandSender, ChunkListener, IPlayer, Nev
 		}
 	}
 
-	protected function addPermanentInventories(Inventory ...$inventories) : void{
-		foreach($inventories as $inventory){
-			$inventory->onOpen($this);
-			$this->permanentWindows[spl_object_id($inventory)] = $inventory;
+	/**
+	 * @param PlayerInventoryWindow[] $windows
+	 */
+	protected function addPermanentWindows(array $windows) : void{
+		foreach($windows as $window){
+			$window->onOpen();
+			$this->permanentWindows[spl_object_id($window)] = $window;
 		}
 	}
 
-	protected function removePermanentInventories() : void{
-		foreach($this->permanentWindows as $inventory){
-			$inventory->onClose($this);
+	protected function removePermanentWindows() : void{
+		foreach($this->permanentWindows as $window){
+			$window->onClose();
 		}
 		$this->permanentWindows = [];
+	}
+
+	/**
+	 * @return PlayerInventoryWindow[]
+	 * @internal
+	 */
+	public function getPermanentWindows() : array{
+		return $this->permanentWindows;
 	}
 
 	/**

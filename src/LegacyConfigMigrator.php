@@ -89,20 +89,42 @@ final class LegacyConfigMigrator{
 	}
 
 	/**
+	 * Returns the settings from the bundled altay.yml, for filling in whatever is missing from the real one.
+	 *
+	 * @return mixed[]
+	 */
+	public static function getDefaults() : array{
+		return self::parseBundledConfig(self::readBundledConfig());
+	}
+
+	private static function readBundledConfig() : string{
+		$content = Filesystem::fileGetContents(Path::join(\pocketmine\RESOURCE_PATH, self::ALTAY_YML));
+		if(VersionInfo::IS_DEVELOPMENT_BUILD){
+			$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
+		}
+		return $content;
+	}
+
+	/**
+	 * @return mixed[]
+	 */
+	private static function parseBundledConfig(string $content) : array{
+		$defaults = ErrorToExceptionHandler::trap(fn() => yaml_parse($content));
+		if(!is_array($defaults)){
+			throw new AssumptionFailedError("Bundled " . self::ALTAY_YML . " should be a map");
+		}
+		return $defaults;
+	}
+
+	/**
 	 * Returns the content for a new altay.yml: the bundled default with any settings from the old files on top.
 	 * The comments from the default file are kept.
 	 *
 	 * @throws \RuntimeException if one of the old files can't be read
 	 */
 	public static function createConfig(string $dataPath) : string{
-		$content = Filesystem::fileGetContents(Path::join(\pocketmine\RESOURCE_PATH, self::ALTAY_YML));
-		if(VersionInfo::IS_DEVELOPMENT_BUILD){
-			$content = str_replace("preferred-channel: stable", "preferred-channel: beta", $content);
-		}
-		$defaults = ErrorToExceptionHandler::trap(fn() => yaml_parse($content));
-		if(!is_array($defaults)){
-			throw new AssumptionFailedError("Bundled " . self::ALTAY_YML . " should be a map");
-		}
+		$content = self::readBundledConfig();
+		$defaults = self::parseBundledConfig($content);
 		$editor = new YamlEditor($content);
 
 		//pocketmine.yml first, server.properties used to win over it for the language

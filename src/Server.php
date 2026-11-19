@@ -825,7 +825,7 @@ class Server {
 				}
 			}
 
-			$this->configGroup = new ServerConfigGroup(new Config($altayYmlPath, Config::YAML, []));
+			$this->configGroup = new ServerConfigGroup(new Config($altayYmlPath, Config::YAML, []), LegacyConfigMigrator::getDefaults());
 
 			$debugLogLevel = $this->configGroup->getPropertyInt(Yml::DEBUG_LEVEL, 1);
 			if($this->logger instanceof MainLogger){

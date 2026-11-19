@@ -27,6 +27,7 @@ namespace pocketmine;
 
 use pocketmine\errorhandler\ErrorToExceptionHandler;
 use pocketmine\utils\Config;
+use pocketmine\utils\ConfigLoadException;
 use pocketmine\utils\Filesystem;
 use pocketmine\utils\Utils;
 use pocketmine\utils\YamlEditor;
@@ -34,6 +35,7 @@ use function array_key_exists;
 use function count;
 use function explode;
 use function getopt;
+use function is_array;
 use function is_bool;
 use function is_int;
 use function is_string;
@@ -55,8 +57,12 @@ final class ServerConfigGroup{
 	 */
 	private array $changedPaths = [];
 
+	/**
+	 * @param mixed[] $defaults the bundled altay.yml, used for getConfig*() settings missing from the file
+	 */
 	public function __construct(
-		private Config $altayYml
+		private Config $altayYml,
+		private array $defaults = []
 	){}
 
 	public function getProperty(string $variable, mixed $defaultValue = null) : mixed{
@@ -85,8 +91,9 @@ final class ServerConfigGroup{
 	}
 
 	/**
-	 * The getConfig*() family takes the old server.properties key names (see {@link ServerProperties}), which are
-	 * still what --key=value command line overrides use for these settings.
+	 * The getConfig*() family takes the old server.properties key names (see {@link ServerProperties}). Command line
+	 * overrides work with both the old flat name (--motd=...) and the altay.yml path (--server.motd=...).
+	 * Settings missing from altay.yml fall back to the bundled default, then to the given one.
 	 */
 	private function getConfigValue(string $variable, mixed $defaultValue) : mixed{
 		$v = getopt("", ["$variable::"]);
@@ -94,7 +101,8 @@ final class ServerConfigGroup{
 			return $v[$variable];
 		}
 
-		return $this->altayYml->getNested(ServerProperties::toPath($variable)) ?? $defaultValue;
+		$path = ServerProperties::toPath($variable);
+		return $this->getProperty($path) ?? self::getNestedValue($this->defaults, $path) ?? $defaultValue;
 	}
 
 	private function setConfigValue(string $variable, mixed $value) : void{
@@ -158,17 +166,54 @@ final class ServerConfigGroup{
 			}
 			$content = $editor->getText();
 
-			//the editor only handles plain block maps, so don't trust it blindly with a hand edited file
+			//the editor only handles plain block maps, so make sure our changes came out right. anything else may have
+			//been edited by hand while the server was running, so leave that alone
 			$parsed = ErrorToExceptionHandler::trap(fn() => yaml_parse(Config::fixYAMLIndexes($content)));
-			if($parsed !== $this->altayYml->getAll()){
-				throw new \InvalidArgumentException("Edited config doesn't match what's in memory");
+			if(!is_array($parsed)){
+				throw new \InvalidArgumentException("Edited config is not a map");
+			}
+			foreach(Utils::stringifyKeys($this->changedPaths) as $path => $_){
+				if(self::getNestedValue($parsed, $path) !== $this->altayYml->getNested($path)){
+					throw new \InvalidArgumentException("Edited config has the wrong value for $path");
+				}
 			}
 			Filesystem::safeFilePutContents($file, $content);
 			$this->altayYml->setChanged(false);
 		}catch(\InvalidArgumentException|\RuntimeException|\ErrorException){
-			//losing the comments is a shame, but losing the change would be worse
-			$this->altayYml->save();
+			$this->saveWithoutComments($file);
 		}
 		$this->changedPaths = [];
+	}
+
+	/**
+	 * Re-emits the file from scratch with our changes applied on top of what's on disk. Comments are lost, but
+	 * hand edits made while the server was running are kept unless the file can't be read anymore.
+	 */
+	private function saveWithoutComments(string $file) : void{
+		try{
+			$onDisk = new Config($file, Config::YAML);
+		}catch(ConfigLoadException){
+			//it's broken anyway, losing the change would be worse
+			$this->altayYml->save();
+			return;
+		}
+		foreach(Utils::stringifyKeys($this->changedPaths) as $path => $_){
+			$onDisk->setNested($path, $this->altayYml->getNested($path));
+		}
+		$onDisk->save();
+		$this->altayYml->setChanged(false);
+	}
+
+	/**
+	 * @param mixed[] $data
+	 */
+	private static function getNestedValue(array $data, string $path) : mixed{
+		foreach(explode(".", $path, limit: PHP_INT_MAX) as $key){
+			if(!is_array($data) || !array_key_exists($key, $data)){
+				return null;
+			}
+			$data = $data[$key];
+		}
+		return $data;
 	}
 }

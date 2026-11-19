@@ -937,12 +937,7 @@ class Block{
 	final public function getCollisionBoxes() : array{
 		if($this->collisionBoxes === null){
 			$this->collisionShape = null;
-			$this->collisionBoxes = $this->recalculateCollisionBoxes();
-			$extraOffset = $this->getModelPositionOffset();
-			$offset = $extraOffset !== null ? $this->position->addVector($extraOffset) : $this->position;
-			foreach($this->collisionBoxes as $bb){
-				$bb->offset($offset->x, $offset->y, $offset->z);
-			}
+			$this->collisionBoxes = $this->offsetCollisionBoxes($this->recalculateCollisionBoxes());
 		}
 
 		return $this->collisionBoxes;
@@ -953,18 +948,43 @@ class Block{
 	 * position offset applied. Useful for checking face coverage or comparing shapes across blocks.
 	 */
 	final public function getCollisionShape() : VoxelShape{
-		$this->getCollisionBoxes();
-		return $this->collisionShape ??= $this->recalculateCollisionShape();
+		if($this->collisionBoxes === null || $this->collisionShape === null){
+			//shape has to be built before the boxes get offset in place
+			$boxes = $this->recalculateCollisionBoxes();
+			$this->collisionShape = $this->recalculateCollisionShape($boxes);
+			$this->collisionBoxes = $this->offsetCollisionBoxes($boxes);
+		}
+
+		return $this->collisionShape;
 	}
 
 	/**
-	 * Builds the block-local collision shape. By default this is just the union of the collision boxes, so blocks
-	 * only overriding recalculateCollisionBoxes() get a matching shape for free.
+	 * Builds the block-local collision shape from the block-local collision boxes. By default this is just their
+	 * union, so blocks only overriding recalculateCollisionBoxes() get a matching shape for free.
 	 *
 	 * Heads up, overriding this alone does not change getCollisionBoxes(), and movement still runs on the boxes.
+	 *
+	 * @param AxisAlignedBB[] $collisionBoxes
+	 * @phpstan-param list<AxisAlignedBB> $collisionBoxes
 	 */
-	protected function recalculateCollisionShape() : VoxelShape{
-		return VoxelShape::fromBoxes(...$this->recalculateCollisionBoxes());
+	protected function recalculateCollisionShape(array $collisionBoxes) : VoxelShape{
+		return VoxelShape::fromBoxes(...$collisionBoxes);
+	}
+
+	/**
+	 * @param AxisAlignedBB[] $boxes
+	 * @phpstan-param list<AxisAlignedBB> $boxes
+	 *
+	 * @return AxisAlignedBB[]
+	 * @phpstan-return list<AxisAlignedBB>
+	 */
+	private function offsetCollisionBoxes(array $boxes) : array{
+		$extraOffset = $this->getModelPositionOffset();
+		$offset = $extraOffset !== null ? $this->position->addVector($extraOffset) : $this->position;
+		foreach($boxes as $bb){
+			$bb->offset($offset->x, $offset->y, $offset->z);
+		}
+		return $boxes;
 	}
 
 	/**

@@ -17,7 +17,7 @@ jobs:
       - name: Setup PHP
         uses: altayofficial/setup-php-action@altay-1.0.0
         with:
-          php-version: "8.1"
+          php-version: "8.4"
           install-path: "./bin"
           pm-version-major: "5"
 
@@ -30,7 +30,7 @@ jobs:
           path: |
             ~/.cache/composer/files
             ~/.cache/composer/vcs
-          key: "composer-v2-cache-8.1-${{ hashFiles('./composer.lock') }}"
+          key: "composer-v2-cache-8.4-${{ hashFiles('./composer.lock') }}"
           restore-keys: |
             composer-v2-cache-
 
@@ -51,7 +51,7 @@ jobs:
       - name: Setup PHP
         uses: altayofficial/setup-php-action@altay-1.0.0
         with:
-          php-version: "8.1"
+          php-version: "8.4"
           install-path: "./bin"
           pm-version-major: "5"
 
@@ -64,7 +64,7 @@ jobs:
           path: |
             ~/.cache/composer/files
             ~/.cache/composer/vcs
-          key: "composer-v2-cache-8.1-${{ hashFiles('./composer.lock') }}"
+          key: "composer-v2-cache-8.4-${{ hashFiles('./composer.lock') }}"
           restore-keys: |
             composer-v2-cache-
 

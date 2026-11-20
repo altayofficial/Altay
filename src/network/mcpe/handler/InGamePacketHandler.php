@@ -646,7 +646,7 @@ class InGamePacketHandler extends PacketHandler{
 		$this->player->selectHotbarSlot($data->getHotbarSlot());
 
 		$target = $this->player->getWorld()->getEntity($data->getActorRuntimeId());
-		if($target === null || $target->isFlaggedForDespawn()){
+		if($target === null || $target->isFlaggedForDespawn() || !$target->isAlive()){
 			if($data->getActorRuntimeId() !== $this->player->getId()){
 				if($data->getActionType() === UseItemOnEntityTransactionData::ACTION_ATTACK){
 					$this->player->missSwing();

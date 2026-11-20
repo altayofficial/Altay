@@ -447,16 +447,16 @@
         },
         {
             "name": "altayofficial/network",
-            "version": "1.6.3",
+            "version": "1.6.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/Network.git",
-                "reference": "1a34de5bc517d921cdc8538cb1bb31c347cbe65a"
+                "reference": "69c139e81265b14630115f6895dee690d0208fa7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/Network/zipball/1a34de5bc517d921cdc8538cb1bb31c347cbe65a",
-                "reference": "1a34de5bc517d921cdc8538cb1bb31c347cbe65a",
+                "url": "https://api.github.com/repos/altayofficial/Network/zipball/69c139e81265b14630115f6895dee690d0208fa7",
+                "reference": "69c139e81265b14630115f6895dee690d0208fa7",
                 "shasum": ""
             },
             "require": {
@@ -470,7 +470,7 @@
                 "react/event-loop": "^1.5"
             },
             "require-dev": {
-                "altayofficial/webrtc": "^1.9.3",
+                "altayofficial/webrtc": "^1.9.4",
                 "phpstan/phpstan": "^2.0",
                 "phpunit/phpunit": "^10.5",
                 "react/http": "^1.11"
@@ -492,10 +492,10 @@
             "description": "Central network library for Altay family written in PHP",
             "support": {
                 "issues": "https://github.com/altayofficial/Network/issues",
-                "source": "https://github.com/altayofficial/Network/tree/1.6.3"
+                "source": "https://github.com/altayofficial/Network/tree/1.6.4"
             },
-            "time": "2026-11-19T10:40:20+00:00",
-            "published-time": "2026-11-19T10:40:26+00:00"
+            "time": "2026-11-20T12:37:31+00:00",
+            "published-time": "2026-11-20T12:37:54+00:00"
         },
         {
             "name": "altayofficial/snooze",
@@ -543,16 +543,16 @@
         },
         {
             "name": "altayofficial/webrtc",
-            "version": "1.9.3",
+            "version": "1.9.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/webrtc.git",
-                "reference": "03a74cec6923ce97b906aaf83a61710fc93c66ea"
+                "reference": "7557af09c497fc5f361601b59084dcf36dd53d6b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/03a74cec6923ce97b906aaf83a61710fc93c66ea",
-                "reference": "03a74cec6923ce97b906aaf83a61710fc93c66ea",
+                "url": "https://api.github.com/repos/altayofficial/webrtc/zipball/7557af09c497fc5f361601b59084dcf36dd53d6b",
+                "reference": "7557af09c497fc5f361601b59084dcf36dd53d6b",
                 "shasum": ""
             },
             "require": {
@@ -615,10 +615,10 @@
             "description": "A WebRTC library designed special for Altay family",
             "support": {
                 "issues": "https://github.com/altayofficial/webrtc/issues",
-                "source": "https://github.com/altayofficial/webrtc/tree/1.9.3"
+                "source": "https://github.com/altayofficial/webrtc/tree/1.9.4"
             },
-            "time": "2026-11-15T21:40:08+00:00",
-            "published-time": "2026-11-15T22:08:38+00:00"
+            "time": "2026-11-20T12:34:59+00:00",
+            "published-time": "2026-11-20T12:37:08+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",
@@ -752,7 +752,8 @@
                 "issues": "https://github.com/igorw/evenement/issues",
                 "source": "https://github.com/igorw/evenement/tree/v3.0.2"
             },
-            "time": "2023-08-08T05:53:35+00:00"
+            "time": "2023-08-08T05:53:35+00:00",
+            "published-time": "2023-08-08T08:34:49+00:00"
         },
         {
             "name": "fig/http-message-util",
@@ -1014,7 +1015,8 @@
             "support": {
                 "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
-            "time": "2024-09-11T13:17:53+00:00"
+            "time": "2024-09-11T13:17:53+00:00",
+            "published-time": "2024-09-11T13:21:14+00:00"
         },
         {
             "name": "ramsey/collection",
@@ -1243,7 +1245,8 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2024-06-04T14:40:02+00:00"
+            "time": "2024-06-04T14:40:02+00:00",
+            "published-time": "2024-06-04T14:42:16+00:00"
         },
         {
             "name": "react/cache",
@@ -1315,7 +1318,8 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2022-11-30T15:59:55+00:00"
+            "time": "2022-11-30T15:59:55+00:00",
+            "published-time": "2022-11-30T16:03:35+00:00"
         },
         {
             "name": "react/datagram",
@@ -1396,7 +1400,8 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2024-09-06T11:22:35+00:00"
+            "time": "2024-09-06T11:22:35+00:00",
+            "published-time": "2024-09-06T11:49:15+00:00"
         },
         {
             "name": "react/dns",
@@ -1472,7 +1477,8 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2025-11-18T19:34:28+00:00"
+            "time": "2025-11-18T19:34:28+00:00",
+            "published-time": "2025-11-18T19:35:06+00:00"
         },
         {
             "name": "react/event-loop",
@@ -1544,7 +1550,8 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2025-11-17T20:46:25+00:00"
+            "time": "2025-11-17T20:46:25+00:00",
+            "published-time": "2025-11-17T20:47:32+00:00"
         },
         {
             "name": "react/http",
@@ -1708,7 +1715,8 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2025-08-19T18:57:03+00:00"
+            "time": "2025-08-19T18:57:03+00:00",
+            "published-time": "2025-08-19T19:13:36+00:00"
         },
         {
             "name": "react/socket",
@@ -1788,7 +1796,8 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2025-11-19T20:47:34+00:00"
+            "time": "2025-11-19T20:47:34+00:00",
+            "published-time": "2025-11-19T20:48:23+00:00"
         },
         {
             "name": "react/stream",
@@ -1866,7 +1875,8 @@
                     "type": "open_collective"
                 }
             ],
-            "time": "2024-06-11T12:45:25+00:00"
+            "time": "2024-06-11T12:45:25+00:00",
+            "published-time": "2024-06-11T12:48:34+00:00"
         },
         {
             "name": "symfony/filesystem",
@@ -2016,7 +2026,8 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-23T22:01:09+00:00"
+            "time": "2026-09-23T22:01:09+00:00",
+            "published-time": "2026-09-30T10:23:33+00:00"
         }
     ],
     "packages-dev": [

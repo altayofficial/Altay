@@ -93,6 +93,15 @@ class LevelDB extends BaseWorldProvider implements WritableWorldProvider{
 
 	protected \LevelDB $db;
 
+	/**
+	 * Encoded palette entries by state ID. A state always serializes to the same bytes, and encoding the NBT is most
+	 * of what saving a chunk costs.
+	 *
+	 * @var string[]
+	 * @phpstan-var array<int, string>
+	 */
+	private array $paletteEntryCache = [];
+
 	private static function checkForLevelDBExtension() : void{
 		if(!extension_loaded('leveldb')){
 			throw new UnsupportedWorldFormatException("The leveldb PHP extension is required to use this world format");
@@ -258,12 +267,12 @@ class LevelDB extends BaseWorldProvider implements WritableWorldProvider{
 		if($blocks->getBitsPerBlock() !== 0){
 			$stream->putLInt(count($palette));
 		}
-		$tags = [];
+		$serializedPalette = "";
 		foreach($palette as $p){
-			$tags[] = new TreeRoot($this->blockStateSerializer->serialize($p)->toNbt());
+			$serializedPalette .= $this->paletteEntryCache[$p] ??= (new LittleEndianNbtSerializer())->write(new TreeRoot($this->blockStateSerializer->serialize($p)->toNbt()));
 		}
 
-		$stream->put((new LittleEndianNbtSerializer())->writeMultiple($tags));
+		$stream->put($serializedPalette);
 	}
 
 	/**

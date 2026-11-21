@@ -26,11 +26,15 @@ declare(strict_types=1);
 namespace pocketmine\world\format\io\leveldb;
 
 use PHPUnit\Framework\TestCase;
+use pocketmine\block\VanillaBlocks;
+use pocketmine\data\bedrock\BiomeIds;
 use pocketmine\utils\Binary;
 use pocketmine\utils\Filesystem;
 use pocketmine\VersionInfo;
 use pocketmine\world\format\Chunk;
 use pocketmine\world\format\io\ChunkData;
+use pocketmine\world\format\PalettedBlockArray;
+use pocketmine\world\format\SubChunk;
 use pocketmine\world\WorldCreationOptions;
 use Symfony\Component\Filesystem\Path;
 use function bin2hex;
@@ -70,5 +74,31 @@ class LevelDBTest extends TestCase{
 		$currentDataVersion = $db->get($key);
 		self::assertIsString($currentDataVersion);
 		self::assertSame(VersionInfo::WORLD_DATA_VERSION, Binary::readLLong($currentDataVersion));
+	}
+
+	public function testSubChunkPalettesSurviveRepeatedSaves() : void{
+		$air = VanillaBlocks::AIR()->getStateId();
+		$stone = VanillaBlocks::STONE()->getStateId();
+		$dirt = VanillaBlocks::DIRT()->getStateId();
+		$blocks = new PalettedBlockArray($air);
+		$blocks->set(0, 0, 0, $stone);
+		$blocks->set(1, 2, 3, $dirt);
+		$chunk = new Chunk([], true);
+		$chunk->setSubChunk(0, new SubChunk($air, [$blocks], new PalettedBlockArray(BiomeIds::PLAINS)));
+		$chunkData = new ChunkData($chunk->getSubChunks(), true, [], []);
+
+		//the second save encodes the palette from the cache, it has to write the same bytes
+		$this->provider->saveChunk(0, 0, $chunkData, Chunk::DIRTY_FLAGS_ALL);
+		$key = LevelDB::chunkIndex(0, 0) . ChunkDataKey::SUBCHUNK . "\x00";
+		$first = $this->provider->getDatabase()->get($key);
+		$this->provider->saveChunk(0, 0, $chunkData, Chunk::DIRTY_FLAGS_ALL);
+		self::assertSame($first, $this->provider->getDatabase()->get($key));
+
+		$loaded = $this->provider->loadChunk(0, 0);
+		self::assertNotNull($loaded);
+		$loadedBlocks = $loaded->getData()->getSubChunks()[0]->getBlockLayers()[0];
+		self::assertSame($stone, $loadedBlocks->get(0, 0, 0));
+		self::assertSame($dirt, $loadedBlocks->get(1, 2, 3));
+		self::assertSame($air, $loadedBlocks->get(5, 5, 5));
 	}
 }

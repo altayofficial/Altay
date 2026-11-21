@@ -112,6 +112,7 @@ use pocketmine\world\particle\BlockBreakParticle;
 use pocketmine\world\particle\Particle;
 use pocketmine\world\sound\BlockPlaceSound;
 use pocketmine\world\sound\Sound;
+use pocketmine\world\utils\PackedBlockOffsets;
 use pocketmine\world\utils\SubChunkExplorer;
 use pocketmine\YmlServerProperties;
 use Symfony\Component\Filesystem\Path;
@@ -1518,6 +1519,36 @@ class World implements ChunkManager{
 	}
 
 	/**
+	 * Keeps the random tick positions of a sub chunk in sync with a single block change, so that grass spreading or
+	 * someone digging doesn't cost a rescan of the whole sub chunk on the next tick.
+	 *
+	 * @phpstan-param ChunkPosHash $chunkHash
+	 */
+	private function updateRandomTickablePosition(int $chunkHash, Chunk $chunk, int $localX, int $y, int $localZ, int $oldStateId) : void{
+		$wasTicking = isset($this->randomTickBlocks[$oldStateId]);
+		if($wasTicking === isset($this->randomTickBlocks[$chunk->getBlockStateId($localX, $y, $localZ)])){
+			return;
+		}
+		$subY = $y >> SubChunk::COORD_BIT_SIZE;
+		if(isset($this->staleRandomTickableSubChunks[$chunkHash][$subY])){
+			return;
+		}
+		$positions = $this->randomTickableSubChunks[$chunkHash][$subY] ?? "";
+		if($positions === null){
+			//every block used to tick, the scan will figure out what's left
+			$this->staleRandomTickableSubChunks[$chunkHash][$subY] = true;
+			return;
+		}
+		$offset = ($localX << 8) | ($localZ << 4) | ($y & SubChunk::COORD_MASK);
+		$positions = $wasTicking ? PackedBlockOffsets::remove($positions, $offset) : PackedBlockOffsets::add($positions, $offset);
+		if($positions === ""){
+			unset($this->randomTickableSubChunks[$chunkHash][$subY]);
+		}else{
+			$this->randomTickableSubChunks[$chunkHash][$subY] = $positions;
+		}
+	}
+
+	/**
 	 * Brings the random tick positions of a chunk up to date, rescanning only the sub chunks that changed.
 	 *
 	 * @return (string|null)[]
@@ -2279,7 +2310,7 @@ class World implements ChunkManager{
 		}
 		$chunkX = $x >> Chunk::COORD_BIT_SIZE;
 		$chunkZ = $z >> Chunk::COORD_BIT_SIZE;
-		if($this->loadChunk($chunkX, $chunkZ) === null){ //current expected behaviour is to try to load the terrain synchronously
+		if(($chunk = $this->loadChunk($chunkX, $chunkZ)) === null){ //current expected behaviour is to try to load the terrain synchronously
 			throw new WorldException("Cannot set a block in un-generated terrain");
 		}
 
@@ -2298,6 +2329,9 @@ class World implements ChunkManager{
 
 		$block = clone $block;
 
+		$localX = $x & Chunk::COORD_MASK;
+		$localZ = $z & Chunk::COORD_MASK;
+		$oldStateId = $chunk->getBlockStateId($localX, $y, $localZ);
 		$block->position($this, $x, $y, $z);
 		$block->writeStateToWorld();
 		$pos = new Vector3($x, $y, $z);
@@ -2309,7 +2343,7 @@ class World implements ChunkManager{
 		$this->blockCacheSize--;
 		unset($this->blockCollisionBoxCache[$chunkHash][$relativeBlockHash]);
 		if(isset($this->randomTickableSubChunks[$chunkHash])){
-			$this->staleRandomTickableSubChunks[$chunkHash][$y >> SubChunk::COORD_BIT_SIZE] = true;
+			$this->updateRandomTickablePosition($chunkHash, $chunk, $localX, $y, $localZ, $oldStateId);
 		}
 		//blocks like fences have collision boxes that reach into neighbouring blocks, so we need to invalidate the
 		//caches for those blocks as well. Nothing to do when nobody has asked for collision boxes yet, which is the

@@ -400,7 +400,7 @@ class WorldManager{
 					$player->save();
 				}
 			}
-			$world->save(false);
+			$world->queueAutoSave();
 		}
 	}
 }

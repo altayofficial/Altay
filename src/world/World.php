@@ -130,6 +130,7 @@ use function count;
 use function floor;
 use function get_class;
 use function gettype;
+use function hrtime;
 use function intdiv;
 use function is_a;
 use function is_object;
@@ -188,6 +189,9 @@ class World implements ChunkManager{
 	private const BLOCK_CACHE_SIZE_CAP = 2048;
 
 	public const DEFAULT_CHUNK_UNLOAD_DELAY = 120;
+
+	/** Time each tick may spend writing chunks left over by an autosave */
+	private const AUTOSAVE_TICK_BUDGET_NS = 4_000_000;
 
 	/**
 	 * @var Player[] entity runtime ID => Player
@@ -352,6 +356,13 @@ class World implements ChunkManager{
 	 */
 	private array $chunkLock = [];
 	private int $maxConcurrentChunkPopulationTasks = 2;
+	/**
+	 * Chunks the last autosave hasn't written yet, see queueAutoSave()
+	 *
+	 * @var true[]
+	 * @phpstan-var array<ChunkPosHash, true>
+	 */
+	private array $autoSaveQueue = [];
 	/** Seconds an unused chunk waits in the unload queue */
 	private int $chunkUnloadDelay = self::DEFAULT_CHUNK_UNLOAD_DELAY;
 	/**
@@ -1013,6 +1024,7 @@ class World implements ChunkManager{
 		}
 
 		$this->unloadChunks();
+		$this->saveQueuedChunks();
 		if(++$this->providerGarbageCollectionTicker >= 6000){
 			$this->provider->doGarbageCollection();
 			$this->providerGarbageCollectionTicker = 0;
@@ -1659,19 +1671,72 @@ class World implements ChunkManager{
 		$this->timings->syncChunkSave->startTiming();
 		try{
 			foreach($this->chunks as $chunkHash => $chunk){
-				self::getXZ($chunkHash, $chunkX, $chunkZ);
-				$this->provider->saveChunk($chunkX, $chunkZ, new ChunkData(
-					$chunk->getSubChunks(),
-					$chunk->isPopulated(),
-					array_map(fn(Entity $e) => $e->saveNBT(), array_values(array_filter($this->getChunkEntities($chunkX, $chunkZ), fn(Entity $e) => $e->canSaveWithChunk()))),
-					array_map(fn(Tile $t) => $t->saveNBT(), array_values($chunk->getTiles())),
-				), $this->getChunkSaveDirtyFlags($chunkHash, $chunk));
-				$this->saveChunkLight($chunkHash, $chunkX, $chunkZ, $chunk);
-				$chunk->clearTerrainDirtyFlags();
+				$this->writeChunk($chunkHash, $chunk);
+			}
+			$this->autoSaveQueue = [];
+		}finally{
+			$this->timings->syncChunkSave->stopTiming();
+		}
+	}
+
+	/**
+	 * Saves the world data right away and leaves the loaded chunks to be written over the next ticks, a few
+	 * milliseconds' worth per tick. Writing every chunk in one go freezes a busy server for seconds, which is a
+	 * lot to pay for something that only matters if it crashes.
+	 *
+	 * @internal
+	 */
+	public function queueAutoSave() : bool{
+		if(!$this->getAutoSave()){
+			return false;
+		}
+
+		(new WorldSaveEvent($this))->call();
+
+		$this->provider->getWorldData()->setTime($this->time);
+		$this->provider->getWorldData()->save();
+		foreach($this->chunks as $chunkHash => $_){
+			$this->autoSaveQueue[$chunkHash] = true;
+		}
+
+		return true;
+	}
+
+	private function saveQueuedChunks() : void{
+		if(count($this->autoSaveQueue) === 0){
+			return;
+		}
+		$this->timings->syncChunkSave->startTiming();
+		try{
+			$deadline = hrtime(true) + self::AUTOSAVE_TICK_BUDGET_NS;
+			foreach($this->autoSaveQueue as $chunkHash => $_){
+				unset($this->autoSaveQueue[$chunkHash]);
+				$chunk = $this->chunks[$chunkHash] ?? null;
+				if($chunk !== null){
+					$this->writeChunk($chunkHash, $chunk);
+				}
+				if(hrtime(true) >= $deadline){
+					break;
+				}
 			}
 		}finally{
 			$this->timings->syncChunkSave->stopTiming();
 		}
+	}
+
+	/**
+	 * @phpstan-param ChunkPosHash $chunkHash
+	 */
+	private function writeChunk(int $chunkHash, Chunk $chunk) : void{
+		self::getXZ($chunkHash, $chunkX, $chunkZ);
+		$this->provider->saveChunk($chunkX, $chunkZ, new ChunkData(
+			$chunk->getSubChunks(),
+			$chunk->isPopulated(),
+			array_map(fn(Entity $e) => $e->saveNBT(), array_values(array_filter($this->getChunkEntities($chunkX, $chunkZ), fn(Entity $e) => $e->canSaveWithChunk()))),
+			array_map(fn(Tile $t) => $t->saveNBT(), array_values($chunk->getTiles())),
+		), $this->getChunkSaveDirtyFlags($chunkHash, $chunk));
+		$this->saveChunkLight($chunkHash, $chunkX, $chunkZ, $chunk);
+		$chunk->clearTerrainDirtyFlags();
 	}
 
 	private function saveChunkLight(int $chunkHash, int $chunkX, int $chunkZ, Chunk $chunk) : void{
@@ -3529,16 +3594,10 @@ class World implements ChunkManager{
 			if($trySave && $this->getAutoSave()){
 				$this->timings->syncChunkSave->startTiming();
 				try{
-					$this->provider->saveChunk($x, $z, new ChunkData(
-						$chunk->getSubChunks(),
-						$chunk->isPopulated(),
-						array_map(fn(Entity $e) => $e->saveNBT(), array_values(array_filter($this->getChunkEntities($x, $z), fn(Entity $e) => $e->canSaveWithChunk()))),
-						array_map(fn(Tile $t) => $t->saveNBT(), array_values($chunk->getTiles())),
-					), $this->getChunkSaveDirtyFlags($chunkHash, $chunk));
+					$this->writeChunk($chunkHash, $chunk);
 				}finally{
 					$this->timings->syncChunkSave->stopTiming();
 				}
-				$this->saveChunkLight($chunkHash, $x, $z, $chunk);
 			}
 
 			foreach($this->getChunkListeners($x, $z) as $listener){
@@ -3557,7 +3616,7 @@ class World implements ChunkManager{
 		}
 		unset($this->staleLightChunks[$chunkHash], $this->storedTerrain[$chunkHash]);
 
-		unset($this->chunks[$chunkHash]);
+		unset($this->chunks[$chunkHash], $this->autoSaveQueue[$chunkHash]);
 		unset($this->legacyDerivedStateChunks[$chunkHash]);
 		unset($this->randomTickableSubChunks[$chunkHash], $this->staleRandomTickableSubChunks[$chunkHash]);
 		$this->blockCacheSize -= count($this->blockCache[$chunkHash] ?? []);

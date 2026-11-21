@@ -30,6 +30,7 @@ use function gc_collect_cycles;
 use function gc_disable;
 use function gc_status;
 use function hrtime;
+use function intdiv;
 use function max;
 use function min;
 use function number_format;
@@ -42,8 +43,7 @@ use function sprintf;
  * The GC trigger behaviour in this class was adapted from Zend/zend_gc.c as of PHP 8.3.14.
  */
 final class GarbageCollectorManager{
-	//TODO: These values could be adjusted to better suit PM, but for now we just want to mirror PHP GC to minimize
-	//behavioural changes.
+	//TODO: these values could be adjusted to better suit PM
 	private const GC_THRESHOLD_TRIGGER = 100;
 	private const GC_THRESHOLD_MAX = 1_000_000_000;
 	private const GC_THRESHOLD_DEFAULT = 10_001;
@@ -66,14 +66,13 @@ final class GarbageCollectorManager{
 	}
 
 	private function adjustGcThreshold(int $cyclesCollected, int $rootsAfterGC) : void{
-		//TODO Very simple heuristic for dynamic GC buffer resizing:
-		//If there are "too few" collections, increase the collection threshold
-		//by a fixed step
-		//Adapted from zend_gc.c/gc_adjust_threshold() as of PHP 8.3.14
+		//PHP grows the threshold by a fixed step, but a run walks everything reachable from the roots, which on a
+		//server with lots of chunks loaded is most of the heap. With a fixed step we end up walking a multi-GB heap
+		//every few seconds for nothing, so grow it geometrically when a run doesn't find anything worth the effort
 		if($cyclesCollected < self::GC_THRESHOLD_TRIGGER || $rootsAfterGC >= $this->threshold){
-			$this->threshold = min(self::GC_THRESHOLD_MAX, $this->threshold + self::GC_THRESHOLD_STEP);
+			$this->threshold = min(self::GC_THRESHOLD_MAX, max($this->threshold + self::GC_THRESHOLD_STEP, $this->threshold * 2));
 		}elseif($this->threshold > self::GC_THRESHOLD_DEFAULT){
-			$this->threshold = max(self::GC_THRESHOLD_DEFAULT, $this->threshold - self::GC_THRESHOLD_STEP);
+			$this->threshold = max(self::GC_THRESHOLD_DEFAULT, intdiv($this->threshold, 2));
 		}
 	}
 

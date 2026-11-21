@@ -1545,7 +1545,8 @@ class World implements ChunkManager{
 		if(isset($this->staleRandomTickableSubChunks[$chunkHash][$subY])){
 			return;
 		}
-		$positions = $this->randomTickableSubChunks[$chunkHash][$subY] ?? "";
+		//?? would treat null the same as a missing entry, but null means the whole sub chunk ticks
+		$positions = array_key_exists($subY, $this->randomTickableSubChunks[$chunkHash]) ? $this->randomTickableSubChunks[$chunkHash][$subY] : "";
 		if($positions === null){
 			//every block used to tick, the scan will figure out what's left
 			$this->staleRandomTickableSubChunks[$chunkHash][$subY] = true;

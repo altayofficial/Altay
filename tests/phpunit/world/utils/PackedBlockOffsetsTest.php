@@ -39,7 +39,9 @@ final class PackedBlockOffsetsTest extends TestCase{
 	 * @phpstan-return list<int>
 	 */
 	private static function unpackSorted(string $list) : array{
-		$offsets = $list === "" ? [] : array_values(unpack("v*", $list) ?: []);
+		$unpacked = $list === "" ? [] : unpack("v*", $list);
+		self::assertIsArray($unpacked);
+		$offsets = array_values($unpacked);
 		sort($offsets);
 		return $offsets;
 	}

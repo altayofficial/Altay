@@ -50,26 +50,36 @@ final class NetworkBroadcastUtils{
 		//without the closure Timings::time() would need
 		Timings::$broadcastPackets->startTiming();
 		try{
-			/** @phpstan-var array<int, PacketBroadcaster> $uniqueBroadcasters */
-			$uniqueBroadcasters = [];
-			/** @phpstan-var array<int, array<int, NetworkSession>> $broadcasterTargets */
-			$broadcasterTargets = [];
+			//nearly every session uses the server's broadcaster, so that group skips the id bookkeeping the rest need
+			$firstBroadcaster = null;
+			/** @phpstan-var array<int, NetworkSession> $firstTargets */
+			$firstTargets = [];
+			/** @phpstan-var array<int, PacketBroadcaster> $otherBroadcasters */
+			$otherBroadcasters = [];
+			/** @phpstan-var array<int, array<int, NetworkSession>> $otherTargets */
+			$otherTargets = [];
 			foreach($recipients as $player){
 				$session = $player->getConnectedNetworkSession();
 				if($session === null){
 					continue;
 				}
 				$broadcaster = $session->getBroadcaster();
-				$broadcasterId = spl_object_id($broadcaster);
-				$uniqueBroadcasters[$broadcasterId] = $broadcaster;
-				$broadcasterTargets[$broadcasterId][spl_object_id($session)] = $session;
+				if($broadcaster === $firstBroadcaster || $firstBroadcaster === null){
+					$firstBroadcaster = $broadcaster;
+					$firstTargets[spl_object_id($session)] = $session;
+				}else{
+					$broadcasterId = spl_object_id($broadcaster);
+					$otherBroadcasters[$broadcasterId] = $broadcaster;
+					$otherTargets[$broadcasterId][spl_object_id($session)] = $session;
+				}
 			}
-			if(count($uniqueBroadcasters) === 0){
+			if($firstBroadcaster === null){
 				return false;
 			}
 
-			foreach($uniqueBroadcasters as $broadcasterId => $broadcaster){
-				$broadcaster->broadcastPackets($broadcasterTargets[$broadcasterId], $packets);
+			$firstBroadcaster->broadcastPackets($firstTargets, $packets);
+			foreach($otherBroadcasters as $broadcasterId => $broadcaster){
+				$broadcaster->broadcastPackets($otherTargets[$broadcasterId], $packets);
 			}
 
 			return true;

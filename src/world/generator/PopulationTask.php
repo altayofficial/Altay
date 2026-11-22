@@ -31,6 +31,7 @@ use pocketmine\world\format\Chunk;
 use pocketmine\world\format\io\FastChunkSerializer;
 use pocketmine\world\generator\executor\ThreadLocalGeneratorContext;
 use function array_map;
+use function count;
 use function igbinary_serialize;
 use function igbinary_unserialize;
 
@@ -45,6 +46,15 @@ use function igbinary_unserialize;
  */
 class PopulationTask extends AsyncTask{
 	private const TLS_KEY_ON_COMPLETION = "onCompletion";
+
+	private const MAX_REMEMBERED_CHUNKS = 2048;
+
+	/**
+	 * @var \WeakReference[] chunks holding on to their serialized terrain, oldest first
+	 * @phpstan-var array<int, \WeakReference<Chunk>>
+	 */
+	private static array $rememberedChunks = [];
+	private static int $nextRememberedChunkId = 0;
 
 	private ?string $chunk;
 
@@ -63,14 +73,38 @@ class PopulationTask extends AsyncTask{
 		array $adjacentChunks,
 		\Closure $onCompletion
 	){
-		$this->chunk = $chunk !== null ? FastChunkSerializer::serializeTerrain($chunk) : null;
+		$this->chunk = $chunk !== null ? self::serializeTerrain($chunk) : null;
 
 		$this->adjacentChunks = igbinary_serialize(array_map(
-			fn(?Chunk $c) => $c !== null ? FastChunkSerializer::serializeTerrain($c) : null,
+			fn(?Chunk $c) => $c !== null ? self::serializeTerrain($c) : null,
 			$adjacentChunks
 		)) ?? throw new AssumptionFailedError("igbinary_serialize() returned null");
 
 		$this->storeLocal(self::TLS_KEY_ON_COMPLETION, $onCompletion);
+	}
+
+	/**
+	 * Every chunk is sent along with each of its 8 neighbours, so most of the time it's the same terrain as last
+	 * time.
+	 */
+	private static function serializeTerrain(Chunk $chunk) : string{
+		$serialized = $chunk->getSerializedTerrain();
+		if($serialized === null){
+			$serialized = FastChunkSerializer::serializeTerrain($chunk);
+			self::rememberTerrain($chunk, $serialized);
+		}
+		return $serialized;
+	}
+
+	private static function rememberTerrain(Chunk $chunk, string $serialized) : void{
+		$chunk->setSerializedTerrain($serialized);
+		self::$rememberedChunks[self::$nextRememberedChunkId++] = \WeakReference::create($chunk);
+		if(count(self::$rememberedChunks) > self::MAX_REMEMBERED_CHUNKS){
+			//these are tens of kilobytes each, we can't have every loaded chunk keeping one
+			$oldest = self::$nextRememberedChunkId - count(self::$rememberedChunks);
+			self::$rememberedChunks[$oldest]->get()?->setSerializedTerrain(null);
+			unset(self::$rememberedChunks[$oldest]);
+		}
 	}
 
 	public function onRun() : void{
@@ -127,6 +161,7 @@ class PopulationTask extends AsyncTask{
 		$chunk = $this->chunk !== null ?
 			FastChunkSerializer::deserializeTerrain($this->chunk) :
 			throw new AssumptionFailedError("Center chunk should never be null");
+		self::rememberTerrain($chunk, $this->chunk);
 
 		/**
 		 * @var string[]|null[] $serialAdjacentChunks
@@ -137,6 +172,7 @@ class PopulationTask extends AsyncTask{
 		foreach($serialAdjacentChunks as $relativeChunkHash => $c){
 			if($c !== null){
 				$adjacentChunks[$relativeChunkHash] = FastChunkSerializer::deserializeTerrain($c);
+				self::rememberTerrain($adjacentChunks[$relativeChunkHash], $c);
 			}
 		}
 

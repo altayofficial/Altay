@@ -51,6 +51,8 @@ class Chunk{
 
 	private int $terrainDirtyFlags = self::DIRTY_FLAGS_ALL;
 
+	private ?string $serializedTerrain = null;
+
 	protected ?bool $lightPopulated = false;
 	protected bool $terrainPopulated = false;
 
@@ -111,6 +113,7 @@ class Chunk{
 	public function setBlockStateId(int $x, int $y, int $z, int $block) : void{
 		$this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->setBlockStateId($x, $y & SubChunk::COORD_MASK, $z, $block);
 		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BLOCKS;
+		$this->serializedTerrain = null;
 	}
 
 	/**
@@ -178,6 +181,7 @@ class Chunk{
 	public function setBiomeId(int $x, int $y, int $z, int $biomeId) : void{
 		$this->getSubChunk($y >> SubChunk::COORD_BIT_SIZE)->getBiomeArray()->set($x, $y, $z, $biomeId);
 		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BIOMES;
+		$this->serializedTerrain = null;
 	}
 
 	public function isLightPopulated() : ?bool{
@@ -195,6 +199,7 @@ class Chunk{
 	public function setPopulated(bool $value = true) : void{
 		$this->terrainPopulated = $value;
 		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BLOCKS;
+		$this->serializedTerrain = null;
 	}
 
 	public function addTile(Tile $tile) : void{
@@ -273,6 +278,7 @@ class Chunk{
 	public function setTerrainDirtyFlag(int $flag, bool $value) : void{
 		if($value){
 			$this->terrainDirtyFlags |= $flag;
+			$this->serializedTerrain = null;
 		}else{
 			$this->terrainDirtyFlags &= ~$flag;
 		}
@@ -280,6 +286,23 @@ class Chunk{
 
 	public function setTerrainDirty() : void{
 		$this->terrainDirtyFlags = self::DIRTY_FLAGS_ALL;
+		$this->serializedTerrain = null;
+	}
+
+	/**
+	 * Returns the terrain as it was last serialized for another thread, or null if it has changed since.
+	 *
+	 * @internal
+	 */
+	public function getSerializedTerrain() : ?string{
+		return $this->serializedTerrain;
+	}
+
+	/**
+	 * @internal
+	 */
+	public function setSerializedTerrain(?string $serializedTerrain) : void{
+		$this->serializedTerrain = $serializedTerrain;
 	}
 
 	public function clearTerrainDirtyFlags() : void{
@@ -303,6 +326,7 @@ class Chunk{
 
 		$this->subChunks[$y - self::MIN_SUBCHUNK_INDEX] = $subChunk ?? new SubChunk(Block::EMPTY_STATE_ID, [], new PalettedBlockArray(BiomeIds::OCEAN));
 		$this->terrainDirtyFlags |= self::DIRTY_FLAG_BLOCKS;
+		$this->serializedTerrain = null;
 	}
 
 	/**

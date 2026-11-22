@@ -3028,7 +3028,10 @@ class World implements ChunkManager{
 		unset($this->blockCache[$chunkHash]);
 		unset($this->blockCollisionBoxCache[$chunkHash]);
 		unset($this->changedBlocks[$chunkHash]);
+		//this is only about saving, the terrain is the same as it was a moment ago
+		$serializedTerrain = $chunk->getSerializedTerrain();
 		$chunk->setTerrainDirty();
+		$chunk->setSerializedTerrain($serializedTerrain);
 		$this->markTickingChunkForRecheck($chunkX, $chunkZ); //this replacement chunk may not meet the conditions for ticking
 		$this->deriveLegacyBlockStatesAround($chunkX, $chunkZ);
 

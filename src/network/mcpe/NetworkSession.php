@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace pocketmine\network\mcpe;
 
+use altay\netqueue\PacketQueue;
 use pmmp\encoding\ByteBufferReader;
 use pmmp\encoding\ByteBufferWriter;
 use pmmp\encoding\DataDecodeException;
@@ -199,11 +200,7 @@ class NetworkSession{
 	private ?CompoundTag $cachedOfflinePlayerData = null;
 
 
-	/**
-	 * @var string[]
-	 * @phpstan-var list<string>
-	 */
-	private array $sendBuffer = [];
+	private PacketQueue $sendQueue;
 	/**
 	 * @var PromiseResolver[]
 	 * @phpstan-var list<PromiseResolver<true>>
@@ -265,6 +262,7 @@ class NetworkSession{
 		$this->logger = new \PrefixedLogger($this->server->getLogger(), $this->getLogPrefix());
 
 		$this->compressedQueue = new \SplQueue();
+		$this->sendQueue = new PacketQueue();
 
 		$this->disposeHooks = new ObjectSet();
 
@@ -698,11 +696,21 @@ class NetworkSession{
 	 * @internal
 	 */
 	public function addToSendBuffer(string $buffer) : void{
-		$this->sendBuffer[] = $buffer;
+		$this->sendQueue->add($buffer);
+	}
+
+	/**
+	 * Game packets waiting for the next flush. Broadcasters can append to lots of these at once with
+	 * PacketQueue::addToAll().
+	 *
+	 * @internal
+	 */
+	public function getSendQueue() : PacketQueue{
+		return $this->sendQueue;
 	}
 
 	private function flushGamePacketQueue() : void{
-		if(count($this->sendBuffer) > 0){
+		if(count($this->sendQueue) > 0){
 			Timings::$playerNetworkSend->startTiming();
 			try{
 				$syncMode = null; //automatic
@@ -710,15 +718,10 @@ class NetworkSession{
 					$syncMode = false;
 				}
 
-				$stream = new ByteBufferWriter();
-				PacketBatch::encodeRaw($stream, $this->sendBuffer);
-
+				$batch = $this->sendQueue->take();
 				if($this->enableCompression){
-					$batch = $this->server->prepareBatch($stream->getData(), $this->compressor, $syncMode, Timings::$playerNetworkSendCompressSessionBuffer);
-				}else{
-					$batch = $stream->getData();
+					$batch = $this->server->prepareBatch($batch, $this->compressor, $syncMode, Timings::$playerNetworkSendCompressSessionBuffer);
 				}
-				$this->sendBuffer = [];
 				$ackPromises = $this->sendBufferAckPromises;
 				$this->sendBufferAckPromises = [];
 				//these packets were already potentially buffered for up to 50ms - make sure the transport layer doesn't

@@ -1,0 +1,29 @@
+<?php
+
+namespace altay\netqueue;
+
+final class PacketQueue implements \Countable{
+	public function __construct(){}
+
+	public function add(string $packet) : void{}
+
+	/**
+	 * @param PacketQueue[] $queues
+	 * @param string[]      $packets
+	 */
+	public static function addToAll(array $queues, array $packets) : void{}
+
+	/**
+	 * @return int<0, max>
+	 */
+	public function count() : int{}
+
+	/**
+	 * @return int<0, max>
+	 */
+	public function getByteLength() : int{}
+
+	public function take() : string{}
+
+	public function clear() : void{}
+}

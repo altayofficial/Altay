@@ -50,6 +50,7 @@ parameters:
 		- tests/phpstan/stubs/chunkutils2.stub
 		- tests/phpstan/stubs/JsonMapper.stub
 		- tests/phpstan/stubs/leveldb.stub
+		- tests/phpstan/stubs/netqueue.stub
 		- tests/phpstan/stubs/pmmpthread.stub
 	reportUnmatchedIgnoredErrors: false #no other way to silence platform-specific non-warnings
 	typeAliases:

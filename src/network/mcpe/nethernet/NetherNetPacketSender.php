@@ -23,29 +23,28 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\transport;
+namespace pocketmine\network\mcpe\nethernet;
 
-use altay\network\transport\TransportSession;
 use pocketmine\network\mcpe\PacketSender;
 
-class TransportPacketSender implements PacketSender{
+class NetherNetPacketSender implements PacketSender{
 	private bool $closed = false;
 
 	public function __construct(
-		private TransportSession $session,
-		private TransportNetworkInterface $handler
+		private int $sessionId,
+		private NetherNetInterface $handler
 	){}
 
 	public function send(string $payload, bool $immediate, ?int $receiptId) : void{
 		if(!$this->closed){
-			$this->session->sendPacket($payload, $immediate, $receiptId);
+			$this->handler->sendPacket($this->sessionId, $payload, $immediate, $receiptId);
 		}
 	}
 
 	public function close(string $reason = "unknown reason") : void{
 		if(!$this->closed){
 			$this->closed = true;
-			$this->handler->close($this->session->getId());
+			$this->handler->close($this->sessionId);
 		}
 	}
 }

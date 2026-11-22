@@ -64,10 +64,9 @@ use pocketmine\network\mcpe\NetworkSession;
 use pocketmine\network\mcpe\PacketBroadcaster;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
 use pocketmine\network\mcpe\protocol\types\CompressionAlgorithm;
-use altay\network\nethernet\NetherNetTransport;
-use pocketmine\network\mcpe\transport\NetherNetTransportFactory;
-use pocketmine\network\mcpe\transport\ThreadedTransport;
-use pocketmine\network\mcpe\transport\TransportNetworkInterface;
+use altay\netherlib\NetherNetServer;
+use pocketmine\network\mcpe\nethernet\NetherNetInterface;
+use pocketmine\network\mcpe\nethernet\NetherNetServerFactory;
 use pocketmine\network\mcpe\StandardEntityEventBroadcaster;
 use pocketmine\network\mcpe\StandardPacketBroadcaster;
 use pocketmine\network\Network;
@@ -228,6 +227,8 @@ class Server {
 	private static ?Server $instance = null;
 
 	private TimeTrackingSleeperHandler $tickSleeper;
+	/** The UDP port NetherNet's media uses, once its interface was set up */
+	private ?int $netherNetMediaPort = null;
 
 	private BanList $banByName;
 
@@ -1441,7 +1442,6 @@ class Server {
 		TypeConverter $typeConverter
 	) : bool{
 		$prettyIp = $ipV6 ? "[$ip]" : $ip;
-		$queryOnMediaPort = false;
 		try{
 			//NetherNet discovery uses a single broadcast socket, so the IPv6 pass has no transport to start
 			if(!$ipV6){
@@ -1459,18 +1459,24 @@ class Server {
 					$ipv6Endpoint = "[" . trim($this->getIpV6(), "[]") . "]:$ipv6SignallingPort";
 				}
 				[$udpPort, $udpPortRequired] = $this->getNetherNetUdpPort($port);
-				//query rides on the media port when they are the same one, binding it twice would fail
-				$queryOnMediaPort = $udpPort === $port;
-				$transport = new ThreadedTransport(
+				if($useQuery && $udpPort === $port && !$udpPortRequired){
+					//libdatachannel owns the media socket and drops anything that isn't WebRTC, so the two can't share it.
+					//nobody picked this port for the media, so query keeps it
+					$this->logger->info("Query holds udp/$port, so NetherNet gives every player a UDP port of its own. Set " . Yml::NETWORK_NETHERNET_UDP_PORT . " to give it a fixed one, which is the one to forward behind a firewall.");
+					$udpPort = null;
+				}
+				$this->netherNetMediaPort = $udpPort;
+				$interface = new NetherNetInterface(
+					$this,
 					$this->logger,
-					new NetherNetTransportFactory(
+					new NetherNetServerFactory(
 						Binary::readLLong(substr(hash("sha256", $this->getServerUniqueId()->getBytes(), true), 0, 8)),
 						$this->getMotd(),
 						//the second line of the server card
 						$this->getSubMotd(),
 						$this->getMaxPlayers(),
 						$ip,
-						NetherNetTransport::DISCOVERY_PORT,
+						NetherNetServer::DISCOVERY_PORT,
 						$this->getOnlineMode(),
 						$signallingPort,
 						Path::join($this->dataPath, "identity.key"),
@@ -1489,15 +1495,17 @@ class Server {
 						$this->getNetherNetLimit(Yml::NETWORK_NETHERNET_MAX_PENDING_NEGOTIATIONS, 64),
 						$this->getNetherNetLimit(Yml::NETWORK_NETHERNET_MAX_NEGOTIATIONS_PER_ADDRESS, 32),
 						$this->configGroup->getPropertyBool(Yml::NETWORK_NETHERNET_VERBOSE_LOGGING, false),
-						$this->getNetherNetLimit(Yml::NETWORK_NETHERNET_HANDSHAKE_TIMEOUT, NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT),
+						$this->getNetherNetLimit(Yml::NETWORK_NETHERNET_HANDSHAKE_TIMEOUT, NetherNetServer::DEFAULT_HANDSHAKE_TIMEOUT),
 						$udpPort,
 						$udpPortRequired,
 						$ipv6Endpoint
 					),
-					$this->tickSleeper
+					$packetBroadcaster,
+					$entityEventBroadcaster,
+					$typeConverter
 				);
-				if($this->network->registerInterface(new TransportNetworkInterface($this, $transport, $packetBroadcaster, $entityEventBroadcaster, $typeConverter))){
-					$this->logger->info("NetherNet network interface running on $ip:" . NetherNetTransport::DISCOVERY_PORT . ", signalling on $ip:$signallingPort" . ($ipv6Endpoint !== null ? " and $ipv6Endpoint" : ""));
+				if($this->network->registerInterface($interface)){
+					$this->logger->info("NetherNet network interface running on $ip:" . NetherNetServer::DISCOVERY_PORT . ", signalling on $ip:$signallingPort" . ($ipv6Endpoint !== null ? " and $ipv6Endpoint" : ""));
 				}
 			}
 		}catch(NetworkInterfaceStartException $e){
@@ -1509,10 +1517,13 @@ class Server {
 			return false;
 		}
 		if($useQuery){
-			if(!$queryOnMediaPort){
+			//only an explicitly configured media port gets here, see above
+			if($this->netherNetMediaPort === $port){
+				$this->logger->warning("Query will not start on $prettyIp:$port: Query and NetherNet each need their own UDP port, and " . Yml::NETWORK_NETHERNET_UDP_PORT . " puts NetherNet's media on $port. Set it to a different port, or turn off enable-query.");
+			}else{
 				$this->network->registerInterface(new DedicatedQueryNetworkInterface($ip, $port, $ipV6, new \PrefixedLogger($this->logger, "Dedicated Query Interface")));
+				$this->logger->info($this->language->translate(KnownTranslationFactory::pocketmine_server_query_running($prettyIp, (string) $port)));
 			}
-			$this->logger->info($this->language->translate(KnownTranslationFactory::pocketmine_server_query_running($prettyIp, (string) $port)));
 		}
 		return true;
 	}

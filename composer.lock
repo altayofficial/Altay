@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9422d06dc8d08910bfb22994f9b28f05",
+    "content-hash": "8e1117d351f10169b8f15650e8b44cb8",
     "packages": [
         {
             "name": "adhocore/json-comment",
@@ -274,16 +274,16 @@
         },
         {
             "name": "altayofficial/netherlib",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/altayofficial/NetherLib.git",
-                "reference": "8908b384b3d656a131ad811ba5b3f445a140d1fe"
+                "reference": "98ce35038bc2bc6c82f1ec1517ed5d29e81b1f84"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/altayofficial/NetherLib/zipball/8908b384b3d656a131ad811ba5b3f445a140d1fe",
-                "reference": "8908b384b3d656a131ad811ba5b3f445a140d1fe",
+                "url": "https://api.github.com/repos/altayofficial/NetherLib/zipball/98ce35038bc2bc6c82f1ec1517ed5d29e81b1f84",
+                "reference": "98ce35038bc2bc6c82f1ec1517ed5d29e81b1f84",
                 "shasum": ""
             },
             "require": {
@@ -326,10 +326,10 @@
             ],
             "description": "NetherNet server and client for Minecraft: Bedrock Edition, written in PHP",
             "support": {
-                "source": "https://github.com/altayofficial/NetherLib/tree/1.0.0",
+                "source": "https://github.com/altayofficial/NetherLib/tree/1.1.0",
                 "issues": "https://github.com/altayofficial/NetherLib/issues"
             },
-            "time": "2026-11-22T19:46:57+00:00"
+            "time": "2026-11-23T17:44:06+00:00"
         },
         {
             "name": "altayofficial/worldupgraderschemas",

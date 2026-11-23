@@ -21,16 +21,13 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\transport;
+namespace pocketmine\network\mcpe\nethernet;
 
-use altay\network\transport\AddressBlockingTransport;
-use altay\network\transport\NameableTransport;
-use altay\network\transport\RawPacketTransport;
-use altay\network\transport\Transport;
-use altay\network\transport\TransportException;
-use altay\network\transport\TransportListener;
-use altay\network\transport\TransportSession;
-use altay\network\transport\TunableTransport;
+use altay\netherlib\ipc\NetherLibToUserThreadMessageReceiver;
+use altay\netherlib\ipc\UserToNetherLibThreadMessageSender;
+use altay\netherlib\NetherNetException;
+use altay\netherlib\ServerListener;
+use pmmp\thread\ThreadSafeArray;
 use pocketmine\lang\KnownTranslationFactory;
 use pocketmine\network\AdvancedNetworkInterface;
 use pocketmine\network\mcpe\compression\ZlibCompressor;
@@ -45,34 +42,69 @@ use pocketmine\network\NetworkInterfaceStartException;
 use pocketmine\network\PacketHandlingException;
 use pocketmine\player\GameMode;
 use pocketmine\Server;
+use pocketmine\snooze\SleeperHandlerEntry;
+use pocketmine\thread\log\ThreadSafeLogger;
+use pocketmine\thread\ThreadCrashException;
 use pocketmine\utils\Utils;
 use function addcslashes;
 use function implode;
 use function rtrim;
 
-class TransportNetworkInterface implements AdvancedNetworkInterface, TransportListener{
+/**
+ * Runs NetherLib on a thread of its own and turns what it reports into NetworkSessions.
+ */
+class NetherNetInterface implements AdvancedNetworkInterface, ServerListener{
 
 	private Network $network;
 
+	private ?NetherNetServerThread $thread = null;
+	private ?UserToNetherLibThreadMessageSender $commandSender = null;
+	private ?NetherLibToUserThreadMessageReceiver $eventReceiver = null;
+
 	/** @var NetworkSession[] */
 	private array $sessions = [];
-	/** @var TransportSession[] */
-	private array $transportSessions = [];
+
+	private SleeperHandlerEntry $sleeperEntry;
 
 	public function __construct(
 		private Server $server,
-		private Transport $transport,
+		private ThreadSafeLogger $logger,
+		private NetherNetServerFactory $factory,
 		private PacketBroadcaster $packetBroadcaster,
 		private EntityEventBroadcaster $entityEventBroadcaster,
 		private TypeConverter $typeConverter
-	){}
+	){
+		$this->sleeperEntry = $this->server->getTickSleeper()->addNotifier(function() : void{
+			$this->processEvents();
+		});
+	}
 
 	public function start() : void{
+		if($this->thread !== null){
+			throw new \LogicException("NetherNet thread is already running");
+		}
+
+		/** @phpstan-var ThreadSafeArray<int, string> $mainToThreadBuffer */
+		$mainToThreadBuffer = new ThreadSafeArray();
+		/** @phpstan-var ThreadSafeArray<int, string> $threadToMainBuffer */
+		$threadToMainBuffer = new ThreadSafeArray();
+
+		$thread = new NetherNetServerThread(
+			$this->logger,
+			$mainToThreadBuffer,
+			$threadToMainBuffer,
+			$this->factory,
+			$this->sleeperEntry
+		);
 		try{
-			$this->transport->start($this);
-		}catch(TransportException $e){
+			$thread->startAndWait();
+		}catch(NetherNetException | ThreadCrashException $e){
 			throw new NetworkInterfaceStartException($e->getMessage(), 0, $e);
 		}
+
+		$this->thread = $thread;
+		$this->commandSender = new UserToNetherLibThreadMessageSender(new PthreadsChannelWriter($mainToThreadBuffer));
+		$this->eventReceiver = new NetherLibToUserThreadMessageReceiver(new PthreadsChannelReader($threadToMainBuffer));
 	}
 
 	public function setNetwork(Network $network) : void{
@@ -80,36 +112,56 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 	}
 
 	public function tick() : void{
-		$this->transport->tick();
+		if($this->thread !== null && !$this->thread->isRunning()){
+			$e = $this->thread->getCrashInfo();
+			if($e !== null){
+				throw new ThreadCrashException("NetherNet thread crashed", $e);
+			}
+			throw new \RuntimeException("NetherNet thread crashed without crash information");
+		}
+		$this->processEvents();
+	}
+
+	private function processEvents() : void{
+		if($this->eventReceiver !== null){
+			while($this->eventReceiver->handle($this));
+		}
 	}
 
 	public function shutdown() : void{
-		$this->transport->shutdown();
+		if($this->thread !== null){
+			$this->commandSender?->shutdown();
+			$this->thread->quit();
+			$this->thread = null;
+		}
+		$this->server->getTickSleeper()->removeNotifier($this->sleeperEntry->getNotifierId());
+		$this->commandSender = null;
+		$this->eventReceiver = null;
 	}
 
-	public function onSessionOpen(Transport $transport, TransportSession $session) : void{
-		$networkSession = new NetworkSession(
+	public function onSessionOpen(int $sessionId, string $address, int $port, ?string $authenticatedPublicKey) : void{
+		if($this->commandSender === null){
+			return;
+		}
+		$this->sessions[$sessionId] = new NetworkSession(
 			$this->server,
 			$this->network->getSessionManager(),
 			PacketPool::getInstance(),
-			new TransportPacketSender($session, $this),
+			new NetherNetPacketSender($sessionId, $this),
 			$this->packetBroadcaster,
 			$this->entityEventBroadcaster,
 			ZlibCompressor::getInstance(),
 			$this->typeConverter,
-			$session->getAddress(),
-			$session->getPort(),
-			$session->getAuthenticatedPublicKey()
+			$address,
+			$port,
+			$authenticatedPublicKey
 		);
-		$this->sessions[$session->getId()] = $networkSession;
-		$this->transportSessions[$session->getId()] = $session;
 	}
 
-	public function onSessionClose(Transport $transport, TransportSession $session, string $reason) : void{
-		$sessionId = $session->getId();
+	public function onSessionClose(int $sessionId, string $reason) : void{
 		if(isset($this->sessions[$sessionId])){
 			$networkSession = $this->sessions[$sessionId];
-			unset($this->sessions[$sessionId], $this->transportSessions[$sessionId]);
+			unset($this->sessions[$sessionId]);
 			$networkSession->onClientDisconnect(match($reason){
 				"client disconnect" => KnownTranslationFactory::pocketmine_disconnect_clientDisconnect(),
 				"timeout" => KnownTranslationFactory::pocketmine_disconnect_error_timeout(),
@@ -119,16 +171,26 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 		}
 	}
 
-	public function close(int $sessionId) : void{
+	/**
+	 * @internal
+	 */
+	public function sendPacket(int $sessionId, string $payload, bool $immediate, ?int $receiptId) : void{
 		if(isset($this->sessions[$sessionId])){
-			$transportSession = $this->transportSessions[$sessionId];
-			unset($this->sessions[$sessionId], $this->transportSessions[$sessionId]);
-			$transportSession->disconnect();
+			$this->commandSender?->sendPacket($sessionId, $payload, $immediate, $receiptId);
 		}
 	}
 
-	public function onPacketReceive(Transport $transport, TransportSession $session, string $payload) : void{
-		$sessionId = $session->getId();
+	/**
+	 * @internal
+	 */
+	public function close(int $sessionId) : void{
+		if(isset($this->sessions[$sessionId])){
+			unset($this->sessions[$sessionId]);
+			$this->commandSender?->closeSession($sessionId);
+		}
+	}
+
+	public function onPacketReceive(int $sessionId, string $payload) : void{
 		if(isset($this->sessions[$sessionId])){
 			if($payload === ""){
 				return;
@@ -155,57 +217,43 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 		}
 	}
 
-	public function onPacketAck(Transport $transport, TransportSession $session, int $receiptId) : void{
-		if(isset($this->sessions[$session->getId()])){
-			$this->sessions[$session->getId()]->handleAckReceipt($receiptId);
+	public function onPacketAck(int $sessionId, int $receiptId) : void{
+		if(isset($this->sessions[$sessionId])){
+			$this->sessions[$sessionId]->handleAckReceipt($receiptId);
 		}
 	}
 
-	public function onPingUpdate(Transport $transport, TransportSession $session, int $pingMS) : void{
-		if(isset($this->sessions[$session->getId()])){
-			$this->sessions[$session->getId()]->updatePing($pingMS);
+	public function onPingUpdate(int $sessionId, int $pingMS) : void{
+		if(isset($this->sessions[$sessionId])){
+			$this->sessions[$sessionId]->updatePing($pingMS);
 		}
 	}
 
-	public function onRawPacketReceive(Transport $transport, string $address, int $port, string $payload) : void{
-		$this->network->processRawPacket($this, $address, $port, $payload);
-	}
-
-	public function onBandwidthUpdate(Transport $transport, int $bytesSentDiff, int $bytesReceivedDiff) : void{
+	public function onBandwidthUpdate(int $bytesSentDiff, int $bytesReceivedDiff) : void{
 		$this->network->getBandwidthTracker()->add($bytesSentDiff, $bytesReceivedDiff);
 	}
 
 	public function blockAddress(string $address, int $timeout = 300) : void{
-		if($this->transport instanceof AddressBlockingTransport){
-			$this->transport->blockAddress($address, $timeout);
-		}
+		$this->commandSender?->blockAddress($address, $timeout);
 	}
 
 	public function unblockAddress(string $address) : void{
-		if($this->transport instanceof AddressBlockingTransport){
-			$this->transport->unblockAddress($address);
-		}
+		$this->commandSender?->unblockAddress($address);
 	}
 
 	public function sendRawPacket(string $address, int $port, string $payload) : void{
-		if($this->transport instanceof RawPacketTransport){
-			$this->transport->sendRaw($address, $port, $payload);
-		}
+		//NOOP, libdatachannel owns the media socket and nothing else gets to send on it
 	}
 
 	public function addRawPacketFilter(string $regex) : void{
-		if($this->transport instanceof RawPacketTransport){
-			$this->transport->addRawPacketFilter($regex);
-		}
+		//NOOP, see sendRawPacket()
 	}
 
 	public function setName(string $name) : void{
-		if(!($this->transport instanceof NameableTransport)){
-			return;
-		}
 		$info = $this->server->getQueryInformation();
 
-		$this->transport->setName(implode(";",
+		//hmm, NetherNet has no use for most of this, but the server card is still read out of a RakNet style MOTD
+		$this->commandSender?->setName(implode(";",
 			[
 				"MCPE",
 				rtrim(addcslashes($name, ";"), '\\'),
@@ -213,7 +261,7 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 				ProtocolInfo::MINECRAFT_VERSION_NETWORK,
 				$info->getPlayerCount(),
 				$info->getMaxPlayerCount(),
-				$this->transport->getServerId() ?? 0,
+				0,
 				rtrim(addcslashes($this->server->getSubMotd(), ";"), '\\'),
 				match($this->server->getGamemode()){
 					GameMode::SURVIVAL => "Survival",
@@ -222,17 +270,5 @@ class TransportNetworkInterface implements AdvancedNetworkInterface, TransportLi
 				}
 			]) . ";"
 		);
-	}
-
-	public function setPortCheck(bool $name) : void{
-		if($this->transport instanceof TunableTransport){
-			$this->transport->setPortCheck($name);
-		}
-	}
-
-	public function setPacketLimit(int $limit) : void{
-		if($this->transport instanceof TunableTransport){
-			$this->transport->setPacketsPerTickLimit($limit);
-		}
 	}
 }

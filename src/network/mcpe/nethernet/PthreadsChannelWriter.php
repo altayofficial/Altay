@@ -23,18 +23,18 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\transport;
+namespace pocketmine\network\mcpe\nethernet;
 
-use altay\network\ipc\InterThreadChannelReader;
+use altay\netherlib\ipc\InterThreadChannelWriter;
 use pmmp\thread\ThreadSafeArray;
 
-final class PthreadsChannelReader implements InterThreadChannelReader{
+final class PthreadsChannelWriter implements InterThreadChannelWriter{
 	/**
 	 * @phpstan-param ThreadSafeArray<int, string> $buffer
 	 */
 	public function __construct(private ThreadSafeArray $buffer){}
 
-	public function read() : ?string{
-		return $this->buffer->shift();
+	public function write(string $str) : void{
+		$this->buffer[] = $str;
 	}
 }

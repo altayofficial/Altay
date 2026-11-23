@@ -25,11 +25,11 @@ declare(strict_types=1);
 
 namespace pocketmine\tools\ping_server;
 
-use altay\network\nethernet\discovery\DiscoveryCodec;
-use altay\network\nethernet\discovery\DiscoveryRequestPacket;
-use altay\network\nethernet\discovery\DiscoveryResponsePacket;
-use altay\network\nethernet\NetherNetTransport;
-use altay\network\nethernet\ServerData;
+use altay\netherlib\discovery\DiscoveryCodec;
+use altay\netherlib\discovery\DiscoveryRequestPacket;
+use altay\netherlib\discovery\DiscoveryResponsePacket;
+use altay\netherlib\NetherNetServer;
+use altay\netherlib\ServerData;
 use pocketmine\utils\BinaryDataException;
 use pocketmine\utils\Utils;
 use function bin2hex;
@@ -185,7 +185,7 @@ if(count($serverIps) > 1){
 $server = $serverIps[0];
 \GlobalLogger::get()->info("Resolved hostname to $server");
 
-$defaultPort = NetherNetTransport::DISCOVERY_PORT;
+$defaultPort = NetherNetServer::DISCOVERY_PORT;
 
 if(count($argv) > 2){
 	$port = (int) $argv[2];

@@ -21,23 +21,16 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\transport;
+namespace pocketmine\network\mcpe\nethernet;
 
-use altay\network\nethernet\Credentials;
-use altay\network\nethernet\IceServer;
-use altay\network\nethernet\NetherNetTransport;
-use altay\network\nethernet\ServerData;
-use altay\network\nethernet\auth\TokenTrust;
-use altay\network\transport\Transport;
+use altay\netherlib\auth\TokenTrust;
+use altay\netherlib\Credentials;
+use altay\netherlib\IceServer;
+use altay\netherlib\NetherNetServer;
+use altay\netherlib\ServerData;
 use pocketmine\network\mcpe\protocol\ProtocolInfo;
-use function dirname;
-use function file_exists;
-use function getenv;
-use function putenv;
-use const PHP_BINARY;
-use const PHP_OS_FAMILY;
 
-final class NetherNetTransportFactory implements TransportFactory{
+final class NetherNetServerFactory{
 
 	/**
 	 * @param string[] $iceServers
@@ -51,7 +44,7 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private string $levelName,
 		private int $maxPlayerCount,
 		private string $bindAddress = "0.0.0.0",
-		private int $port = NetherNetTransport::DISCOVERY_PORT,
+		private int $port = NetherNetServer::DISCOVERY_PORT,
 		private bool $onlineMode = false,
 		private int $signallingPort = 19132,
 		private ?string $identityKeyPath = null,
@@ -70,15 +63,12 @@ final class NetherNetTransportFactory implements TransportFactory{
 		private int $maxPendingNegotiations = 64,
 		private int $maxNegotiationsPerAddress = 32,
 		private bool $verboseLogging = false,
-		private int $handshakeTimeout = NetherNetTransport::DEFAULT_HANDSHAKE_TIMEOUT,
+		private int $handshakeTimeout = NetherNetServer::DEFAULT_HANDSHAKE_TIMEOUT,
 		private ?int $udpPort = null,
 		private bool $udpPortRequired = true,
 		private ?string $ipv6EndpointAddress = null
 	){}
 
-	public function getName() : string{
-		return "nethernet";
-	}
 
 	public function getNetworkId() : int{
 		return $this->networkId;
@@ -95,8 +85,8 @@ final class NetherNetTransportFactory implements TransportFactory{
 		)]);
 	}
 
-	public function make(\Logger $logger) : Transport{
-		$transport = new NetherNetTransport(
+	public function make(\Logger $logger) : NetherNetServer{
+		$server = new NetherNetServer(
 			$logger,
 			$this->networkId,
 			new ServerData(
@@ -135,12 +125,12 @@ final class NetherNetTransportFactory implements TransportFactory{
 			endpointTokenTrust: $this->requireEndpointIdentity ? TokenTrust::MINECRAFT_AUTH : TokenTrust::ANY,
 			verboseLogging: $this->verboseLogging
 		);
-		$transport->setNegotiationLimits($this->maxPendingNegotiations, $this->maxNegotiationsPerAddress);
-		$transport->setHandshakeTimeout($this->handshakeTimeout);
-		$transport->setUdpPort($this->udpPort, $this->udpPortRequired);
+		$server->setNegotiationLimits($this->maxPendingNegotiations, $this->maxNegotiationsPerAddress);
+		$server->setHandshakeTimeout($this->handshakeTimeout);
+		$server->setUdpPort($this->udpPort, $this->udpPortRequired);
 		if($this->ipv6EndpointAddress !== null){
-			$transport->addEndpointAddress($this->ipv6EndpointAddress);
+			$server->addEndpointAddress($this->ipv6EndpointAddress);
 		}
-		return $transport;
+		return $server;
 	}
 }

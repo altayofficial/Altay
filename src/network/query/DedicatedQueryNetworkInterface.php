@@ -53,8 +53,7 @@ use const SOCKET_EWOULDBLOCK;
 use const SOL_UDP;
 
 /**
- * Answers Query on the server port. Query used to ride on RakNet's socket, but NetherNet does not
- * listen there, so Query always gets a socket of its own.
+ * Answers Query on a socket of its own. It can't share NetherNet's media port, libdatachannel owns that one.
  */
 final class DedicatedQueryNetworkInterface implements AdvancedNetworkInterface{
 	private \Socket $socket;

@@ -23,11 +23,11 @@
 
 declare(strict_types=1);
 
-namespace pocketmine\network\mcpe\transport;
+namespace pocketmine\network\mcpe\nethernet;
 
-use altay\network\ipc\MainToTransportThreadMessageReceiver;
-use altay\network\ipc\TransportToMainThreadMessageSender;
-use altay\network\transport\TransportException;
+use altay\netherlib\ipc\NetherLibToUserThreadMessageSender;
+use altay\netherlib\ipc\UserToNetherLibThreadMessageReceiver;
+use altay\netherlib\NetherNetException;
 use pmmp\thread\Thread as NativeThread;
 use pmmp\thread\ThreadSafeArray;
 use pocketmine\snooze\SleeperHandlerEntry;
@@ -42,13 +42,13 @@ use function ini_set;
 use function intdiv;
 use function usleep;
 
-class TransportThread extends Thread{
+class NetherNetServerThread extends Thread{
 
 	private const TICK_INTERVAL_MICROS = 5000;
 
 	protected bool $ready = false;
 	protected string $mainPath;
-	/** @phpstan-var NonThreadSafeValue<TransportFactory> */
+	/** @phpstan-var NonThreadSafeValue<NetherNetServerFactory> */
 	protected NonThreadSafeValue $factory;
 
 	/**
@@ -59,7 +59,7 @@ class TransportThread extends Thread{
 		protected ThreadSafeLogger $logger,
 		protected ThreadSafeArray $mainToThreadBuffer,
 		protected ThreadSafeArray $threadToMainBuffer,
-		TransportFactory $factory,
+		NetherNetServerFactory $factory,
 		protected SleeperHandlerEntry $sleeperEntry
 	){
 		$this->mainPath = \pocketmine\PATH;
@@ -75,10 +75,10 @@ class TransportThread extends Thread{
 		});
 		$crashInfo = $this->getCrashInfo();
 		if($crashInfo !== null){
-			if($crashInfo->getType() === TransportException::class){
-				throw new TransportException($crashInfo->getMessage());
+			if($crashInfo->getType() === NetherNetException::class){
+				throw new NetherNetException($crashInfo->getMessage());
 			}
-			throw new ThreadCrashException("Transport thread failed to start", $crashInfo);
+			throw new ThreadCrashException("NetherNet thread failed to start", $crashInfo);
 		}
 	}
 
@@ -93,12 +93,12 @@ class TransportThread extends Thread{
 		//refcounting alone. Without this the thread grows by every connection it has ever served.
 		$cycleGcManager = new GarbageCollectorManager($this->logger, null);
 
-		$transport = $this->factory->deserialize()->make($this->logger);
-		$transport->start(new TransportToMainThreadMessageSender(
+		$server = $this->factory->deserialize()->make($this->logger);
+		$server->start(new NetherLibToUserThreadMessageSender(
 			new SnoozeAwarePthreadsChannelWriter($this->threadToMainBuffer, $this->sleeperEntry->createNotifier())
 		));
 
-		$commandReceiver = new MainToTransportThreadMessageReceiver(
+		$commandReceiver = new UserToNetherLibThreadMessageReceiver(
 			new PthreadsChannelReader($this->mainToThreadBuffer)
 		);
 
@@ -107,32 +107,27 @@ class TransportThread extends Thread{
 			$this->notify();
 		});
 
-		//transports that block internally to pace themselves must not be slept on top of, or they lag
-		$selfPacing = $transport->isSelfPacing();
-
 		while(!$this->isKilled && !$commandReceiver->isShutdownRequested()){
 			$start = hrtime(true);
 
-			while($commandReceiver->handle($transport));
+			while($commandReceiver->handle($server));
 			if($commandReceiver->isShutdownRequested()){
 				break;
 			}
-			$transport->tick();
+			$server->tick();
 			$cycleGcManager->maybeCollectCycles();
 
-			if(!$selfPacing){
-				$elapsedMicros = intdiv(hrtime(true) - $start, 1000);
-				if($elapsedMicros < self::TICK_INTERVAL_MICROS){
-					usleep(self::TICK_INTERVAL_MICROS - $elapsedMicros);
-				}
+			$elapsedMicros = intdiv(hrtime(true) - $start, 1000);
+			if($elapsedMicros < self::TICK_INTERVAL_MICROS){
+				usleep(self::TICK_INTERVAL_MICROS - $elapsedMicros);
 			}
 		}
 
-		while($commandReceiver->handle($transport));
-		$transport->shutdown();
+		while($commandReceiver->handle($server));
+		$server->shutdown();
 	}
 
 	public function getThreadName() : string{
-		return "Transport";
+		return "NetherNet";
 	}
 }

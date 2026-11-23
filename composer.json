@@ -3,6 +3,12 @@
    "description": "A server software for Minecraft: Bedrock Edition written in PHP",
    "type": "project",
    "license": "LGPL-3.0",
+   "repositories": [
+      {
+         "type": "vcs",
+         "url": "https://github.com/altayofficial/NetherLib"
+      }
+   ],
    "require": {
       "php": "^8.3",
       "php-64bit": "*",
@@ -10,6 +16,7 @@
       "ext-ctype": "*",
       "ext-curl": "*",
       "ext-date": "*",
+      "ext-datachannel": "^0.1.1",
       "ext-encoding": "~1.0.0",
       "ext-gmp": "*",
       "ext-hash": "*",
@@ -34,8 +41,7 @@
       "altayofficial/bedrock-data": "~6.10.0+bedrock-1.26.60",
       "altayofficial/bedrock-protocol": "~61.1.0+bedrock-1.26.60",
       "altayofficial/nbt": "~1.3.0",
-      "altayofficial/network": "~1.6.1",
-      "altayofficial/webrtc": "^1.9.2",
+      "altayofficial/netherlib": "^1.1.0",
       "altayofficial/worldupgraderschemas": "~1.19.0+bedrock-1.26.60",
       "netresearch/jsonmapper": "~v5.0.0",
       "pocketmine/binaryutils": "^0.2.1",
@@ -46,7 +52,6 @@
       "pocketmine/math": "dev-major-next as 1.0.0",
       "pocketmine/snooze": "^0.5.0",
       "ramsey/uuid": "~4.9.0",
-      "react/http": "^1.11",
       "symfony/filesystem": "~7.4.0"
    },
    "require-dev": {
